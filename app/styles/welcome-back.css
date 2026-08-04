@@ -1,0 +1,261 @@
+/* ══════════════════════════════════════════════════════════════
+            WELCOME BACK — full-screen takeover for returning users
+            ══════════════════════════════════════════════════════════════ */
+#welcomeBackScreen {
+         position: fixed; inset: 0; width: 100%; height: 100vh; height: 100dvh;
+         z-index: 999998;
+         background:
+           radial-gradient(circle at 15% 0%, rgba(163,230,53,0.09), transparent 55%),
+           #06060a;
+         display: none;
+         overflow: hidden;
+         opacity: 0; transition: opacity 0.35s ease;
+         }
+
+#welcomeBackScreen.active { display: block; opacity: 1; }
+
+.wb-orb {
+         position: fixed; top: -120px; right: -100px; width: 380px; height: 380px; border-radius: 50%;
+         background: radial-gradient(circle, rgba(163,230,53,0.14), rgba(163,230,53,0) 70%);
+         filter: blur(6px); pointer-events: none;
+         }
+
+/* ── Shell: full-height column. Only the middle (objectives)
+              section scrolls; the greeting/earned-today header and the
+              CTA button stay pinned so the layout never jumps or gets
+              buried under a long objectives list. ── */
+.wb-shell {
+         position: relative; max-width: 480px; margin: 0 auto;
+         height: 100%; min-height: 100%;
+         display: flex; flex-direction: column;
+         }
+
+.wb-sticky-top {
+         flex-shrink: 0;
+         padding: 30px 20px 4px;
+         }
+
+.wb-sticky-bottom {
+         flex-shrink: 0;
+         padding: 12px 20px calc(16px + env(safe-area-inset-bottom, 0px));
+         background: linear-gradient(to top, #06060a 55%, rgba(6,6,10,0));
+         }
+
+.wb-obj-scroll {
+         flex: 1 1 auto; min-height: 0;
+         overflow-y: auto; -webkit-overflow-scrolling: touch;
+         padding: 0 20px;
+         }
+
+.wb-top { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; margin-bottom: 16px; animation: wb-fade-up .5s ease both; }
+
+.wb-avatar {
+         width: 56px; height: 56px; border-radius: 50%; flex-shrink: 0;
+         background: linear-gradient(155deg, rgba(163,230,53,0.24), rgba(163,230,53,0.06));
+         border: 1.5px solid rgba(163,230,53,0.3);
+         display: flex; align-items: center; justify-content: center;
+         font-size: 22px; font-weight: 800; color: #a3e635;
+         background-size: cover; background-position: center;
+         }
+
+.wb-hello { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.45); }
+
+.wb-name { font-size: 20px; font-weight: 800; color: #fff; letter-spacing: -0.01em; margin-top: 1px; }
+
+.wb-date {
+         font-size: 11px; font-weight: 700; color: rgba(163,230,53,0.85); letter-spacing: 0.04em;
+         text-transform: uppercase; margin-top: 6px;
+         }
+
+@keyframes wb-fade-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+.wb-earn-card {
+         background: linear-gradient(135deg, rgba(163,230,53,0.14), rgba(163,230,53,0.03));
+         border: 1px solid rgba(163,230,53,0.25); border-radius: 18px;
+         padding: 16px 18px 14px; text-align: center; margin-bottom: 20px;
+         animation: wb-fade-up .5s ease .05s both;
+         }
+
+.wb-earn-label { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.05em; }
+
+.wb-earn-amt { font-size: 30px; font-weight: 800; color: #a3e635; margin-top: 4px; font-variant-numeric: tabular-nums; }
+
+.wb-obj-header { margin-bottom: 14px; animation: wb-fade-up .5s ease .1s both; }
+
+.wb-obj-title { font-size: 16px; font-weight: 800; color: #fff; }
+
+.wb-obj-sub { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+
+.wb-obj-list { display: flex; flex-direction: column; gap: 12px; padding-bottom: 4px; }
+
+.wb-skel-obj {
+         height: 84px; border-radius: 16px;
+         background: linear-gradient(100deg, rgba(255,255,255,.03) 30%, rgba(255,255,255,.07) 50%, rgba(255,255,255,.03) 70%);
+         background-size: 200% 100%; animation: boot-shimmer 1.4s ease-in-out infinite;
+         border: 1px solid rgba(255,255,255,.05);
+         }
+
+.wb-obj-card {
+         background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.08);
+         border-radius: 16px; padding: 15px 16px;
+         animation: wb-fade-up .45s ease both;
+         transition: border-color .2s, background .2s;
+         }
+
+.wb-obj-card.is-complete { border-color: rgba(163,230,53,0.35); background: rgba(163,230,53,0.06); }
+
+.wb-obj-card.is-claimed { opacity: 0.72; }
+
+.wb-obj-row1 { display: flex; align-items: flex-start; gap: 12px; }
+
+.wb-obj-icon {
+         width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0;
+         background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.55);
+         display: flex; align-items: center; justify-content: center;
+         transition: background .2s, color .2s;
+         }
+
+.wb-obj-card.is-complete .wb-obj-icon { background: rgba(163,230,53,0.16); color: #a3e635; }
+
+.wb-obj-mid { flex: 1; min-width: 0; }
+
+.wb-obj-label { font-size: 13.5px; font-weight: 700; color: #f5f5fa; }
+
+.wb-obj-desc { font-size: 11.5px; color: rgba(255,255,255,0.4); margin-top: 2px; line-height: 1.4; }
+
+.wb-obj-reward {
+         font-size: 12.5px; font-weight: 800; color: #a3e635; flex-shrink: 0;
+         background: rgba(163,230,53,0.1); border-radius: 10px; padding: 5px 9px;
+         white-space: nowrap;
+         }
+
+.wb-obj-progress-wrap { margin-top: 12px; }
+
+.wb-obj-progress-track { height: 6px; border-radius: 4px; background: rgba(255,255,255,0.07); overflow: hidden; }
+
+.wb-obj-progress-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #84cc16, #a3e635); transition: width .4s ease; }
+
+.wb-obj-progress-text { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.38); margin-top: 6px; text-align: right; }
+
+.wb-obj-claim-btn {
+         width: 100%; margin-top: 12px; background: rgba(163,230,53,0.16); border: 1px solid rgba(163,230,53,0.4);
+         color: #a3e635; font-size: 12.5px; font-weight: 800; border-radius: 10px; padding: 9px;
+         cursor: pointer; font-family: inherit; transition: background .15s;
+         }
+
+.wb-obj-claim-btn:hover { background: rgba(163,230,53,0.26); }
+
+.wb-obj-claim-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.wb-obj-claimed-tag {
+         width: 100%; margin-top: 12px; text-align: center; font-size: 12px; font-weight: 700;
+         color: rgba(163,230,53,0.7); display: flex; align-items: center; justify-content: center; gap: 6px;
+         }
+
+.wb-continue-btn {
+         width: 100%; background: #a3e635; border: none; border-radius: 14px;
+         padding: 15px; font-size: 14.5px; font-weight: 800; color: #0a0a0e;
+         display: flex; align-items: center; justify-content: center; gap: 8px;
+         cursor: pointer; font-family: inherit;
+         box-shadow: 0 10px 30px -8px rgba(163,230,53,0.4);
+         }
+
+.wb-continue-btn:hover { filter: brightness(1.05); }
+
+/* ── Top-right corner CTA: on mobile the bottom sticky CTA is always
+            in reach, so this stays hidden there. From 768px up the shell
+            becomes a centered card (and at ≥1024px a two-pane layout with
+            its own internal scroll regions), where the bottom CTA can end
+            up feeling out of the way — this gives a second, always-visible
+            way out from the top-right regardless of scroll position. ── */
+.wb-corner-close {
+         display: none;
+         }
+
+@media (min-width: 768px) {
+           .wb-corner-close {
+             display: flex; align-items: center; justify-content: center;
+             position: absolute; top: 16px; right: 16px; z-index: 2;
+             width: 34px; height: 34px; border-radius: 50%;
+             background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+             color: rgba(255,255,255,0.7);
+             cursor: pointer; transition: background .15s, color .15s, border-color .15s;
+           }
+           .wb-corner-close:hover {
+             background: rgba(255,255,255,0.12); color: #fff; border-color: rgba(255,255,255,0.2);
+           }
+         }
+
+@media (max-width: 420px) {
+           .wb-name { font-size: 18px; }
+           .wb-earn-amt { font-size: 26px; }
+         }
+
+/* ── Desktop (768–1023px): .wb-shell above is hard-capped at
+            max-width:480px with no larger breakpoint at all, so on a
+            wide viewport it was just that same narrow phone-width column
+            floating in the middle of a huge dark screen. This widens the
+            shell into a proper centered card with its own backdrop
+            treatment once there's room, without touching anything below
+            the breakpoint. ── */
+@media (min-width: 768px) {
+           #welcomeBackScreen {
+             display: flex; align-items: center; justify-content: center;
+             padding: 32px;
+           }
+           #welcomeBackScreen.active { display: flex; }
+           .wb-shell {
+             max-width: 560px;
+             height: auto; max-height: calc(100vh - 64px); max-height: calc(100dvh - 64px);
+             background: rgba(255,255,255,0.02);
+             border: 1px solid rgba(255,255,255,0.08);
+             border-radius: 24px;
+             box-shadow: 0 30px 90px rgba(0,0,0,0.5);
+             overflow: hidden;
+           }
+           .wb-sticky-top { padding-top: 34px; }
+           .wb-obj-scroll { padding: 0 24px; }
+           .wb-sticky-bottom { padding: 16px 24px calc(20px + env(safe-area-inset-bottom, 0px)); border-radius: 0 0 24px 24px; }
+         }
+
+/* ── Wide desktop (≥1024px): still one narrow card centered in a sea
+            of empty background — greeting, earned-today, and the full
+            objectives list all stacked in one column, same as mobile
+            just bigger (see screenshot). Splits it into a real two-pane
+            layout: left pane pinned (avatar/name/earned-today, doesn't
+            scroll), right pane the scrolling objectives list — same
+            "summary left, content right" pattern used for the
+            wallet/listing/seller fixes below. Doesn't touch 768–1023px
+            or mobile above. ── */
+@media (min-width: 1024px) {
+           .wb-shell {
+             max-width: 880px;
+             flex-direction: row;
+             align-items: stretch;
+             max-height: calc(100vh - 96px); max-height: calc(100dvh - 96px);
+           }
+           .wb-sticky-top {
+             flex-shrink: 0;
+             width: 300px;
+             border-right: 1px solid rgba(255,255,255,0.08);
+             padding: 40px 28px 28px;
+             display: flex; flex-direction: column; justify-content: center;
+           }
+           .wb-obj-header { display: none; } /* re-shown as .wb-right-header inside the right pane */
+           .wb-right-pane {
+             flex: 1 1 auto; min-width: 0;
+             display: flex; flex-direction: column;
+           }
+           .wb-right-header {
+             flex-shrink: 0;
+             padding: 40px 28px 14px;
+             display: block;
+           }
+           .wb-obj-scroll { padding: 0 28px; }
+           .wb-sticky-bottom { padding: 16px 28px calc(20px + env(safe-area-inset-bottom, 0px)); }
+           .wb-top { text-align: left; align-items: flex-start; }
+           .wb-earn-card { margin-bottom: 0; }
+         }
+
+.wb-right-header { display: none; } /* only shown at ≥1024px, see above */
+
