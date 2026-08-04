@@ -1,0 +1,256 @@
+/* ══════════════════════════════════════════════════════════
+         MAINTENANCE OVERLAY — full-screen, undismissable takeover
+         shown when the app is offline for maintenance. Deliberately
+         reuses the boot overlay's exact tokens (bg, lime accent,
+         glitter field, mark glyph) so it reads as the same product
+         paused, not a separate "error page" bolted on. No close
+         button, no nav, no scroll — the only control is the notify
+         form. Sits above everything, including the boot overlay.
+         ══════════════════════════════════════════════════════════ */
+#maintenanceOverlay {
+         position: fixed; inset: 0; width: 100%; height: 100vh; height: 100dvh;
+         z-index: 9999999;
+         background: rgba(5,5,8,0.66);
+         backdrop-filter: blur(28px) saturate(140%);
+         -webkit-backdrop-filter: blur(28px) saturate(140%);
+         display: none;
+         flex-direction: column; align-items: center; justify-content: center;
+         overflow: hidden; padding: 24px;
+         }
+
+#maintenanceOverlay.mnt-active { display: flex; }
+
+/* Banned/suspended + appeal overlays share the exact same visual
+            system as #maintenanceOverlay (same z-index tier, same
+            full-screen takeover), just toggled independently since a user
+            could theoretically be suspended without the site being in
+            maintenance mode, or vice versa. */
+#acctStatusOverlay, #acctAppealOverlay {
+           position: fixed; inset: 0; width: 100%; height: 100vh; height: 100dvh;
+           z-index: 9999998;
+           background: rgba(5,5,8,0.66);
+           backdrop-filter: blur(28px) saturate(140%);
+           -webkit-backdrop-filter: blur(28px) saturate(140%);
+           display: none;
+           flex-direction: column; align-items: center; justify-content: center;
+           padding: 24px;
+         }
+
+/* Suspended/banned status screen: static, no scroll or movement,
+            matching #maintenanceOverlay behavior exactly. */
+#acctStatusOverlay { overflow: hidden; }
+
+/* Appeal form has a textarea + file chips + submit controls that
+            can exceed viewport height on small screens, so it keeps vertical
+            scroll. Horizontal must stay locked though — overflow-y:auto
+            alone leaves overflow-x defaulted to visible, and the 900px-wide
+            .mnt-glow decoration inside was overflowing sideways and letting
+            the whole screen scroll/move horizontally. */
+#acctAppealOverlay { overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+
+#acctStatusOverlay.mnt-active, #acctAppealOverlay.mnt-active { display: flex; }
+
+.mnt-active-hidden { display: none; }
+
+.mnt-status-pill.acct-suspended { background: rgba(255,177,78,0.08); border-color: rgba(255,177,78,0.28); color: #ffb14e; }
+
+.mnt-status-pill.acct-banned { background: rgba(248,113,113,0.1); border-color: rgba(248,113,113,0.3); color: #f87171; }
+
+.mnt-status-pill.acct-banned .mnt-status-dot { background: #f87171; box-shadow: 0 0 0 0 rgba(248,113,113,0.55); }
+
+.acct-appeal-file-chip {
+           display: flex; align-items: center; gap: 6px;
+           background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+           border-radius: 8px; padding: 5px 9px; font-size: 12px; color: rgba(255,255,255,0.75);
+         }
+
+.acct-appeal-file-chip img { width: 20px; height: 20px; border-radius: 4px; object-fit: cover; }
+
+.acct-appeal-file-chip button {
+           background: none; border: none; color: rgba(255,255,255,0.4); cursor: pointer;
+           font-size: 14px; line-height: 1; padding: 0 0 0 4px;
+         }
+
+.acct-appeal-file-chip button:hover { color: #f87171; }
+
+.mnt-glow {
+         position: absolute; top: 50%; left: 50%; width: 900px; height: 900px;
+         transform: translate(-50%, -50%);
+         background: radial-gradient(circle, rgba(163,230,53,0.07) 0%, rgba(163,230,53,0) 62%);
+         pointer-events: none;
+         }
+
+.mnt-content {
+         position: relative; z-index: 1;
+         display: flex; flex-direction: column; align-items: center;
+         gap: 1.7rem; max-width: 440px; width: 100%; text-align: center;
+         animation: boot-fade-up .7s ease both;
+         padding: 40px 36px 34px;
+         border-radius: 24px;
+         background: rgba(255,255,255,0.045);
+         border: 1px solid rgba(255,255,255,0.09);
+         box-shadow: 0 8px 40px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
+         }
+
+.mnt-status-pill {
+         display: inline-flex; align-items: center; gap: 7px;
+         padding: 6px 13px 6px 10px; border-radius: 100px;
+         background: rgba(255,177,78,0.08); border: 1px solid rgba(255,177,78,0.28);
+         font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+         color: #ffb14e;
+         }
+
+.mnt-status-dot {
+         width: 7px; height: 7px; border-radius: 50%; background: #ffb14e; flex-shrink: 0;
+         box-shadow: 0 0 0 0 rgba(255,177,78,0.55);
+         animation: mnt-pulse 1.8s ease-out infinite;
+         }
+
+@keyframes mnt-pulse {
+         0%   { box-shadow: 0 0 0 0 rgba(255,177,78,0.55); }
+         70%  { box-shadow: 0 0 0 9px rgba(255,177,78,0); }
+         100% { box-shadow: 0 0 0 0 rgba(255,177,78,0); }
+         }
+
+.mnt-mark { display: flex; align-items: center; gap: 0.55rem; }
+
+.mnt-mark-glyph {
+         width: 56px; height: 56px;
+         display: flex; align-items: center; justify-content: center;
+         filter: drop-shadow(0 4px 16px rgba(163,230,53,0.25));
+         }
+
+.mnt-mark-glyph img {
+         width: 100%; height: 100%; object-fit: contain;
+         }
+
+.mnt-mark-text {
+         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+         font-size: 1.7rem; font-weight: 800; color: #fff; letter-spacing: -0.02em;
+         }
+
+.mnt-mark-text span { color: #a3e635; }
+
+.mnt-heading {
+         font-size: 1.6rem; font-weight: 800; color: #f1f1f3; letter-spacing: -0.01em;
+         line-height: 1.25; margin: 0;
+         }
+
+.mnt-body {
+         font-size: 14.5px; line-height: 1.6; color: rgba(255,255,255,0.5);
+         margin: 0; max-width: 380px;
+         }
+
+.mnt-eta {
+         font-size: 13px; font-weight: 700; color: #a3e635;
+         }
+
+.mnt-notify-row {
+         display: flex; align-items: center; gap: 8px; width: 100%;
+         margin-top: 0.3rem;
+         }
+
+.mnt-notify-input {
+         flex: 1; min-width: 0; height: 46px; padding: 0 16px;
+         background: #0b0b0f; border: 1px solid rgba(255,255,255,0.12); border-radius: 11px;
+         color: #f1f1f3; font-size: 14px; font-family: inherit; outline: none;
+         transition: border-color .15s;
+         }
+
+.mnt-notify-input::placeholder { color: rgba(255,255,255,0.3); }
+
+.mnt-notify-input:focus { border-color: rgba(163,230,53,0.5); }
+
+.mnt-notify-btn {
+         height: 46px; padding: 0 20px; border-radius: 11px; border: none;
+         background: #a3e635; color: #0a0d02; font-weight: 800; font-size: 14px;
+         font-family: inherit; white-space: nowrap; cursor: pointer;
+         transition: background .15s, transform .1s;
+         }
+
+.mnt-notify-btn:hover { background: #b6f24e; }
+
+.mnt-notify-btn:active { transform: scale(0.97); }
+
+.mnt-notify-btn:disabled { opacity: 0.6; cursor: default; }
+
+/* ═══ Slow-network banner — small non-blocking toast, bottom-
+            center on mobile, bottom-right on wider screens. Sits above
+            everything except the full-screen maintenance/banned overlays
+            (z-index 9999997 < 9999998/9999999) so it never fights those
+            for visibility, but still floats over modals, nav, etc. ═══ */
+#slowNetOverlay {
+           position: fixed; left: 50%; bottom: 20px;
+           transform: translateX(-50%);
+           z-index: 9999997;
+           width: calc(100% - 32px); max-width: 380px;
+           pointer-events: none;
+         }
+
+#slowNetOverlay.slownet-hidden { display: none; }
+
+.slownet-card {
+           pointer-events: auto;
+           display: flex; align-items: flex-start; gap: 10px;
+           background: #0e0e12; border: 1px solid rgba(255,177,78,0.28);
+           border-radius: 14px; padding: 13px 14px;
+           box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+           animation: slownet-in .35s cubic-bezier(.2,.8,.2,1) both;
+         }
+
+@keyframes slownet-in {
+           from { opacity: 0; transform: translateY(10px); }
+           to   { opacity: 1; transform: translateY(0); }
+         }
+
+.slownet-dot {
+           width: 8px; height: 8px; border-radius: 50%; background: #ffb14e;
+           flex-shrink: 0; margin-top: 5px;
+           box-shadow: 0 0 0 0 rgba(255,177,78,0.55);
+           animation: mnt-pulse 1.8s ease-out infinite;
+         }
+
+.slownet-text { flex: 1; min-width: 0; }
+
+.slownet-title {
+           font-size: 13.5px; font-weight: 700; color: #f1f1f3;
+           letter-spacing: -0.01em; margin: 0 0 3px;
+         }
+
+.slownet-body {
+           font-size: 12.5px; line-height: 1.5; color: rgba(255,255,255,0.55);
+           margin: 0;
+         }
+
+.slownet-retry {
+           display: flex; align-items: center; gap: 5px; flex-shrink: 0;
+           margin-top: 1px; padding: 5px 10px; border-radius: 8px;
+           background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+           color: rgba(255,255,255,0.75); font-size: 12px; font-weight: 600;
+           font-family: inherit; cursor: pointer;
+           transition: background .15s, border-color .15s;
+         }
+
+.slownet-retry:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.18); }
+
+.slownet-retry.slownet-checking svg { animation: slownet-spin .7s linear infinite; }
+
+@keyframes slownet-spin { to { transform: rotate(360deg); } }
+
+@media (min-width: 640px) {
+           #slowNetOverlay { left: auto; right: 24px; bottom: 24px; transform: none; }
+         }
+
+.mnt-notify-msg {
+         font-size: 12.5px; font-weight: 600; min-height: 16px;
+         }
+
+.mnt-notify-msg.mnt-ok   { color: #a3e635; }
+
+.mnt-notify-msg.mnt-err  { color: #ff8080; }
+
+@media (max-width: 420px) {
+         .mnt-notify-row { flex-direction: column; }
+         .mnt-notify-btn { width: 100%; }
+         }
+
