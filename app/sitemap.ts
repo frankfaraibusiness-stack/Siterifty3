@@ -24,112 +24,122 @@ function toDate(ts: unknown): Date | undefined {
   return undefined;
 }
 
+function staticEntries(baseUrl: string): MetadataRoute.Sitemap {
+  return [
+    { url: `${baseUrl}/`, changeFrequency: "daily", priority: 1 },
+    { url: `${baseUrl}/marketplace`, changeFrequency: "hourly", priority: 0.9 },
+    { url: `${baseUrl}/blog`, changeFrequency: "daily", priority: 0.6 },
+    { url: `${baseUrl}/sellers`, changeFrequency: "daily", priority: 0.6 },
+    // Each listing type's form is its own indexable route now (see
+    // robots.ts, which allows these explicitly) — belongs in the
+    // sitemap alongside the other static pages.
+    { url: `${baseUrl}/sell/website`, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${baseUrl}/sell/app`, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${baseUrl}/sell/game`, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${baseUrl}/sell/template`, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${baseUrl}/sell/3d-assets`, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${baseUrl}/leaderboard`, changeFrequency: "daily", priority: 0.4 },
+    { url: `${baseUrl}/gallery`, changeFrequency: "monthly", priority: 0.4 },
+  ];
+}
+
 export default async function sitemap({ id }: { id: number }): Promise<MetadataRoute.Sitemap> {
   const baseUrl = getPublicBaseUrl();
 
-  // Vercel's build container doesn't have production Firebase env vars
-  // populated during `next build`'s static-route pre-rendering pass, so
-  // getAdminDb() would throw ("Must initialize with certificate.") before
-  // this route is ever actually served. Fall back to just the static URLs
-  // in that case instead of crashing the whole build.
+  // Firestore reads here can fail two different ways at build time, and
+  // this guards both:
+  //   1. Env vars simply absent (local dev, preview envs without
+  //      secrets configured) — the old check below still short-circuits
+  //      this case cheaply, without even trying a network call.
+  //   2. Env vars present but the credential itself is invalid/expired/
+  //      malformed (UNAUTHENTICATED from Google's SDK) — the try/catch
+  //      around each actual query below catches this. This is the case
+  //      that broke production builds even after the id===0 check
+  //      passed the (!process.env.FIREBASE_PROJECT_ID) gate: the var
+  //      existed, but auth still failed at request time.
+  // Either way, the sitemap degrades to static-only entries (id 0) or an
+  // empty shard (id 1, 2) rather than failing the whole `next build`.
+  // A sitemap missing some listings/sellers/posts is a minor SEO gap;
+  // an unbuildable app is not an acceptable trade to avoid it.
   if (!process.env.FIREBASE_PROJECT_ID) {
-    if (id === 0) {
-      return [
-        { url: `${baseUrl}/`, changeFrequency: "daily", priority: 1 },
-        { url: `${baseUrl}/marketplace`, changeFrequency: "hourly", priority: 0.9 },
-        { url: `${baseUrl}/blog`, changeFrequency: "daily", priority: 0.6 },
-        { url: `${baseUrl}/sellers`, changeFrequency: "daily", priority: 0.6 },
-        // Each listing type's form is its own indexable route now (see
-        // robots.ts, which allows these explicitly) — belongs in the
-        // sitemap alongside the other static pages.
-        { url: `${baseUrl}/sell/website`, changeFrequency: "monthly", priority: 0.5 },
-        { url: `${baseUrl}/sell/app`, changeFrequency: "monthly", priority: 0.5 },
-        { url: `${baseUrl}/sell/game`, changeFrequency: "monthly", priority: 0.5 },
-        { url: `${baseUrl}/sell/template`, changeFrequency: "monthly", priority: 0.5 },
-        { url: `${baseUrl}/sell/3d-assets`, changeFrequency: "monthly", priority: 0.5 },
-        { url: `${baseUrl}/leaderboard`, changeFrequency: "daily", priority: 0.4 },
-        { url: `${baseUrl}/gallery`, changeFrequency: "monthly", priority: 0.4 },
-      ];
-    }
-    return [];
+    return id === 0 ? staticEntries(baseUrl) : [];
   }
 
-  const db = getAdminDb();
-
   if (id === 0) {
-    const staticEntries: MetadataRoute.Sitemap = [
-      { url: `${baseUrl}/`, changeFrequency: "daily", priority: 1 },
-      { url: `${baseUrl}/marketplace`, changeFrequency: "hourly", priority: 0.9 },
-      { url: `${baseUrl}/blog`, changeFrequency: "daily", priority: 0.6 },
-      { url: `${baseUrl}/sellers`, changeFrequency: "daily", priority: 0.6 },
-      // Each listing type's form is its own indexable route now (see
-      // robots.ts, which allows these explicitly) — belongs in the
-      // sitemap alongside the other static pages.
-      { url: `${baseUrl}/sell/website`, changeFrequency: "monthly", priority: 0.5 },
-      { url: `${baseUrl}/sell/app`, changeFrequency: "monthly", priority: 0.5 },
-      { url: `${baseUrl}/sell/game`, changeFrequency: "monthly", priority: 0.5 },
-      { url: `${baseUrl}/sell/template`, changeFrequency: "monthly", priority: 0.5 },
-      { url: `${baseUrl}/sell/3d-assets`, changeFrequency: "monthly", priority: 0.5 },
-      { url: `${baseUrl}/leaderboard`, changeFrequency: "daily", priority: 0.4 },
-      { url: `${baseUrl}/gallery`, changeFrequency: "monthly", priority: 0.4 },
-    ];
+    let sellerEntries: MetadataRoute.Sitemap = [];
+    try {
+      const db = getAdminDb();
+      // Public sellers only — mirrors the same privacy gate used in
+      // app/seller/[id]/page.tsx's generateMetadata. A private/members
+      // profile must never appear in the sitemap; that would make it
+      // more discoverable than the profile owner intended, defeating
+      // the point of the visibility setting.
+      const sellersSnap = await db
+        .collection("users")
+        .where("profileVisibility", "==", "public")
+        .limit(45000)
+        .get();
 
-    // Public sellers only — mirrors the same privacy gate used in
-    // app/seller/[id]/page.tsx's generateMetadata. A private/members
-    // profile must never appear in the sitemap; that would make it more
-    // discoverable than the profile owner intended, defeating the point
-    // of the visibility setting.
-    const sellersSnap = await db
-      .collection("users")
-      .where("profileVisibility", "==", "public")
-      .limit(45000)
-      .get();
+      sellerEntries = sellersSnap.docs
+        .filter((d) => !!d.data().username)
+        .map((d) => {
+          const data = d.data();
+          return {
+            url: `${baseUrl}/seller/${encodeURIComponent(data.username)}`,
+            lastModified: toDate(data.updatedAt) || toDate(data.createdAt),
+            changeFrequency: "weekly",
+            priority: 0.5,
+          };
+        });
+    } catch (err) {
+      console.warn("[sitemap] Skipping seller entries — Firestore read failed:", err);
+    }
 
-    const sellerEntries: MetadataRoute.Sitemap = sellersSnap.docs
-      .filter((d) => !!d.data().username)
-      .map((d) => {
-        const data = d.data();
-        return {
-          url: `${baseUrl}/seller/${encodeURIComponent(data.username)}`,
-          lastModified: toDate(data.updatedAt) || toDate(data.createdAt),
-          changeFrequency: "weekly",
-          priority: 0.5,
-        };
-      });
-
-    return [...staticEntries, ...sellerEntries];
+    return [...staticEntries(baseUrl), ...sellerEntries];
   }
 
   // id === 1 — active listings only, same status gate as the listing
   // page's isPubliclyVisible() and every other active-only query in the
   // app (feed, seller listing grid, etc.).
   if (id === 1) {
-    const listingsSnap = await db.collection("listings").where("status", "==", "active").limit(45000).get();
+    try {
+      const db = getAdminDb();
+      const listingsSnap = await db.collection("listings").where("status", "==", "active").limit(45000).get();
 
-    return listingsSnap.docs.map((d) => {
-      const data = d.data();
-      return {
-        url: `${baseUrl}/listing/${buildListingSlug(data.title, d.id)}`,
-        lastModified: toDate(data.updatedAt) || toDate(data.createdAt),
-        changeFrequency: "daily",
-        priority: 0.7,
-      };
-    });
+      return listingsSnap.docs.map((d) => {
+        const data = d.data();
+        return {
+          url: `${baseUrl}/listing/${buildListingSlug(data.title, d.id)}`,
+          lastModified: toDate(data.updatedAt) || toDate(data.createdAt),
+          changeFrequency: "daily",
+          priority: 0.7,
+        };
+      });
+    } catch (err) {
+      console.warn("[sitemap] Skipping listing entries — Firestore read failed:", err);
+      return [];
+    }
   }
 
   // id === 2 — every blog post. No status/visibility gate needed: a
   // post only exists once POST /api/blog has already written it (see
   // that route's admin check), so every doc in this collection is
   // meant to be public the moment it's created.
-  const blogSnap = await db.collection("blogPosts").limit(45000).get();
+  try {
+    const db = getAdminDb();
+    const blogSnap = await db.collection("blogPosts").limit(45000).get();
 
-  return blogSnap.docs.map((d) => {
-    const data = d.data();
-    return {
-      url: `${baseUrl}/blog/${buildBlogSlug(data.title, d.id)}`,
-      lastModified: toDate(data.createdAt),
-      changeFrequency: "monthly",
-      priority: 0.6,
-    };
-  });
+    return blogSnap.docs.map((d) => {
+      const data = d.data();
+      return {
+        url: `${baseUrl}/blog/${buildBlogSlug(data.title, d.id)}`,
+        lastModified: toDate(data.createdAt),
+        changeFrequency: "monthly",
+        priority: 0.6,
+      };
+    });
+  } catch (err) {
+    console.warn("[sitemap] Skipping blog entries — Firestore read failed:", err);
+    return [];
+  }
 }
