@@ -1,0 +1,220 @@
+/* ── Full-screen Discover panel (YouTube-style takeover) ──
+                  Replaces the old small #mpAiSearchPanel popup. Same portal/
+                  scroll-lock/escape pattern as #mpSearchOverlay, same
+                  z-index tier so it never fights the header/announcement
+                  bar (see globals.css header comment on that fix). */
+#discoverOverlay {
+               position: fixed;
+               inset: 0;
+               z-index: 10200;
+               display: flex;
+               flex-direction: column;
+               background: var(--mp-bg);
+               color: var(--mp-text);
+               animation: mpSoIn 0.16s ease;
+               }
+
+.disc-header {
+               flex-shrink: 0;
+               display: flex;
+               align-items: center;
+               justify-content: space-between;
+               gap: 10px;
+               padding: 14px 18px;
+               background: rgba(5,5,8,0.96);
+               backdrop-filter: blur(18px) saturate(140%);
+               -webkit-backdrop-filter: blur(18px) saturate(140%);
+               border-bottom: 1px solid var(--mp-border);
+               }
+
+.disc-title {
+               font-size: 16px; font-weight: 800; color: #fff; letter-spacing: 0.01em;
+               }
+
+.disc-header-actions { display: flex; align-items: center; gap: 8px; }
+
+.disc-shuffle-btn, .disc-close-btn {
+               flex-shrink: 0;
+               width: 36px; height: 36px;
+               display: flex; align-items: center; justify-content: center;
+               background: rgba(255,255,255,0.06); border: 1px solid var(--mp-border);
+               border-radius: 50%;
+               color: var(--mp-text); cursor: pointer;
+               transition: background var(--mp-transition), border-color var(--mp-transition);
+               }
+
+.disc-shuffle-btn:hover, .disc-close-btn:hover {
+               background: rgba(255,255,255,0.12); border-color: var(--mp-border-hover);
+               }
+
+.disc-shuffle-btn:disabled { opacity: 0.4; cursor: default; }
+
+.disc-close-btn svg { width: 16px; height: 16px; }
+
+.disc-scroll {
+               flex: 1;
+               overflow-y: auto;
+               overflow-x: hidden;
+               -webkit-overflow-scrolling: touch;
+               padding: 20px 18px 48px;
+               width: 100%;
+               box-sizing: border-box;
+               }
+
+.disc-loading, .disc-error {
+               display: flex; flex-direction: column; align-items: center; justify-content: center;
+               gap: 14px;
+               padding: 80px 20px;
+               color: var(--mp-text-muted);
+               font-size: 14px; text-align: center;
+               }
+
+.disc-retry-btn {
+               background: var(--mp-accent-muted); border: 1px solid var(--mp-accent-border);
+               color: var(--mp-accent); font-weight: 700; font-size: 13px;
+               border-radius: 20px; padding: 8px 18px; cursor: pointer; font-family: inherit;
+               }
+
+.disc-section { margin-bottom: 32px; }
+
+.disc-section:last-child { margin-bottom: 8px; }
+
+.disc-section-head {
+               display: flex; align-items: center; justify-content: space-between;
+               margin: 0 0 14px;
+               }
+
+.disc-section-title {
+               font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+               color: var(--mp-text-sec); margin: 0;
+               }
+
+.disc-view-all {
+               background: none; border: none; cursor: pointer; font-family: inherit;
+               font-size: 12.5px; font-weight: 700; color: var(--mp-accent, #f5a623);
+               padding: 4px 0; white-space: nowrap;
+               }
+
+.disc-view-all:hover { text-decoration: underline; }
+
+/* Each section scrolls independently — horizontal rail, never wraps to a
+                  new row and never shares scroll state with the other sections.
+                  The rail bleeds out to the full viewport width (cancelling
+                  .disc-body's side padding) and re-adds that padding as
+                  scroll-padding inside itself — otherwise cards get hard-clipped
+                  right at .disc-body's edge mid-scroll instead of showing a
+                  clean peek of the next card. */
+.disc-rail {
+               display: flex;
+               flex-wrap: nowrap;
+               gap: 16px;
+               overflow-x: auto;
+               overflow-y: hidden;
+               scroll-snap-type: x proximity;
+               -webkit-overflow-scrolling: touch;
+               padding: 2px 18px 12px;
+               margin: 0 -18px;
+               width: calc(100% + 36px);
+               }
+
+.disc-rail::-webkit-scrollbar { height: 6px; }
+.disc-rail::-webkit-scrollbar-thumb { background: var(--mp-border-hover); border-radius: 3px; }
+.disc-rail::-webkit-scrollbar-track { background: transparent; }
+
+.disc-rail > * { scroll-snap-align: start; flex: 0 0 auto; align-self: stretch; }
+
+.disc-blog-card {
+               display: flex; flex-direction: column;
+               background: var(--mp-surface-raised);
+               border: 1px solid var(--mp-border);
+               border-radius: var(--mp-radius);
+               overflow: hidden;
+               cursor: pointer; text-align: left;
+               font-family: inherit; color: inherit;
+               padding: 0;
+               width: 260px;
+               transition: border-color var(--mp-transition), transform var(--mp-transition);
+               }
+
+.disc-blog-card:hover {
+               border-color: var(--mp-border-hover);
+               transform: translateY(-2px);
+               }
+
+.disc-blog-media { aspect-ratio: 16 / 9; width: 100%; overflow: hidden; background: var(--mp-surface); }
+
+.disc-blog-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.disc-blog-media-empty { width: 100%; height: 100%; background: linear-gradient(135deg, var(--mp-surface), var(--mp-surface-raised)); }
+
+.disc-blog-body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 6px; }
+
+.disc-blog-title {
+               margin: 0; font-size: 14.5px; font-weight: 700; color: var(--mp-text); line-height: 1.35;
+               display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+               }
+
+.disc-blog-desc {
+               margin: 0; font-size: 12.5px; color: var(--mp-text-sec); line-height: 1.5;
+               display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+               }
+
+.disc-blog-date {
+               font-size: 11px; font-weight: 600; color: var(--mp-text-muted);
+               text-transform: uppercase; letter-spacing: 0.04em; margin-top: 2px;
+               }
+
+/* Listings — reuses the real marketplace card components via
+                  ListingCard. Site/App/Game/Asset cards each have a
+                  different internal template (fixed-size icon block vs.
+                  21:9 media banner vs. plain text), so align-self:stretch
+                  alone can't make them match — stretching the outer flex
+                  box doesn't reshape those fixed-ratio inner blocks. A
+                  fixed height on the rail item, paired with overflow
+                  handling on the card body, is what actually makes every
+                  card in the row line up regardless of listing type. */
+.disc-rail-listing-item { width: 220px; height: 360px; }
+.disc-rail-listing-item > * { height: 100%; width: 100%; overflow: hidden; }
+
+/* Sellers — mirrors .mp-ts-card's avatar/name/stars layout
+                  from the Premium sellers strip, as its own vertical card
+                  instead of a horizontal scroll-track item. */
+.disc-seller-card {
+               display: flex; flex-direction: column; align-items: center; text-align: center;
+               gap: 8px;
+               background: var(--mp-surface-raised);
+               border: 1px solid var(--mp-border);
+               border-radius: var(--mp-radius);
+               padding: 18px 12px;
+               width: 160px;
+               cursor: pointer; font-family: inherit; color: inherit;
+               transition: border-color var(--mp-transition), transform var(--mp-transition);
+               }
+
+.disc-seller-card:hover {
+               border-color: var(--mp-border-hover);
+               transform: translateY(-2px);
+               }
+
+.disc-seller-av {
+               width: 52px; height: 52px; border-radius: 50%;
+               background: rgba(255,255,255,0.08);
+               display: flex; align-items: center; justify-content: center;
+               font-size: 18px; font-weight: 700; color: var(--mp-text);
+               overflow: hidden; flex-shrink: 0;
+               }
+
+.disc-seller-av img { width: 100%; height: 100%; object-fit: cover; }
+
+.disc-seller-name { display: flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 700; color: var(--mp-text); min-width: 0; }
+
+.disc-seller-name-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 110px; }
+
+.disc-seller-stars { display: flex; align-items: center; gap: 2px; }
+
+@media (max-width: 360px) {
+                 .disc-blog-card { width: 220px; }
+                 .disc-rail-listing-item { width: 180px; height: 330px; }
+                 .disc-seller-card { width: 130px; }
+               }
+
