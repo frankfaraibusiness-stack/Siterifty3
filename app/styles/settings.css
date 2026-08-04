@@ -1,0 +1,466 @@
+.setting-item { background: var(--mp-surface-raised); border-radius: var(--mp-radius-sm); padding: 9px 13px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; gap: 8px; }
+
+.setting-item span:first-child { color: var(--mp-text-muted); flex-shrink: 0; font-size: 12px; }
+
+.setting-item span:last-child { font-weight: 600; text-align: right; }
+
+/* ── Header ─────────────────────── */
+.modal-header {
+         position: sticky;
+         top: 0;
+         z-index: 20;
+         background: #000;
+         border-bottom: 1px solid #1a1a1a;
+         padding: 1.2rem 1.5rem;
+         display: flex;
+         align-items: center;
+         justify-content: space-between;
+         flex-wrap: nowrap;
+         gap: 1rem;
+         flex-shrink: 0;
+         }
+
+/* Scoped to .modal-header (icon + <h2> pattern used by the
+            Settings/About/Help/Contact/Terms modals) — this must NOT be a
+            bare .brand rule. The site header and nav drawer also use a
+            "brand" div (plain "Siterifty" + <span>.com</span> text, no
+            icon/h2), and a bare .brand{display:flex; gap:.6rem} here was
+            leaking into that unrelated element, visually inserting a gap
+            between "Siterifty" and ".com". */
+.modal-header .brand {
+         display: flex;
+         align-items: center;
+         gap: 0.6rem;
+         }
+
+.modal-header .brand svg {
+         width: 26px;
+         height: 26px;
+         stroke: var(--mp-accent, #a3e635);
+         fill: none;
+         stroke-width: 2;
+         }
+
+.modal-header .brand h2 {
+         font-size: 1.2rem;
+         font-weight: 800;
+         color: #fff;
+         letter-spacing: -0.3px;
+         white-space: nowrap;
+         }
+
+.cancel-btn {
+         background: #e74c3c;
+         border: none;
+         color: #fff;
+         padding: 0.5rem 1.2rem;
+         border-radius: 50px;
+         font-weight: 600;
+         font-size: 0.85rem;
+         cursor: pointer;
+         display: flex;
+         align-items: center;
+         gap: 0.4rem;
+         transition: background 0.2s;
+         white-space: nowrap;
+         }
+
+.cancel-btn:hover {
+         background: #ff4757;
+         }
+
+.cancel-btn svg {
+         width: 16px;
+         height: 16px;
+         stroke: currentColor;
+         fill: none;
+         stroke-width: 2;
+         }
+
+/* ── Panel Header (Settings / My Profile) ──────────
+            Left side matches the real site <header>'s .left/.hamburger/
+            .brand exactly (same markup, same classes) so it's visually
+            identical to the header these full-screen overlays sit on top
+            of. Right side is a Back button instead of the site header's
+            login/profile button — these are reached by navigating
+            forward, so they need a way back rather than another way in. */
+.panel-header {
+         position: sticky;
+         top: 0;
+         z-index: 20;
+         flex-shrink: 0;
+         height: 52px;
+         display: flex;
+         align-items: center;
+         justify-content: space-between;
+         padding: 0 20px;
+         background: rgba(0,0,0,0.55);
+         backdrop-filter: blur(18px) saturate(180%);
+         -webkit-backdrop-filter: blur(18px) saturate(180%);
+         border-bottom: 1px solid var(--mp-border, rgba(255,255,255,0.07));
+         }
+
+.panel-header .brand img { height: 26px; width: auto; display: block; }
+
+.panel-back-btn {
+         display: flex;
+         align-items: center;
+         gap: 0.4rem;
+         background: transparent;
+         border: 1px solid var(--mp-border, rgba(255,255,255,0.12));
+         color: var(--mp-text-sec, rgba(255,255,255,0.7));
+         padding: 0.5rem 1.1rem;
+         border-radius: 50px;
+         font-weight: 600;
+         font-size: 0.82rem;
+         font-family: inherit;
+         cursor: pointer;
+         white-space: nowrap;
+         transition: background var(--mp-transition, 0.18s ease), border-color var(--mp-transition, 0.18s ease), color var(--mp-transition, 0.18s ease);
+         }
+
+.panel-back-btn:hover {
+         background: var(--mp-accent-muted, rgba(163,230,53,0.15));
+         border-color: var(--mp-accent-border, rgba(163,230,53,0.3));
+         color: var(--mp-accent, #a3e635);
+         }
+
+.panel-back-btn svg {
+         width: 15px;
+         height: 15px;
+         stroke: currentColor;
+         fill: none;
+         flex-shrink: 0;
+         }
+
+/* ── Settings Sidebar (Left) ──── */
+.settings-sidebar {
+         width: 300px;
+         min-width: 260px;
+         background: var(--mp-surface, #0b0b0f);
+         border-right: 1px solid var(--mp-border, #1a1a1a);
+         display: flex;
+         flex-direction: column;
+         padding: 1.2rem 0.8rem;
+         gap: 0.3rem;
+         overflow-y: auto;
+         flex-shrink: 0;
+         z-index: 5;
+         }
+
+.sidebar-section-label {
+         font-size: 0.68rem;
+         font-weight: 700;
+         text-transform: uppercase;
+         letter-spacing: 1px;
+         color: #666;
+         padding: 0.6rem 0.8rem 0.3rem;
+         margin-top: 0.4rem;
+         }
+
+.sidebar-section-label:first-child {
+         margin-top: 0;
+         }
+
+.sidebar-footer {
+           margin-top: auto;
+           padding-top: 0.6rem;
+           border-top: 1px solid #1a1a1a;
+           display: flex;
+           flex-direction: column;
+           gap: 0.25rem;
+         }
+
+.sidebar-footer-btn {
+           display: flex; align-items: center; gap: 0.7rem;
+           padding: 0.7rem 0.9rem; border-radius: 0.7rem;
+           cursor: pointer; width: 100%; text-align: left;
+           font-family: inherit; font-size: 0.85rem; font-weight: 500;
+           border: none; background: transparent; transition: background 0.15s;
+         }
+
+.sidebar-footer-btn svg {
+           width: 17px; height: 17px; stroke: currentColor;
+           fill: none; stroke-width: 1.8; flex-shrink: 0;
+         }
+
+.sidebar-footer-btn.dispute {
+           color: #fbbf24;
+         }
+
+.sidebar-footer-btn.dispute:hover { background: rgba(251,191,36,0.07); }
+
+.sidebar-footer-btn.logout {
+           color: #f87171;
+         }
+
+.sidebar-footer-btn.logout:hover { background: rgba(248,113,113,0.07); }
+
+.settings-nav-item {
+         display: flex;
+         align-items: center;
+         gap: 0.7rem;
+         padding: 0.75rem 0.9rem;
+         border-radius: 0.7rem;
+         cursor: pointer;
+         transition: all 0.2s ease;
+         color: #aaa;
+         font-size: 0.88rem;
+         font-weight: 500;
+         border: none;
+         background: transparent;
+         width: 100%;
+         max-width: 100%;
+         text-align: left;
+         font-family: inherit;
+         position: relative;
+         overflow: hidden;
+         box-sizing: border-box;
+         }
+
+.settings-nav-item:hover {
+         background: var(--mp-surface-raised, #111116);
+         color: #fff;
+         }
+
+.settings-nav-item.active {
+         background: var(--mp-accent, #a3e635);
+         color: #0b0b0f;
+         font-weight: 700;
+         box-shadow: 0 2px 8px rgba(163,230,53,0.25);
+         }
+
+.settings-nav-item svg {
+         width: 18px;
+         height: 18px;
+         stroke: currentColor;
+         fill: none;
+         stroke-width: 1.8;
+         flex-shrink: 0;
+         }
+
+.settings-nav-item .nav-badge {
+         margin-left: auto;
+         flex-shrink: 0;
+         background: var(--mp-accent, #a3e635);
+         color: #0b0b0f;
+         font-size: 0.65rem;
+         font-weight: 800;
+         padding: 2px 8px;
+         border-radius: 1rem;
+         white-space: nowrap;
+         }
+
+.settings-nav-item.active .nav-badge {
+         background: #0b0b0f;
+         color: var(--mp-accent, #a3e635);
+         }
+
+/* ── Detail Panel (Right) ─────── */
+.detail-panel {
+         flex: 1;
+         background: var(--mp-bg, #050508);
+         overflow-y: auto;
+         padding: 1.8rem 2rem 2rem;
+         display: flex;
+         flex-direction: column;
+         gap: 1.5rem;
+         min-width: 0;
+         transition: all 0.25s ease;
+         }
+
+.detail-panel-header {
+         display: flex;
+         align-items: center;
+         gap: 0.6rem;
+         margin-bottom: 0.3rem;
+         }
+
+.detail-panel-header svg {
+         width: 22px;
+         height: 22px;
+         stroke: var(--mp-accent, #a3e635);
+         fill: none;
+         stroke-width: 2;
+         }
+
+.detail-panel-header h3 {
+         font-size: 1.3rem;
+         font-weight: 700;
+         color: #fff;
+         letter-spacing: -0.2px;
+         }
+
+.detail-panel-desc {
+         font-size: 0.82rem;
+         color: #777;
+         margin-top: -0.8rem;
+         margin-bottom: 0.2rem;
+         line-height: 1.4;
+         }
+
+.settings-mobile-back-btn {
+         /* Hidden by default (desktop and any width outside the ≤640px
+            mobile block below) — this MUST be an unconditional, un-
+            media-queried rule. It previously only had display:none
+            inside the @media(max-width:640px) block, so outside that
+            breakpoint there was no display rule at all: the button fell
+            back to its default display with an unstyled, unsized <svg>
+            child rendering at the browser's large intrinsic default
+            size — the giant black arrow covering the whole desktop
+            screen. */
+         display: none;
+         align-items: center;
+         gap: 0.4rem;
+         background: transparent;
+         border: 1px solid var(--mp-border, rgba(255,255,255,0.12));
+         color: var(--mp-text-sec, rgba(255,255,255,0.7));
+         padding: 0.5rem 1.1rem;
+         border-radius: 50px;
+         font-weight: 600;
+         font-size: 0.82rem;
+         font-family: inherit;
+         cursor: pointer;
+         white-space: nowrap;
+         margin-bottom: 0.6rem;
+         }
+.settings-mobile-back-btn svg {
+         width: 15px;
+         height: 15px;
+         stroke: currentColor;
+         fill: none;
+         flex-shrink: 0;
+         }
+
+/* ── Responsive ────────────────── */
+/* 641–700px: sidebar shrinks a little but stays a genuine two-pane
+   layout — there's enough width here for both columns to still be
+   usable side by side. */
+@media (max-width: 700px) and (min-width: 641px) {
+         .settings-sidebar {
+         width: 220px;
+         min-width: 200px;
+         padding: 0.8rem 0.4rem;
+         }
+         .settings-nav-item {
+         font-size: 0.78rem;
+         padding: 0.6rem 0.7rem;
+         gap: 0.5rem;
+         }
+         .settings-nav-item svg {
+         width: 16px;
+         height: 16px;
+         }
+         .detail-panel {
+         padding: 1.2rem 1rem 1.5rem;
+         }
+         .detail-panel-header h3 {
+         font-size: 1.1rem;
+         }
+         }
+
+/* ≤640px (phones): stop shrinking both columns side by side — at this
+   width that just crushes labels and icons into an unreadable strip
+   next to a half-width panel (see the /settings mobile screenshot this
+   fixed). Instead .main-content switches to a single full-width column
+   and only one pane is shown at a time, controlled by the
+   data-mobile-view attribute SettingsPage sets on it:
+     - data-mobile-view="list"  → sidebar shows (full width, icon+label
+       exactly as on desktop, just full width instead of a narrow strip)
+       and .detail-panel is hidden.
+     - data-mobile-view="panel" → sidebar hides and .detail-panel takes
+       the full width, with .settings-mobile-back-btn at the top to
+       return to the list.
+   Both elements stay mounted at all times — this is a visibility swap,
+   not a mount/unmount — so no state is lost switching back and forth. */
+@media (max-width: 640px) {
+         .main-content { flex-direction: column; }
+
+         .settings-sidebar {
+         width: 100%;
+         min-width: 0;
+         max-width: 100%;
+         /* Only one pane is ever visible at a time here (the other is
+            display:none below) — height:100% + flex-shrink:1 (overriding
+            the desktop rule's flex-shrink:0) lets whichever pane IS
+            showing take main-content's full height, instead of the
+            sidebar's natural content height (14 full-size nav items)
+            squeezing .detail-panel down inside main-content's
+            overflow:hidden — which is what made an opened panel look
+            like it rendered starting mid-scroll/cut off at the bottom. */
+         height: 100%;
+         flex-shrink: 1;
+         padding: 0.8rem 0.6rem;
+         border-right: none;
+         }
+         .main-content[data-mobile-view="panel"] .settings-sidebar {
+         display: none;
+         }
+
+         .settings-nav-item {
+         font-size: 0.92rem;
+         padding: 0.85rem 0.9rem;
+         gap: 0.75rem;
+         }
+         .settings-nav-item svg {
+         width: 19px;
+         height: 19px;
+         }
+
+         .detail-panel {
+         width: 100%;
+         height: 100%;
+         padding: 1.1rem 1rem 1.5rem;
+         }
+         .main-content[data-mobile-view="list"] .detail-panel {
+         display: none;
+         }
+
+         .detail-panel-header h3 {
+         font-size: 1.15rem;
+         }
+         .toggle-item {
+         flex-direction: column;
+         align-items: flex-start;
+         gap: 0.6rem;
+         }
+         .save-btn,
+         .danger-btn {
+         width: 100%;
+         justify-content: center;
+         }
+
+         /* Back-to-list control's "show it" override — the hide-by-
+            default base rule lives outside this media query (applies at
+            every width unconditionally); this just flips it visible
+            once both ≤640px AND panel view are true. */
+         .main-content[data-mobile-view="panel"] .settings-mobile-back-btn {
+         display: flex;
+         }
+         }
+
+.logout-modal-actions { display: flex; flex-direction: column; gap: 0.6rem; }
+
+.logout-modal-btn {
+       width: 100%; padding: 0.85rem 1rem; border-radius: 0.9rem;
+       font-size: 0.88rem; font-weight: 700; cursor: pointer; border: none;
+       font-family: inherit; transition: all 0.15s; display: flex; align-items: center;
+       justify-content: center; gap: 0.5rem;
+     }
+
+.logout-modal-btn.confirm {
+       background: #a3e635; color: #0a1005;
+     }
+
+.logout-modal-btn.confirm:hover { background: #bef264; }
+
+.logout-modal-btn.confirm:active { transform: scale(0.98); }
+
+.logout-modal-btn.confirm svg { width: 1rem; height: 1rem; stroke: currentColor; fill: none; stroke-width: 2.2; }
+
+.logout-modal-btn.cancel {
+       background: transparent; color: #9ca38f; border: 1px solid rgba(255,255,255,0.08);
+     }
+
+.logout-modal-btn.cancel:hover { background: rgba(255,255,255,0.05); color: #fff; }
+
