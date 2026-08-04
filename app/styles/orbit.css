@@ -1,0 +1,241 @@
+/* ── ORBIT SCANNER SECTION ── */
+.orbit-section {
+         position: relative;
+         width: 100%;
+         overflow: hidden;
+         padding: 32px 0 40px;
+         background: #000;
+         }
+
+/* Fine dot grid background */
+.orbit-bg-grid {
+         position: absolute; inset: 0; pointer-events: none;
+         background-image: radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px);
+         background-size: 32px 32px;
+         }
+
+/* Radial glow ambient */
+.orbit-ambient {
+         position: absolute; top: 50%; left: 50%;
+         transform: translate(-50%, -50%);
+         width: 700px; height: 700px;
+         border-radius: 50%;
+         background: radial-gradient(ellipse at center,
+         rgba(163,230,53,0.05) 0%,
+         rgba(96,165,250,0.04) 35%,
+         transparent 70%);
+         pointer-events: none;
+         }
+
+/* Header */
+.orbit-header {
+         position: relative; z-index: 3;
+         text-align: center;
+         padding: 0 24px;
+         margin-bottom: 20px;
+         }
+
+.orbit-eyebrow {
+         display: inline-flex; align-items: center; gap: 10px;
+         font-size: 10px; font-weight: 700; letter-spacing: 0.18em;
+         text-transform: uppercase; color: rgba(163,230,53,0.6);
+         margin-bottom: 18px;
+         }
+
+.orbit-eyebrow-dot {
+         display: block; width: 4px; height: 4px; border-radius: 50%;
+         background: rgba(163,230,53,0.5);
+         box-shadow: 0 0 6px rgba(163,230,53,0.6);
+         animation: orbit-dot-pulse 2s ease-in-out infinite;
+         }
+
+.orbit-eyebrow-dot:last-child { animation-delay: 1s; }
+
+@keyframes orbit-dot-pulse {
+         0%,100% { opacity: 0.5; transform: scale(1); }
+         50%      { opacity: 1;   transform: scale(1.4); box-shadow: 0 0 10px rgba(163,230,53,0.7); }
+         }
+
+.orbit-title {
+         font-size: clamp(28px, 4.5vw, 52px);
+         font-weight: 800; letter-spacing: -0.035em; line-height: 1.1;
+         color: #fff; margin-bottom: 16px;
+         }
+
+.orbit-title em { font-style: normal; color: rgba(163,230,53,0.85); }
+
+.orbit-subtitle {
+         font-size: clamp(13px, 1.4vw, 15px);
+         color: rgba(255,255,255,0.38); max-width: 480px;
+         margin: 0 auto; line-height: 1.7;
+         }
+
+/* ── THE ORB STAGE ── */
+.orbit-stage {
+         position: relative; z-index: 2;
+         width: 420px; height: 420px;
+         max-width: 90vw; max-height: 90vw;
+         margin: 0 auto;
+         }
+
+/* Orbit rings */
+.orbit-ring {
+         position: absolute; top: 50%; left: 50%;
+         border-radius: 50%;
+         border: 1px solid rgba(255,255,255,0.06);
+         transform: translate(-50%, -50%);
+         }
+
+.orbit-ring-1 { width: 44%; height: 44%; animation: orbit-spin 8s linear infinite; }
+
+.orbit-ring-2 { width: 68%; height: 68%; animation: orbit-spin 14s linear infinite reverse; }
+
+.orbit-ring-3 { width: 92%; height: 92%; animation: orbit-spin 20s linear infinite; }
+
+@keyframes orbit-spin { from { transform: translate(-50%,-50%) rotate(0deg); } to { transform: translate(-50%,-50%) rotate(360deg); } }
+
+/* Nodes on rings */
+.orbit-node {
+         position: absolute;
+         display: flex; flex-direction: column; align-items: center; gap: 4px;
+         }
+
+.orbit-node-pip {
+         width: 7px; height: 7px; border-radius: 50%;
+         background: rgba(163,230,53,0.7);
+         box-shadow: 0 0 8px rgba(163,230,53,0.5), 0 0 20px rgba(163,230,53,0.2);
+         animation: pip-breathe 2.4s ease-in-out infinite;
+         }
+
+.orbit-node-label {
+         font-size: 8px; font-weight: 700; letter-spacing: 0.1em;
+         text-transform: uppercase; color: rgba(255,255,255,0.35);
+         white-space: nowrap; pointer-events: none;
+         /* counter-rotate so text stays readable */
+         }
+
+/* Scanner beam — sweeping conic */
+.orbit-scanner-beam {
+         position: absolute; top: 50%; left: 50%;
+         width: 92%; height: 92%;
+         transform: translate(-50%, -50%);
+         border-radius: 50%;
+         background: conic-gradient(
+         from 0deg,
+         transparent 0deg,
+         rgba(163,230,53,0.0) 50deg,
+         rgba(163,230,53,0.08) 80deg,
+         rgba(163,230,53,0.18) 90deg,
+         transparent 91deg,
+         transparent 360deg
+         );
+         animation: scanner-sweep 4s linear infinite;
+         pointer-events: none;
+         }
+
+/* Core */
+.orbit-core {
+         position: absolute; top: 50%; left: 50%;
+         transform: translate(-50%, -50%);
+         width: 80px; height: 80px;
+         display: flex; align-items: center; justify-content: center;
+         }
+
+.orbit-core-ring {
+         position: absolute; border-radius: 50%;
+         border: 1px solid rgba(163,230,53,0.2);
+         animation: core-pulse 3s ease-in-out infinite;
+         }
+
+.orbit-core-ring-1 { width: 80px; height: 80px; animation-delay: 0s; }
+
+.orbit-core-ring-2 { width: 100px; height: 100px; animation-delay: 1.5s; border-color: rgba(163,230,53,0.1); }
+
+.orbit-core-inner {
+         position: relative; z-index: 2;
+         width: 64px; height: 64px; border-radius: 50%;
+         background: rgba(0,0,0,0.85);
+         border: 1px solid rgba(163,230,53,0.25);
+         display: flex; align-items: center; justify-content: center;
+         box-shadow: 0 0 32px rgba(163,230,53,0.12), inset 0 0 20px rgba(163,230,53,0.05);
+         }
+
+/* Readout connectors */
+.orbit-readout {
+         position: absolute; display: flex; align-items: flex-start; gap: 8px;
+         pointer-events: none;
+         }
+
+.orbit-readout-tl { top: 14%; left: -12%; flex-direction: row-reverse; }
+
+.orbit-readout-tr { top: 14%; right: -12%; }
+
+.orbit-readout-bl { bottom: 14%; left: -12%; flex-direction: row-reverse; }
+
+.orbit-readout-br { bottom: 14%; right: -12%; }
+
+.orbit-readout-line {
+         width: 28px; height: 1px; background: rgba(163,230,53,0.3);
+         margin-top: 7px; flex-shrink: 0;
+         }
+
+.orbit-readout-text { display: flex; flex-direction: column; gap: 2px; }
+
+.orbit-readout-label {
+         font-size: 8px; font-weight: 600; letter-spacing: 0.12em;
+         text-transform: uppercase; color: rgba(255,255,255,0.3);
+         }
+
+.orbit-readout-val {
+         font-size: 10px; font-weight: 800; letter-spacing: 0.08em;
+         }
+
+/* Readout lines for tr/br point inward (left-side line) */
+.orbit-readout-tr .orbit-readout-line,
+         .orbit-readout-br .orbit-readout-line { background: rgba(96,165,250,0.3); }
+
+.orbit-readout-br .orbit-readout-line { background: rgba(251,113,133,0.25); }
+
+.orbit-readout-bl .orbit-readout-line { background: rgba(163,230,53,0.25); }
+
+/* Counter-rotate labels so they stay level */
+.orbit-ring-1 .orbit-node-label { animation: counter-spin1 8s linear infinite; }
+
+.orbit-ring-2 .orbit-node-label { animation: counter-spin2 14s linear infinite; }
+
+.orbit-ring-3 .orbit-node-label { animation: counter-spin3 20s linear infinite; }
+
+/* Chips */
+.orbit-chips {
+         position: relative; z-index: 3;
+         display: flex; flex-wrap: wrap;
+         justify-content: center; gap: 10px;
+         margin: 20px auto 0;
+         max-width: 520px;
+         padding: 0 20px;
+         }
+
+.orbit-chip {
+         display: inline-flex; align-items: center; gap: 7px;
+         padding: 8px 16px; border-radius: 50px;
+         background: rgba(255,255,255,0.03);
+         border: 1px solid rgba(255,255,255,0.08);
+         backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+         }
+
+.orbit-chip-dot {
+         width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+         }
+
+.orbit-chip-label {
+         font-size: 11px; font-weight: 600; letter-spacing: 0.02em;
+         color: rgba(255,255,255,0.55);
+         }
+
+/* Mobile adjustments */
+@media (max-width: 500px) {
+         .orbit-readout-tl, .orbit-readout-tr,
+         .orbit-readout-bl, .orbit-readout-br { display: none; }
+         .orbit-stage { width: 300px; height: 300px; }
+         }
+
