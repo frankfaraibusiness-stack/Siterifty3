@@ -1,0 +1,71 @@
+/* ── SETTINGS SKELETON SHIMMER ── */
+@keyframes skel-shimmer {
+           0%   { background-position: -400px 0; }
+           100% { background-position: 400px 0; }
+         }
+
+.skel-block {
+           background: linear-gradient(90deg, #1a1a1e 25%, #252528 50%, #1a1a1e 75%);
+           background-size: 800px 100%;
+           animation: skel-shimmer 1.5s ease-in-out infinite;
+           border-radius: 8px;
+         }
+
+.skel-line   { height: 14px; margin-bottom: 10px; }
+
+.skel-line.short { width: 38%; }
+
+.skel-line.med   { width: 62%; }
+
+.skel-line.full  { width: 100%; }
+
+.skel-input  { height: 40px; width: 100%; margin-bottom: 18px; border-radius: 10px; }
+
+.skel-avatar { width: 64px; height: 64px; border-radius: 50%; flex-shrink: 0; }
+
+.skel-btn    { height: 44px; width: 160px; border-radius: 10px; margin-top: 6px; }
+
+.skel-label  { height: 11px; width: 30%; margin-bottom: 7px; border-radius: 5px; }
+
+.skel-toggle { height: 26px; width: 48px; border-radius: 14px; flex-shrink: 0; }
+
+.skel-toggle-row {
+           display: flex; align-items: center; justify-content: space-between;
+           padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+         }
+
+.skel-toggle-text { display: flex; flex-direction: column; gap: 6px; flex: 1; margin-right: 16px; }
+
+.skel-section-header {
+           display: flex; align-items: center; gap: 12px;
+           margin-bottom: 6px;
+         }
+
+.skel-icon { width: 24px; height: 24px; border-radius: 6px; flex-shrink: 0; }
+
+.skel-title { height: 20px; width: 55%; border-radius: 7px; }
+
+.skel-desc { height: 12px; width: 75%; margin: 8px 0 16px; border-radius: 5px; }
+
+.skel-divider { height: 1px; background: rgba(255,255,255,0.06); margin: 8px 0 20px; }
+
+.skel-block {
+                 display: block;
+                 border-radius: 8px;
+                 background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.10) 50%, rgba(255,255,255,0.04) 75%);
+                 background-size: 800px 100%;
+                 animation: mp-skel-shimmer 1.4s ease-in-out infinite;
+               }
+
+.skel-card-body { padding: 10px 14px 14px; display: flex; flex-direction: column; gap: 8px; }
+
+.skel-text { height: 12px; border-radius: 6px; }
+
+.skel-text.lg { height: 16px; border-radius: 7px; }
+
+.skel-fins-row { display: flex; gap: 6px; }
+
+.skel-fins-row .skel-block { flex: 1; height: 44px; border-radius: 9px; }
+
+.skel-footer-row { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; }
+
