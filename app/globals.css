@@ -1,0 +1,64 @@
+/* ══════════════════════════════════════════════════════════════════
+   Siterifty — global stylesheet entry point.
+
+   This used to be a single ~14,400-line file (all of Siterifty's CSS
+   in one place, left over from extracting inline <style> blocks out of
+   the original index.html during the Next.js migration). It's now
+   split by feature domain — one file per component family, matching
+   this app's own components/ folders — so any one feature's styles can
+   be found and edited without scrolling through everyone else's.
+
+   Nothing was rewritten: every rule below lives in exactly the same
+   form it had in the original file, just relocated. base.css keeps
+   the truly shared stuff (CSS variables, resets, the site header,
+   nav drawer, boot loader, and any selector used by more than one
+   domain) — everything else is scoped to the one component family
+   that owns it (its filename matches the CSS class/id prefix used
+   throughout that component's .tsx files, e.g. .mp-* -> marketplace,
+   .pm-* -> profile, .sr-* -> listing-cards).
+
+   Import order matters only where two files define the very same
+   selector — that was checked when this was split (see the PR that
+   introduced this), and the handful of same-selector cases across
+   files never set conflicting properties, so reordering these imports
+   is safe. base.css is imported first since :root variables and
+   resets need to exist before anything that references them.
+   ══════════════════════════════════════════════════════════════════ */
+
+@import "./styles/base.css";
+
+@import "./styles/settings.css";
+@import "./styles/profile.css";
+@import "./styles/marketplace.css";
+@import "./styles/listing-cards.css";
+@import "./styles/listing-body.css";
+@import "./styles/listing-forms.css";
+@import "./styles/transfer-deal.css";
+@import "./styles/deal-chat.css";
+@import "./styles/group-chat.css";
+@import "./styles/inbox.css";
+@import "./styles/checkout.css";
+@import "./styles/wallet.css";
+@import "./styles/agent.css";
+@import "./styles/auth-modal.css";
+@import "./styles/onboarding.css";
+@import "./styles/tour.css";
+@import "./styles/welcome-back.css";
+@import "./styles/theme.css";
+@import "./styles/boost.css";
+@import "./styles/notifications.css";
+@import "./styles/leaderboard.css";
+@import "./styles/seller-dashboard.css";
+@import "./styles/seller-profile.css";
+@import "./styles/sellers-directory.css";
+@import "./styles/sell-picker.css";
+@import "./styles/discover-panel.css";
+@import "./styles/referrals-misc.css";
+@import "./styles/referral-page.css";
+@import "./styles/support.css";
+@import "./styles/maintenance.css";
+@import "./styles/nav-drawer.css";
+@import "./styles/home.css";
+@import "./styles/skeletons.css";
+@import "./styles/orbit.css";
+@import "./styles/pulse.css";
