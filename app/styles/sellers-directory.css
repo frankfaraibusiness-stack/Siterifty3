@@ -1,0 +1,124 @@
+/* ── Sellers modal — redesigned to follow site theme (--mp-accent lime) ── */
+#sellersModal, #sellersModal * , #sellersModal *::before, #sellersModal *::after { box-sizing: border-box; }
+
+#sellersModal { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+
+.svm-feed-container { width:100%; max-width:720px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column; gap:1.5rem; padding:0 0.6rem 2rem; color:#e3e7ea; }
+
+.svm-sticky-header { position:sticky; top:92px; z-index:2; background:#000000; padding:1.2rem 0.3rem 0.5rem; display:flex; flex-direction:column; gap:1rem; border-bottom:1px solid rgba(163,230,53,0.12); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); }
+
+.svm-header { display:flex; align-items:center; justify-content:space-between; padding:0 0.2rem; }
+
+.svm-header h2 { font-size:1.6rem; font-weight:600; letter-spacing:-0.5px; color:#f0f4f8; }
+
+.svm-header-actions { display:flex; align-items:center; gap:0.5rem; }
+
+.svm-header button { background:none; border:none; color:#8a9a8a; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:background 0.15s, color 0.15s; }
+
+.svm-header button:hover { background:rgba(163,230,53,0.08); color:var(--mp-accent, #a3e635); }
+
+.svm-header button svg { width:18px; height:18px; }
+
+/* Leaderboard entry point — lime, matches the site's accent so it
+            reads as a distinct destination rather than another neutral icon button. */
+.svm-lb-btn {
+            width:auto !important; height:auto !important; border-radius:100px !important;
+            display:flex; align-items:center; gap:0.4rem;
+            padding:0.45rem 0.9rem 0.45rem 0.7rem;
+            border:1px solid var(--mp-accent-border, rgba(163,230,53,0.3)) !important;
+            box-shadow:0 0 0 1px rgba(163,230,53,0.1), 0 0 10px rgba(163,230,53,0.15);
+            color:var(--mp-accent, #a3e635) !important;
+            font-family:inherit; font-size:0.78rem; font-weight:700; white-space:nowrap;
+         }
+
+.svm-lb-btn:hover {
+            border-color:rgba(163,230,53,0.65) !important;
+            box-shadow:0 0 0 1px rgba(163,230,53,0.2), 0 0 14px rgba(163,230,53,0.3);
+            background:var(--mp-accent-muted, rgba(163,230,53,0.15)) !important;
+         }
+
+.svm-lb-btn svg { width:15px !important; height:15px !important; filter:drop-shadow(0 0 2px rgba(163,230,53,0.4)); }
+
+@media (max-width: 30em) {
+            .svm-lb-btn { padding:0.45rem 0.8rem 0.45rem 0.6rem; }
+            .svm-lb-btn span { display:inline; font-size:0.72rem; }
+         }
+
+.svm-search-wrapper { display:flex; align-items:center; background:#0a0a0a; border-radius:2.5rem; padding:0.6rem 1rem; border:1px solid #1a1a1a; transition:all 0.2s ease; margin:0 0.1rem; }
+
+.svm-search-wrapper:focus-within { border-color:var(--mp-accent-border, rgba(163,230,53,0.3)); box-shadow:0 0 0 3px var(--mp-accent-muted, rgba(163,230,53,0.15)); }
+
+.svm-search-wrapper svg { width:15px; height:15px; color:#6b7d6b; margin-right:0.4rem; flex-shrink:0; }
+
+.svm-search-wrapper input { background:transparent; border:none; outline:none; width:100%; font-size:0.9rem; color:#e1e9ef; caret-color:var(--mp-accent, #a3e635); font-family:inherit; }
+
+.svm-search-wrapper input::placeholder { color:#4d5a4d; }
+
+.svm-stats-row { display:flex; justify-content:space-between; align-items:center; color:#8a9a8a; font-size:0.8rem; font-weight:500; padding:0 0.2rem; }
+
+.svm-stats-row span:first-child { background:#0a0a0a; padding:0.25rem 0.9rem; border-radius:2rem; color:var(--mp-accent, #a3e635); border:1px solid var(--mp-accent-border, rgba(163,230,53,0.3)); font-weight:700; }
+
+.svm-profiles-grid { display:grid; grid-template-columns:1fr 1fr; grid-auto-rows:min-content; align-content:start; gap:0.7rem; flex:1; padding:0 0.1rem; }
+
+.svm-profile-card { aspect-ratio:1/1; background:#0a0a0a; border-radius:1rem; padding:0.9rem 0.7rem; border:1px solid #1a1a1a; transition:background 0.2s, border-color 0.2s; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:0.5rem; cursor:pointer; }
+
+.svm-profile-card:hover { background:#111611; border-color:var(--mp-accent-border, rgba(163,230,53,0.3)); }
+
+.svm-avatar { width:56px; height:56px; border-radius:50%; object-fit:cover; background:#161c16; display:flex; align-items:center; justify-content:center; font-size:1.5rem; font-weight:700; color:var(--mp-accent, #a3e635); border:2px solid #232823; flex-shrink:0; overflow:hidden; }
+
+.svm-avatar img { width:100%; height:100%; border-radius:50%; object-fit:cover; }
+
+.svm-user-info { display:flex; flex-direction:column; align-items:center; overflow:hidden; width:100%; }
+
+.svm-user-name { font-weight:600; font-size:0.85rem; color:#f0f4f8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+
+.svm-user-handle { color:#7a8a7a; font-size:0.7rem; margin-top:0.1rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+
+.svm-follow-btn { border:1.5px solid #232823; color:#d3e9d3; padding:0.35rem 0.7rem; border-radius:2rem; font-weight:600; font-size:0.7rem; cursor:pointer; transition:0.2s; background:rgba(255,255,255,0.03); display:flex; align-items:center; gap:0.3rem; white-space:nowrap; margin-top:0.1rem; font-family:inherit; }
+
+.svm-follow-btn svg { width:11px; height:11px; }
+
+.svm-follow-btn:hover { background:var(--mp-accent-muted, rgba(163,230,53,0.15)); border-color:var(--mp-accent-border, rgba(163,230,53,0.3)); color:var(--mp-accent, #a3e635); }
+
+.svm-follow-btn.following { background:var(--mp-accent-muted, rgba(163,230,53,0.15)); border-color:var(--mp-accent-border, rgba(163,230,53,0.3)); color:var(--mp-accent, #a3e635); }
+
+.svm-empty-message { grid-column:span 2; text-align:center; color:#6b7d6b; padding:2rem; font-style:italic; background:#0a0a0a; border-radius:1.5rem; border:1px solid #1a1a1a; }
+
+.svm-skel { pointer-events:none; }
+
+.svm-skel-block { background:linear-gradient(90deg,#111 25%,#181818 37%,#111 63%); background-size:400% 100%; animation:svmShimmer 1.4s ease infinite; border-radius:6px; }
+
+.svm-skel-avatar { width:56px; height:56px; border-radius:50%; }
+
+.svm-skel-line { height:10px; width:70%; }
+
+.svm-skel-line.sm { width:45%; height:8px; }
+
+.svm-skel-pill { width:64px; height:24px; border-radius:2rem; margin-top:0.1rem; }
+
+.svm-footer-note { font-size:0.7rem; color:#4d5a4d; display:flex; justify-content:center; gap:0.3rem; align-items:center; padding-top:0.3rem; }
+
+@media (min-width:500px) {
+            .svm-feed-container { padding:0 1.2rem 2rem; gap:1.8rem; }
+            .svm-sticky-header { padding:1.6rem 0.2rem 0.6rem; gap:1.2rem; }
+            .svm-profiles-grid { gap:1rem; }
+            .svm-profile-card { padding:1rem 0.9rem; border-radius:1.2rem; }
+            .svm-avatar { width:68px; height:68px; font-size:1.7rem; }
+            .svm-user-name { font-size:0.95rem; }
+            .svm-user-handle { font-size:0.78rem; }
+            .svm-follow-btn { padding:0.4rem 0.9rem; font-size:0.78rem; }
+         }
+
+/* ── Desktop widening ──
+            .svm-feed-container was capped at max-width:720px forever and
+            .svm-profiles-grid was hardcoded to exactly 2 columns with no
+            larger breakpoint, so on a wide viewport the whole directory
+            rendered as a narrow 2-column phone layout floating in a sea
+            of empty space either side. This lets both grow with the
+            viewport instead. */
+@media (min-width: 900px) {
+            .svm-feed-container { max-width: 1100px; }
+            .svm-profiles-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+            .svm-empty-message { grid-column: 1 / -1; }
+         }
+
