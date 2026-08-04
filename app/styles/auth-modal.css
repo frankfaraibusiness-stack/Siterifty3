@@ -1,0 +1,399 @@
+/* Ensure auth modal never overflows horizontally */
+#authModal > div { overflow-x: hidden; }
+
+.input-field {
+         background: #0a0a0a;
+         border: 1px solid #333;
+         border-radius: 0.8rem;
+         padding: 0.75rem 1rem;
+         font-size: 0.9rem;
+         color: #f0f0f0;
+         outline: none;
+         transition: border-color 0.2s, background 0.2s;
+         font-family: inherit;
+         }
+
+.input-field:focus {
+         border-color: #a5b4fc;
+         background: #0f0f0f;
+         }
+
+.input-field::placeholder {
+         color: #555;
+         }
+
+.hint {
+         font-size: 0.7rem;
+         color: #666;
+         margin-left: 0.2rem;
+         line-height: 1.3;
+         }
+
+.hint.warning {
+         color: #f0a060;
+         }
+
+.hint.danger {
+         color: #e74c3c;
+         }
+
+/* ============================================================
+   Auth Modal (Login / Sign Up) — redesign
+   ------------------------------------------------------------
+   Previous version was ~400 lines of inline styles with invented
+   one-off grays (#121214, #27272a, #09090b...) that never touched
+   this file's actual design tokens (--mp-bg, --mp-accent, etc.),
+   plus zero animation and a jarring red "Close" pill for a neutral
+   dismiss action. This redesign:
+     - uses the site's real tokens throughout, so it visually belongs
+       to the same product as the marketplace/profile/chat screens
+     - gives the card a soft ambient acid-green glow instead of a flat
+       backdrop-blur box
+     - animates the tab switch with a sliding indicator instead of a
+       static background swap
+     - gives inputs an accent focus-glow instead of the browser default
+     - puts the one deliberate motion moment on the submit button (a
+       slow gradient sweep), since that's the actual action the whole
+       screen exists for
+     - replaces the red "Close" pill with a quiet ghost icon button —
+       red is reserved for destructive actions elsewhere on this site,
+       dismissing a modal isn't one
+   ============================================================ */
+.am-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(3, 3, 6, 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  touch-action: none;
+  overscroll-behavior: none;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  padding: 16px;
+  animation: amBackdropIn 0.25s ease both;
+}
+
+.am-card {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--mp-surface-raised, #111116);
+  border: 1px solid var(--mp-border, #232326);
+  border-radius: 20px;
+  box-shadow: 0 40px 80px -20px rgba(0,0,0,0.85);
+  animation: amCardIn 0.38s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Ambient glow — a soft radial wash of the site's accent color sitting
+   behind the top of the card, low enough opacity to read as atmosphere
+   rather than a colored panel. Fixed, doesn't scroll with card content. */
+.am-card::before {
+  content: "";
+  position: absolute;
+  top: -120px;
+  left: 50%;
+  width: 380px;
+  height: 240px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center, rgba(163,230,53,0.16), transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.am-head {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 22px 18px;
+  flex-shrink: 0;
+}
+
+.am-brand {
+  display: flex;
+  align-items: center;
+}
+
+.am-brand-logo {
+  height: 26px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.am-close-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--mp-border, #232326);
+  background: rgba(255,255,255,0.03);
+  color: var(--mp-text-sec, #a1a1aa);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+  flex-shrink: 0;
+}
+
+.am-close-btn svg { width: 14px; height: 14px; }
+
+.am-close-btn:hover {
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  border-color: var(--mp-border-hover, #3f3f46);
+}
+
+.am-close-btn:active { transform: scale(0.9); }
+
+.am-body {
+  position: relative;
+  z-index: 1;
+  padding: 4px 22px 26px;
+  overflow-y: auto;
+  flex-grow: 1;
+  touch-action: pan-y;
+  scrollbar-width: thin;
+  scrollbar-color: #232326 transparent;
+}
+
+.am-body::-webkit-scrollbar { width: 4px; }
+
+.am-body::-webkit-scrollbar-thumb { background: #232326; border-radius: 4px; }
+
+.am-banner {
+  font-size: 0.8rem;
+  padding: 11px 14px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+  line-height: 1.4;
+}
+
+.am-banner-error {
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.28);
+  color: #fca5a5;
+}
+
+.am-banner-success {
+  background: var(--mp-accent-muted, rgba(163,230,53,0.15));
+  border: 1px solid var(--mp-accent-border, rgba(163,230,53,0.3));
+  color: var(--mp-accent, #a3e635);
+}
+
+/* Sliding tab switch — an absolutely-positioned pill that transforms
+   between the two tab positions, rather than each button swapping its
+   own background on/off. One moving element reads as intentional
+   motion; two buttons independently repainting reads as a flicker. */
+.am-tabs {
+  position: relative;
+  display: flex;
+  background: var(--mp-bg, #050508);
+  border: 1px solid var(--mp-border, #232326);
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 22px;
+}
+
+.am-tabs-indicator {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc(50% - 4px);
+  background: var(--mp-surface-raised, #1a1a20);
+  border: 1px solid var(--mp-border-hover, #2f2f36);
+  border-radius: 9px;
+  transition: transform 0.28s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.am-tabs-indicator.is-signup { transform: translateX(100%); }
+
+.am-tab-btn {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  padding: 9px 0;
+  background: none;
+  border: none;
+  font-size: 0.83rem;
+  font-weight: 700;
+  color: var(--mp-text-muted, #6b6b74);
+  cursor: pointer;
+  border-radius: 9px;
+  font-family: inherit;
+  transition: color 0.2s ease;
+}
+
+.am-tab-btn.active { color: #fff; }
+
+.am-oauth-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.am-oauth-btn {
+  flex: 1;
+  height: 42px;
+  background: var(--mp-surface, #0b0b0f);
+  border: 1px solid var(--mp-border, #232326);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  color: var(--mp-text, #e4e4e7);
+  font-size: 0.83rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.am-oauth-btn:hover {
+  border-color: var(--mp-border-hover, #3f3f46);
+  background: var(--mp-surface-raised, #16161c);
+}
+
+.am-oauth-btn svg { width: 17px; height: 17px; flex-shrink: 0; }
+
+.am-divider {
+  display: flex;
+  align-items: center;
+  color: var(--mp-text-muted, #52525b);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  margin-bottom: 20px;
+  gap: 12px;
+}
+
+.am-divider::before, .am-divider::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid var(--mp-border, #232326);
+}
+
+.am-form { display: flex; flex-direction: column; gap: 16px; }
+
+.am-field { display: flex; flex-direction: column; gap: 7px; }
+
+.am-field-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--mp-text-muted, #8b8b93);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.am-field-wrap { position: relative; display: flex; align-items: center; }
+
+.am-field-icon {
+  position: absolute;
+  left: 14px;
+  width: 17px;
+  height: 17px;
+  color: var(--mp-text-muted, #6b6b74);
+  pointer-events: none;
+  display: flex;
+  transition: color 0.15s ease;
+}
+
+.am-field-wrap:focus-within .am-field-icon { color: var(--mp-accent, #a3e635); }
+
+.am-input {
+  width: 100%;
+  height: 45px;
+  padding: 0 14px 0 44px;
+  background: var(--mp-bg, #050508);
+  border: 1px solid var(--mp-border, #27272a);
+  border-radius: 10px;
+  font-size: 0.92rem;
+  color: #fff;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.am-input::placeholder { color: var(--mp-text-muted, #52525b); }
+
+.am-input:focus {
+  border-color: var(--mp-accent-border, rgba(163,230,53,0.5));
+  box-shadow: 0 0 0 3px var(--mp-accent-muted, rgba(163,230,53,0.12));
+}
+
+.am-forgot-row { display: flex; justify-content: flex-end; margin-top: -6px; }
+
+.am-forgot-link {
+  font-size: 0.79rem;
+  color: var(--mp-text-sec, #a1a1aa);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.am-forgot-link:hover { color: var(--mp-accent, #a3e635); }
+
+/* Submit button — the one signature motion on this screen. A slow
+   diagonal light sweep drifts across the button on hover/focus, using
+   the accent color at low opacity so it reads as energy rather than a
+   loading state. Disabled/loading state stops the sweep and drops
+   opacity instead, so "busy" never looks the same as "hover". */
+.am-submit-btn {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  height: 47px;
+  background: var(--mp-accent, #a3e635);
+  color: #08130a;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.87rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  font-family: inherit;
+  transition: filter 0.15s ease, transform 0.1s ease;
+}
+
+.am-submit-btn::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 45%;
+  height: 100%;
+  background: linear-gradient(115deg, transparent, rgba(255,255,255,0.35), transparent);
+  transform: skewX(-18deg);
+  transition: left 0.6s ease;
+}
+
+.am-submit-btn:hover::after { left: 130%; }
+
+.am-submit-btn:hover { filter: brightness(1.06); }
+
+.am-submit-btn:active { transform: scale(0.98); }
+
+.am-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+  filter: none;
+}
+
+.am-submit-btn:disabled::after { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .am-backdrop, .am-card, .am-tabs-indicator, .am-submit-btn::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
