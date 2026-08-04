@@ -1,0 +1,149 @@
+@keyframes pulse-dot {
+           0%, 100% { opacity: 1; transform: scale(1); }
+           50% { opacity: 0.5; transform: scale(0.75); }
+         }
+
+/* ── PULSE SECTION ── */
+.pulse-section {
+         position: relative; width: 100%; overflow: hidden;
+         padding: 32px 0 40px; background: #000;
+         }
+
+.pulse-section::before {
+         content: ''; position: absolute; inset: 0;
+         background-image:
+         radial-gradient(rgba(163,230,53,0.025) 1px, transparent 1px),
+         radial-gradient(rgba(96,165,250,0.018) 1px, transparent 1px);
+         background-size: 48px 48px, 24px 24px;
+         background-position: 0 0, 12px 12px;
+         pointer-events: none;
+         }
+
+.pulse-inner {
+         position: relative; z-index: 2;
+         max-width: 900px; margin: 0 auto;
+         padding: 0 24px;
+         display: flex; flex-direction: column; align-items: center;
+         }
+
+.pulse-eyebrow {
+         display: inline-flex; align-items: center; gap: 10px;
+         font-size: 10px; font-weight: 700; letter-spacing: 0.18em;
+         text-transform: uppercase; color: rgba(96,165,250,0.65);
+         margin-bottom: 16px;
+         }
+
+.pulse-eyebrow-line {
+         display: block; width: 32px; height: 1px;
+         background: linear-gradient(90deg, transparent, rgba(96,165,250,0.4));
+         }
+
+.pulse-eyebrow-line:last-child { transform: scaleX(-1); }
+
+.pulse-title {
+         font-size: clamp(26px, 4.5vw, 50px);
+         font-weight: 800; letter-spacing: -0.035em; line-height: 1.1;
+         color: #fff; text-align: center; margin-bottom: 12px;
+         }
+
+.pulse-title em { font-style: normal; color: rgba(96,165,250,0.85); }
+
+.pulse-subtitle {
+         font-size: clamp(13px, 1.4vw, 15px); color: rgba(255,255,255,0.38);
+         max-width: 440px; text-align: center; line-height: 1.7; margin-bottom: 24px;
+         }
+
+.pulse-bands { width: 100%; display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px; }
+
+.pulse-band {
+         position: relative; overflow: hidden; height: 42px;
+         border-radius: 12px; border: 1px solid rgba(255,255,255,0.055);
+         background: rgba(255,255,255,0.018);
+         }
+
+.pulse-band::before {
+         content: ''; position: absolute; inset: 0;
+         background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.022) 50%, transparent 100%);
+         animation: band-sweep 4s ease-in-out infinite;
+         }
+
+.pulse-band-track {
+         display: flex; align-items: center;
+         height: 100%; width: max-content; white-space: nowrap;
+         }
+
+.pulse-band-track.fwd  { animation: tkr-fwd 24s linear infinite; }
+
+.pulse-band-track.rev  { animation: tkr-rev 20s linear infinite; }
+
+.pulse-band-track.fwd2 { animation: tkr-fwd 32s linear infinite; animation-delay: -12s; }
+
+.pulse-band:hover .pulse-band-track { animation-play-state: paused; }
+
+.pulse-item {
+         display: inline-flex; align-items: center; gap: 8px;
+         padding: 0 20px; height: 42px; flex-shrink: 0;
+         font-size: 11px; font-weight: 600; letter-spacing: 0.02em;
+         color: rgba(255,255,255,0.38);
+         border-right: 1px solid rgba(255,255,255,0.05);
+         }
+
+.pulse-item-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+
+.pulse-item-val { font-weight: 800; letter-spacing: -0.01em; }
+
+.pulse-grid {
+         width: 100%; display: grid;
+         grid-template-columns: repeat(3,1fr); gap: 12px;
+         }
+
+@media (max-width:600px) { .pulse-grid { grid-template-columns: 1fr 1fr; } }
+
+@media (max-width:380px) { .pulse-grid { grid-template-columns: 1fr; } }
+
+.pulse-feat {
+         position: relative; overflow: hidden;
+         padding: 18px 16px 16px; border-radius: 14px;
+         border: 1px solid rgba(255,255,255,0.06);
+         background: rgba(255,255,255,0.018);
+         display: flex; flex-direction: column; gap: 7px;
+         transition: border-color 0.25s, background 0.25s;
+         }
+
+.pulse-feat::before {
+         content: ''; position: absolute; top: 0; left: 15%; right: 15%; height: 1px;
+         background: linear-gradient(90deg, transparent, var(--pf-line, rgba(163,230,53,0.35)), transparent);
+         opacity: 0; transition: opacity 0.3s;
+         }
+
+.pulse-feat:hover { border-color: rgba(255,255,255,0.1); background: rgba(255,255,255,0.034); }
+
+.pulse-feat:hover::before { opacity: 1; }
+
+.pulse-feat-icon {
+         width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
+         display: flex; align-items: center; justify-content: center;
+         background: var(--pf-bg, rgba(163,230,53,0.07));
+         border: 1px solid var(--pf-border, rgba(163,230,53,0.14));
+         margin-bottom: 2px;
+         }
+
+.pulse-feat-icon svg { width: 15px; height: 15px; color: var(--pf-color, rgba(163,230,53,0.85)); }
+
+.pulse-feat-name { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.82); line-height: 1.2; }
+
+.pulse-feat-desc { font-size: 10.5px; color: rgba(255,255,255,0.32); line-height: 1.55; }
+
+.pulse-live { position: absolute; top: 12px; right: 12px; display: flex; align-items: center; gap: 5px; }
+
+.pulse-live-dot {
+         width: 6px; height: 6px; border-radius: 50%;
+         background: rgba(163,230,53,0.8); box-shadow: 0 0 8px rgba(163,230,53,0.5);
+         animation: live-blink 1.8s ease-in-out infinite;
+         }
+
+.pulse-live-txt {
+         font-size: 8px; font-weight: 700; letter-spacing: 0.1em;
+         text-transform: uppercase; color: rgba(163,230,53,0.55);
+         }
+
