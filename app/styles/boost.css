@@ -1,0 +1,220 @@
+/* ── extracted style block 23 (originally around char offset 2145354) ── */
+#boostOverlay {
+         position: fixed; inset: 0; z-index: 99999;
+         background: rgba(0,0,0,0.82);
+         backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+         display: none; align-items: center; justify-content: center;
+         padding: 20px; font-family: inherit;
+         opacity: 0; transition: opacity 0.22s ease;
+      }
+
+#boostOverlay.visible { opacity: 1; }
+
+#boostCard {
+         position: relative;
+         width: 100%; max-width: 480px; max-height: 90vh;
+         display: flex; flex-direction: column;
+         overflow: hidden;
+         background: radial-gradient(120% 100% at 50% 0%, rgba(124,58,237,0.16) 0%, rgba(0,0,0,0) 55%), #060606;
+         border: 1px solid #2a2a2a;
+         border-radius: 1.6rem;
+         transform: scale(0.94) translateY(8px);
+         transition: transform 0.25s cubic-bezier(0.16,1,0.3,1);
+         box-shadow: 0 30px 80px -20px rgba(124,58,237,0.35), 0 10px 40px -10px rgba(0,0,0,0.6);
+      }
+
+#boostOverlay.visible #boostCard { transform: scale(1) translateY(0); }
+
+/* ── Sticky header: stays pinned while body scrolls ── */
+.boost-sticky-header {
+         position: sticky; top: 0; z-index: 5;
+         display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
+         background: rgba(6,6,6,0.92);
+         backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+         border-bottom: 1px solid #1e1e1e;
+         padding: 1.1rem 1.1rem 1.1rem 1.25rem;
+         flex-shrink: 0;
+      }
+
+.boost-header-left { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
+
+.boost-header-text h2 {
+         font-size: 1rem; font-weight: 800; color: #fff; margin: 0 0 2px;
+         letter-spacing: -0.01em; white-space: nowrap;
+      }
+
+.boost-header-text p {
+         font-size: 0.72rem; color: #8a8a8a; margin: 0; line-height: 1.3;
+         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+
+.boost-body {
+         overflow-y: auto;
+         padding: 1.25rem 1.5rem 1.5rem;
+      }
+
+.boost-body::-webkit-scrollbar { width: 6px; }
+
+.boost-body::-webkit-scrollbar-thumb { background: #333; border-radius: 100px; }
+
+#boostCloseBtn {
+         width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+         background: #141416; border: 1px solid #27272a; color: #a1a1aa;
+         display: flex; align-items: center; justify-content: center;
+         cursor: pointer; transition: 0.2s;
+      }
+
+#boostCloseBtn:hover { background: #1f1f23; border-color: #3f3f46; color: #fff; }
+
+#boostCloseBtn svg { width: 15px; height: 15px; stroke: currentColor; stroke-width: 2.5; fill: none; }
+
+.boost-icon-badge {
+         width: 40px; height: 40px; flex-shrink: 0;
+         border-radius: 50%;
+         background: linear-gradient(135deg, #7c3aed, #a855f7);
+         display: flex; align-items: center; justify-content: center;
+         box-shadow: 0 6px 20px -5px rgba(168,85,247,0.6);
+      }
+
+.boost-icon-badge svg { width: 19px; height: 19px; stroke: #fff; fill: none; stroke-width: 2.2; }
+
+.boost-listing-chip {
+         display: flex; align-items: center; gap: 0.6rem;
+         background: #0d0d0d; border: 1px solid #262626; border-radius: 1rem;
+         padding: 0.6rem 0.75rem; margin-bottom: 1.3rem;
+      }
+
+.boost-listing-chip img, .boost-listing-chip .ph {
+         width: 38px; height: 38px; border-radius: 0.6rem; object-fit: cover;
+         background: #1a1a1a; flex-shrink: 0;
+      }
+
+.boost-listing-chip .ph { display:flex; align-items:center; justify-content:center; }
+
+.boost-listing-chip .ph svg { width:16px; height:16px; stroke:#444; fill:none; stroke-width:1.5; }
+
+.boost-listing-title {
+         font-size: 0.8rem; font-weight: 700; color: #eee;
+         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+
+.boost-listing-sub { font-size: 0.68rem; color: #666; }
+
+.boost-plans {
+         display: flex; flex-direction: column; gap: 0.6rem;
+         margin-bottom: 1.3rem;
+      }
+
+.boost-plan {
+         position: relative;
+         display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
+         background: #0a0a0a; border: 1.5px solid #262626; border-radius: 1.1rem;
+         padding: 0.85rem 1rem;
+         cursor: pointer; transition: 0.15s;
+      }
+
+.boost-plan:hover { border-color: #3f3f46; background: #0f0f0f; }
+
+.boost-plan.selected {
+         border-color: #a855f7;
+         background: linear-gradient(135deg, rgba(124,58,237,0.14), rgba(168,85,247,0.06));
+         box-shadow: 0 0 0 1px rgba(168,85,247,0.35);
+      }
+
+.boost-plan-left { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
+
+.boost-plan-radio {
+         width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0;
+         border: 2px solid #3a3a3a; display: flex; align-items: center; justify-content: center;
+         transition: 0.15s;
+      }
+
+.boost-plan.selected .boost-plan-radio { border-color: #a855f7; }
+
+.boost-plan-radio::after {
+         content: ''; width: 8px; height: 8px; border-radius: 50%; background: #a855f7;
+         transform: scale(0); transition: 0.15s;
+      }
+
+.boost-plan.selected .boost-plan-radio::after { transform: scale(1); }
+
+.boost-plan-duration { font-size: 0.92rem; font-weight: 800; color: #fff; line-height: 1.1; }
+
+.boost-plan-perday { font-size: 0.68rem; color: #777; margin-top: 2px; }
+
+.boost-plan-right { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+
+.boost-plan-price { font-size: 1rem; font-weight: 800; color: #fff; }
+
+.boost-plan-badge {
+         font-size: 0.6rem; font-weight: 800; letter-spacing: 0.03em;
+         padding: 3px 8px; border-radius: 100px; white-space: nowrap;
+      }
+
+.boost-plan-badge.best {
+         background: rgba(163,230,53,0.14); color: #a3e635; border: 1px solid rgba(163,230,53,0.3);
+      }
+
+.boost-plan-badge.popular {
+         background: rgba(168,85,247,0.14); color: #c084fc; border: 1px solid rgba(168,85,247,0.3);
+      }
+
+.boost-submit {
+         position: relative;
+         width: 100%;
+         display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+         background: linear-gradient(135deg, #5b21b6 0%, #7c3aed 55%, #6d28d9 100%);
+         border: 1px solid #8b5cf6;
+         color: #ffffff; font-family: inherit; font-size: 0.85rem; font-weight: 800;
+         letter-spacing: 0.02em;
+         padding: 0.9rem 1rem; border-radius: 100px; cursor: pointer;
+         overflow: hidden;
+         box-shadow: 0 8px 26px -6px rgba(124,58,237,0.6), inset 0 1px 0 rgba(255,255,255,0.12);
+         transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+      }
+
+.boost-submit:hover { transform: translateY(-1px); box-shadow: 0 10px 30px -6px rgba(124,58,237,0.75), inset 0 1px 0 rgba(255,255,255,0.16); }
+
+.boost-submit:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+/* Premium sheen: a single soft diagonal band of light sweeps across the
+         fixed dark-purple base — unlike a hue-cycling gradient, the base color
+         never passes through a pale tone, so white text stays legible at every
+         frame instead of the old animation washing out mid-cycle. */
+.boost-submit::before {
+         content: "";
+         position: absolute; top: 0; left: -60%; width: 45%; height: 100%;
+         background: linear-gradient(75deg,
+            rgba(255,255,255,0) 0%,
+            rgba(255,255,255,0.16) 45%,
+            rgba(255,255,255,0.38) 50%,
+            rgba(255,255,255,0.16) 55%,
+            rgba(255,255,255,0) 100%);
+         transform: skewX(-20deg);
+         animation: boostSheen 2.8s ease-in-out infinite;
+         pointer-events: none;
+      }
+
+.boost-submit span, .boost-submit svg { position: relative; z-index: 1; }
+
+.boost-submit svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+.boost-fineprint {
+         text-align: center; font-size: 0.68rem; color: #555; margin-top: 0.8rem; line-height: 1.4;
+      }
+
+.boost-wallet-hint {
+         display: flex; align-items: center; justify-content: center; gap: 0.35rem;
+         font-size: 0.72rem; color: #777; margin-top: 0.7rem;
+      }
+
+.boost-wallet-hint svg { width: 13px; height: 13px; stroke: #666; fill: none; stroke-width: 2; }
+
+.boost-wallet-hint b { color: #a3e635; font-weight: 700; }
+
+@media (max-width: 400px) {
+         .boost-sticky-header { padding: 0.95rem 0.9rem 0.95rem 1rem; }
+         .boost-body { padding: 1.1rem 1.1rem 1.25rem; }
+         .boost-plan { padding: 0.75rem 0.85rem; }
+      }
+
