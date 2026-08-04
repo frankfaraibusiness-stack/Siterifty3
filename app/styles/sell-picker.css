@@ -1,0 +1,452 @@
+#lmCard {
+            width: 100%;
+            min-height: 100%;
+            margin: 0;
+            background: #000000;
+            border: none;
+            border-radius: 0;
+            box-shadow: none;
+            overflow: hidden;
+         }
+
+.lm-app { display:flex; flex-direction:column; max-width:1200px; margin:0 auto; padding: 0 32px 40px; color:#f0f2f5; }
+
+/* ─── HEADER ─── */
+.lm-header { position: sticky; top:0; z-index:6; background:#000000; padding:16px 44px 16px 0; border-bottom:1px solid #1a1a1a; }
+
+.lm-header-inner { display:flex; align-items:center; justify-content:flex-start; flex-wrap:wrap; gap:12px; }
+
+.lm-header-title { font-size:14px; font-weight:700; color:#f0f2f5; letter-spacing:-0.01em; }
+
+.lm-header-title .lm-model-name { color:#a3e635; }
+
+.lm-header-title .lm-divider { color:#3a3a3a; margin:0 8px; font-weight:400; }
+
+.lm-btn-close {
+            position:absolute; top:14px; right:0;
+            background:#141416; border:1px solid #27272a; color:#a1a1aa;
+            width:32px; height:32px; cursor:pointer; padding:0;
+            border-radius:50%; transition:0.2s; display:flex; align-items:center; justify-content:center;
+            font-family:inherit; z-index:7;
+         }
+
+.lm-btn-close:hover { background:#1f1f23; border-color:#3f3f46; color:#fff; }
+
+.lm-btn-close svg { width:15px; height:15px; stroke:currentColor; stroke-width:2.5; fill:none; }
+
+/* ─── PROFILE BAR ─── */
+.lm-profile-bar { padding:14px 0; border-bottom:1px solid #1a1a1a; margin-bottom:20px; }
+
+.lm-profile-bar-inner { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:14px; }
+
+.lm-profile-left { display:flex; align-items:center; gap:12px; min-width:0; }
+
+.lm-user-avatar {
+            width:40px; height:40px; border-radius:50%;
+            background:linear-gradient(135deg, #6b9b1f, #a3e635);
+            display:flex; align-items:center; justify-content:center;
+            font-weight:700; font-size:14px; color:#0a1005; text-transform:uppercase;
+            flex-shrink:0; border:2px solid #2a2a2a; overflow:hidden;
+         }
+
+.lm-user-avatar img { width:100%; height:100%; border-radius:50%; object-fit:cover; }
+
+.lm-profile-identity { display:flex; align-items:center; gap:10px; min-width:0; flex-wrap:wrap; }
+
+.lm-user-username { font-size:14px; font-weight:700; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+.lm-user-email { font-size:12px; color:#71717a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:180px; }
+
+.lm-plan-badge {
+            font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.06em;
+            padding:4px 10px; border-radius:5px; background:#141416; color:#71717a; border:1px solid #27272a;
+         }
+
+.lm-profile-right { display:flex; align-items:center; flex-shrink:0; }
+
+.lm-listings-counter {
+            display:flex; align-items:center; gap:6px; font-size:13px; font-weight:600; color:#d0d5dd;
+            background:#0a0a0a; padding:6px 16px; border-radius:100px; border:1px solid #2a2a2a; white-space:nowrap;
+         }
+
+.lm-listings-counter strong { color:#ffffff; }
+
+.lm-listings-counter svg { width:14px; height:14px; stroke:#a3e635; stroke-width:2.5; fill:none; flex-shrink:0; }
+
+.lm-manage-listings-btn {
+            display:flex; align-items:center; gap:6px; font-size:12.5px; font-weight:600; color:#d0d5dd;
+            background:#0a0a0a; padding:6px 14px; border-radius:100px; border:1px solid #2a2a2a; white-space:nowrap;
+            cursor:pointer; font-family:inherit; transition:border-color 0.15s, color 0.15s, background 0.15s;
+         }
+
+.lm-manage-listings-btn:hover { border-color:#a3e635; color:#fff; background:#111; }
+
+.lm-manage-listings-btn strong { color:#ffffff; font-weight:700; }
+
+.lm-manage-listings-btn svg { width:13px; height:13px; stroke:#a3e635; stroke-width:2.5; fill:none; flex-shrink:0; }
+
+/* ─── WEEKLY LIMIT ─── */
+.lm-limit-row {
+            display:flex; align-items:center; gap:16px; margin-bottom:0; flex-wrap:wrap;
+            background:#0a0a0a; padding:14px 20px; border-radius:14px 14px 0 0; border:1px solid #2a2a2a;
+            justify-content:space-between; cursor:pointer;
+         }
+
+.lm-limit-row-left { display:flex; align-items:center; gap:14px; flex-wrap:wrap; flex:1; min-width:0; }
+
+.lm-limit-label { font-size:12px; font-weight:600; color:#6b7280; letter-spacing:0.03em; text-transform:uppercase; }
+
+.lm-limit-track { flex:1; min-width:100px; max-width:200px; height:6px; background:#1a1a1a; border-radius:100px; overflow:hidden; }
+
+.lm-limit-track-fill { height:100%; background:linear-gradient(90deg, #6b9b1f, #a3e635); border-radius:100px; transition:width 0.3s ease; }
+
+.lm-limit-numbers { font-size:13px; font-weight:500; color:#9ca3af; white-space:nowrap; }
+
+.lm-limit-arrow { font-size:11px; color:#71717a; transition:transform 0.2s ease; }
+
+.lm-limit-row.open .lm-limit-arrow { transform: rotate(180deg); }
+
+.lm-btn-plan-upgrade {
+            display:inline-flex; align-items:center; gap:7px; background:#7c3aed; border:1px solid #8b5cf6;
+            color:#fff; font-size:12.5px; font-weight:600; padding:9px 16px; border-radius:100px; cursor:pointer;
+            font-family:inherit; letter-spacing:0.01em; white-space:nowrap; flex-shrink:0;
+            box-shadow:0 4px 16px -4px rgba(124,58,237,0.45); transition:transform 0.2s, box-shadow 0.2s, background 0.2s;
+         }
+
+.lm-btn-plan-upgrade:hover { background:#8b5cf6; transform:translateY(-1px); box-shadow:0 6px 20px -4px rgba(124,58,237,0.6); }
+
+.lm-btn-plan-upgrade svg { width:14px; height:14px; stroke:currentColor; stroke-width:2.2; fill:none; flex-shrink:0; }
+
+.lm-limit-dropdown {
+            font-size:11.5px; color:#71717a; background:#0a0a0a; border:1px solid #2a2a2a; border-top:none;
+            border-radius:0 0 14px 14px; padding:0 20px; max-height:0; overflow:hidden;
+            transition:max-height 0.3s ease, padding 0.3s ease; margin-bottom:20px; line-height:1.6;
+         }
+
+.lm-limit-dropdown.open { max-height:120px; padding:12px 20px; }
+
+.lm-limit-dropdown #lmLimitSummary { color:#fff; font-weight:700; }
+
+/* ─── PRICING CARDS ─── */
+.lm-pricing-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-bottom:24px; }
+
+.lm-pricing-card {
+            position:relative; background:#0a0a0a; border-radius:14px; padding:14px 14px 16px;
+            border:1px solid #2a2a2a; transition:border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease; cursor:pointer; overflow:hidden;
+         }
+
+.lm-pricing-card:hover { border-color:#4a4a4a; transform:translateY(-1px); }
+
+/* Top edge accent line — shared base, color/finish set per plan below */
+.lm-pricing-card::before {
+            content:''; position:absolute; top:0; left:0; right:0; height:2.5px;
+            opacity:0.55; transition:opacity 0.25s ease;
+         }
+
+.lm-pricing-card:hover::before { opacity:0.85; }
+
+.lm-pricing-card.active::before { opacity:1; }
+
+/* Shimmer sweep layer — only enabled on paid plans */
+.lm-pricing-card::after {
+            content:''; position:absolute; top:0; left:-150%; width:60%; height:100%;
+            pointer-events:none; opacity:0;
+         }
+
+.lm-plan-check-badge {
+            position:absolute; top:8px; right:8px; width:18px; height:18px; border-radius:50%;
+            background:#22c55e; border:2px solid rgba(0,0,0,0.35); display:none; align-items:center; justify-content:center;
+            box-shadow:0 2px 6px rgba(0,0,0,0.35);
+         }
+
+.lm-pricing-card.active .lm-plan-check-badge { display:flex; }
+
+.lm-plan-check-badge svg { width:10px; height:10px; stroke:#ffffff; stroke-width:4; fill:none; }
+
+.lm-pricing-card .lm-plan-name { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:#6b7280; margin-bottom:2px; }
+
+.lm-pricing-card .lm-plan-price { font-size:22px; font-weight:700; color:#ffffff; letter-spacing:-0.02em; }
+
+.lm-pricing-card .lm-plan-price small { font-size:12px; font-weight:500; color:#6b7280; margin-left:2px; }
+
+.lm-pricing-card .lm-plan-sub { font-size:11px; color:#6b7280; margin-top:2px; }
+
+/* FREE — plain dim edge, current-plan lime highlight, no shimmer */
+.lm-pricing-card[data-plan="free"] { background:#0a0a0a; border-color:#2a2a2a; }
+
+.lm-pricing-card[data-plan="free"] .lm-plan-name { color:#6b7280; }
+
+.lm-pricing-card[data-plan="free"]::before { background:#3f3f46; }
+
+.lm-pricing-card[data-plan="free"].active { border-color:#a3e635; box-shadow:0 0 0 1px rgba(163,230,53,0.4), 0 0 20px rgba(163,230,53,0.08); }
+
+.lm-pricing-card[data-plan="free"].active::before { background:#a3e635; box-shadow:0 0 8px rgba(163,230,53,0.6); }
+
+/* STARTER — dim silver edge, subtle shimmer */
+.lm-pricing-card[data-plan="starter"] { background:#0a0a0a; border-color:#2a2a2a; }
+
+.lm-pricing-card[data-plan="starter"] .lm-plan-name { color:#6b7280; }
+
+.lm-pricing-card[data-plan="starter"]::before { background:linear-gradient(90deg, transparent, #71717a 50%, transparent); }
+
+.lm-pricing-card[data-plan="starter"]::after { background:linear-gradient(115deg, transparent, rgba(161,161,170,0.16) 45%, rgba(212,212,216,0.28) 50%, rgba(161,161,170,0.16) 55%, transparent); animation:srfShimmerSlow 5.5s ease-in-out infinite; opacity:1; }
+
+.lm-pricing-card[data-plan="starter"].active { border-color:#a3e635; box-shadow:0 0 0 1px rgba(163,230,53,0.4), 0 0 20px rgba(163,230,53,0.08); }
+
+.lm-pricing-card[data-plan="starter"].active::before { background:#a3e635; box-shadow:0 0 8px rgba(163,230,53,0.6); }
+
+/* GROWTH — silver edge, brighter shimmer */
+.lm-pricing-card[data-plan="growth"] { background:#0a0a0a; border-color:#2a2a2a; }
+
+.lm-pricing-card[data-plan="growth"] .lm-plan-name { color:#6b7280; }
+
+.lm-pricing-card[data-plan="growth"] .lm-plan-price { color:#ffffff; }
+
+.lm-pricing-card[data-plan="growth"] .lm-plan-price small { color:#6b7280; }
+
+.lm-pricing-card[data-plan="growth"] .lm-plan-sub { color:#6b7280; }
+
+.lm-pricing-card[data-plan="growth"]::before { background:linear-gradient(90deg, transparent, #d4d4d8 50%, transparent); box-shadow:0 0 6px rgba(212,212,216,0.5); }
+
+.lm-pricing-card[data-plan="growth"]::after { background:linear-gradient(115deg, transparent, rgba(228,228,231,0.22) 45%, rgba(255,255,255,0.4) 50%, rgba(228,228,231,0.22) 55%, transparent); animation:srfShimmerSlow 4.2s ease-in-out infinite; opacity:1; }
+
+.lm-pricing-card[data-plan="growth"].active { border-color:#a3e635; box-shadow:0 0 0 1px rgba(163,230,53,0.4), 0 0 20px rgba(163,230,53,0.08); }
+
+.lm-pricing-card[data-plan="growth"].active::before { background:#a3e635; box-shadow:0 0 8px rgba(163,230,53,0.6); }
+
+/* PRO — gold "diamond" edge, richest shimmer */
+.lm-pricing-card[data-plan="pro"] { background:#0a0a0a; border-color:#2a2a2a; }
+
+.lm-pricing-card[data-plan="pro"] .lm-plan-name { color:#6b7280; }
+
+.lm-pricing-card[data-plan="pro"] .lm-plan-price { color:#ffffff; }
+
+.lm-pricing-card[data-plan="pro"] .lm-plan-price small { color:#6b7280; }
+
+.lm-pricing-card[data-plan="pro"] .lm-plan-sub { color:#6b7280; }
+
+.lm-pricing-card[data-plan="pro"]::before { height:3px; background:linear-gradient(90deg, transparent, #eab308 15%, #fde68a 50%, #eab308 85%, transparent); box-shadow:0 0 10px rgba(250,204,21,0.6); opacity:0.9; }
+
+.lm-pricing-card[data-plan="pro"]::after { background:linear-gradient(115deg, transparent, rgba(253,224,71,0.22) 45%, rgba(255,247,208,0.45) 50%, rgba(253,224,71,0.22) 55%, transparent); animation:srfShimmerSlow 3.2s ease-in-out infinite; opacity:1; }
+
+.lm-pricing-card[data-plan="pro"].active { border-color:#a3e635; box-shadow:0 0 0 1px rgba(163,230,53,0.4), 0 0 20px rgba(163,230,53,0.08); }
+
+.lm-pricing-card[data-plan="pro"].active::before { background:linear-gradient(90deg, transparent, #a3e635 15%, #d9f99d 50%, #a3e635 85%, transparent); box-shadow:0 0 8px rgba(163,230,53,0.6); opacity:1; }
+
+@media (prefers-reduced-motion: reduce) {
+            .lm-pricing-card::after { animation:none !important; opacity:0 !important; }
+         }
+
+/* ─── CATEGORY TABS ─── */
+.lm-category-tabs { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:20px; width:100%; }
+
+.lm-tab-btn {
+            position:relative; background:#0a0a0a; border:1px solid #2a2a2a; color:#ffffff;
+            font-size:13px; font-weight:600; padding:11px 8px; border-radius:12px; cursor:pointer;
+            transition:0.2s; font-family:inherit; text-align:center; letter-spacing:0.02em;
+            display:flex; align-items:center; justify-content:center; gap:6px;
+            text-transform:uppercase; overflow:hidden;
+         }
+
+.lm-tab-btn:hover { border-color:#4a4a4a; }
+
+.lm-tab-btn.active { background:#141d0e; border-color:#a3e635; box-shadow:0 0 0 1px rgba(163,230,53,0.35); }
+
+/* ─── WEBSITE THEME ─── */
+.lm-tab-btn[data-tab="website"] { background:#0a0a0a; border-color:#2a2a2a; }
+
+.lm-tab-btn[data-tab="website"].active { background:#141d0e; border-color:#a3e635; box-shadow:0 0 0 1px rgba(163,230,53,0.35); }
+
+/* ─── GAME THEME: text gets stabbed by an arrow on activation ─── */
+.lm-tab-btn[data-tab="game"] { background:#0a0a0a; border-color:#2a2a2a; }
+
+.lm-tab-btn[data-tab="game"].active { background:#141d0e; border-color:#a3e635; box-shadow:0 0 0 1px rgba(163,230,53,0.35); }
+
+.lm-tab-btn.active[data-tab="game"] .lm-tab-label { position:relative; display:inline-block; }
+
+.lm-tab-btn.active[data-tab="game"] .lm-tab-label::before {
+            content:""; position:absolute; top:50%; left:-60px; width:22px; height:3px; background:#1a1a1a;
+            transform:translateY(-50%);
+            clip-path: polygon(0% 30%, 65% 30%, 65% 0%, 100% 50%, 65% 100%, 65% 70%, 0% 70%);
+            opacity:0;
+         }
+
+.lm-tab-btn.active[data-tab="game"].stab-play .lm-tab-label::before { animation: lmArrowStab 0.55s cubic-bezier(0.65,0,0.35,1) 1; }
+
+.lm-tab-btn.active[data-tab="game"].stab-play .lm-tab-label .lm-tab-text { animation: lmTextImpact 0.42s ease-out 1; animation-delay:0.32s; }
+
+/* ─── APP THEME ─── */
+.lm-tab-btn[data-tab="app"] { background:#0a0a0a; border-color:#2a2a2a; color:#ffffff; }
+
+.lm-tab-btn[data-tab="app"].active { background:#141d0e; border-color:#a3e635; box-shadow:0 0 0 1px rgba(163,230,53,0.35); }
+
+.lm-tab-btn svg { width:17px; height:17px; stroke:currentColor; stroke-width:2.5; fill:none; flex-shrink:0; position:relative; z-index:1; }
+
+.lm-tab-label { position:relative; z-index:1; }
+
+.lm-tab-check-badge {
+            position:absolute; top:6px; right:6px; width:18px; height:18px; border-radius:50%;
+            background:#22c55e; border:2px solid rgba(0,0,0,0.35); display:flex; align-items:center; justify-content:center;
+            z-index:3; box-shadow:0 2px 6px rgba(0,0,0,0.35);
+         }
+
+.lm-tab-check-badge svg { width:10px; height:10px; stroke:#fff; stroke-width:4; fill:none; }
+
+/* ─── LIST ACTION ─── */
+.lm-list-action { display:flex; align-items:center; gap:14px; margin-bottom:28px; flex-wrap:wrap; }
+
+.lm-cta-btn {
+            display:inline-flex; align-items:center; gap:10px; background:#a3e635; border:1px solid #a3e635;
+            color:#0a1005; font-size:14px; font-weight:700; padding:12px 28px; border-radius:100px; cursor:pointer;
+            transition:0.2s; font-family:inherit; box-shadow:0 4px 24px -4px rgba(163,230,53,0.4);
+            position:relative; overflow:hidden;
+         }
+
+.lm-cta-btn:hover { background:#b6f04a; transform:translateY(-2px); box-shadow:0 8px 32px -6px rgba(163,230,53,0.55); }
+
+/* GAME theme for list button — floating glyphs + arrow stab (color unified to brand accent) */
+.lm-cta-btn[data-theme="game"] .lm-btn-label { position:relative; display:inline-block; }
+
+.lm-cta-btn[data-theme="game"] .lm-btn-label::before {
+            content:""; position:absolute; top:50%; left:-70px; width:26px; height:3px; background:#0a1005;
+            transform:translateY(-50%);
+            clip-path: polygon(0% 30%, 65% 30%, 65% 0%, 100% 50%, 65% 100%, 65% 70%, 0% 70%);
+            opacity:0;
+         }
+
+.lm-cta-btn[data-theme="game"].stab-play .lm-btn-label::before { animation: lmArrowStab 0.55s cubic-bezier(0.65,0,0.35,1) 1; }
+
+.lm-cta-btn[data-theme="game"].stab-play .lm-btn-label .lm-btn-text { animation: lmTextImpact 0.42s ease-out 1; animation-delay:0.32s; }
+
+.lm-cta-btn[data-theme="game"] .lm-game-glyph { position:absolute; pointer-events:none; opacity:0; color:rgba(10,16,5,0.45); }
+
+.lm-cta-btn[data-theme="game"] .lm-game-glyph svg { width:100%; height:100%; stroke:currentColor; stroke-width:2; fill:none; }
+
+.lm-cta-btn[data-theme="game"] .lm-glyph-dpad { top:8%; left:12%; width:16px; height:16px; animation: lmGlyphDrift1 5.5s ease-in-out infinite; }
+
+.lm-cta-btn[data-theme="game"] .lm-glyph-controller { bottom:10%; right:14%; width:18px; height:18px; animation: lmGlyphDrift2 6.5s ease-in-out infinite; animation-delay:1.2s; }
+
+.lm-cta-btn[data-theme="game"] .lm-glyph-joystick { top:15%; right:22%; width:13px; height:13px; animation: lmGlyphDrift3 4.8s ease-in-out infinite; animation-delay:2.1s; }
+
+/* APP theme for list button: subtle shimmer, unified to brand accent */
+.lm-cta-btn[data-theme="app"]::before {
+            content:""; position:absolute; inset:0;
+            background-image:
+               radial-gradient(circle at 20% 30%, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0) 2%),
+               radial-gradient(circle at 75% 25%, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 1.6%),
+               radial-gradient(circle at 50% 75%, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 1.8%),
+               radial-gradient(circle at 85% 70%, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0) 1.4%);
+            background-size:200% 200%;
+            mix-blend-mode:overlay;
+            animation: lmGlitterSparkle 2.2s linear infinite;
+            pointer-events:none;
+         }
+
+.lm-cta-btn.at-cap { opacity:0.45; pointer-events:none; }
+
+.lm-cta-btn svg { width:18px; height:18px; stroke:currentColor; stroke-width:2.5; fill:none; position:relative; z-index:1; }
+
+.lm-btn-label { position:relative; z-index:1; }
+
+.lm-btn-list-sub { font-size:13px; color:#6b7280; }
+
+/* ─── LISTINGS ─── */
+.lm-listings-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+
+.lm-listings-header h2 { font-size:14px; font-weight:600; color:#ffffff; letter-spacing:0.03em; }
+
+.lm-listings-grid {
+            display:flex; flex-direction:column; gap:8px;
+            max-height:420px; overflow-y:auto; overflow-x:hidden;
+            padding-right:4px; margin-right:-4px;
+            scrollbar-width:thin; scrollbar-color:#3a3a3a #0a0a0a;
+         }
+
+.lm-listings-grid::-webkit-scrollbar { width:6px; }
+
+.lm-listings-grid::-webkit-scrollbar-track { background:transparent; }
+
+.lm-listings-grid::-webkit-scrollbar-thumb { background:#3a3a3a; border-radius:100px; }
+
+.lm-listings-grid::-webkit-scrollbar-thumb:hover { background:#52525b; }
+
+.lm-listing-item {
+            display:flex; align-items:center; gap:14px; background:#0a0a0a; border-radius:12px;
+            padding:12px 16px; border:1px solid #2a2a2a; transition:0.2s; flex-wrap:wrap;
+         }
+
+.lm-listing-item:hover { border-color:#4a4a4a; background:#121212; }
+
+.lm-listing-icon { width:36px; height:36px; border-radius:10px; background:#141414; display:flex; align-items:center; justify-content:center; flex-shrink:0; border:1px solid #2a2a2a; font-size:12px; font-weight:700; color:#71717a; overflow:hidden; }
+
+.lm-listing-icon img { width:100%; height:100%; object-fit:cover; }
+
+.lm-listing-icon svg { width:20px; height:20px; stroke:currentColor; stroke-width:2; fill:none; }
+
+.lm-listing-icon.type-website { background:#0d1a2b; color:#6c9bff; border-color:#1a2a3f; }
+
+.lm-listing-icon.type-game { background:#2b1502; color:#e0793a; border-color:#3f230a; }
+
+.lm-listing-icon.type-app { background:#1e0d2b; color:#c084fc; border-color:#2f1a3f; }
+
+.lm-listing-info { flex:1; min-width:150px; }
+
+.lm-listing-info .lm-title { font-size:14px; font-weight:600; color:#ffffff; line-height:1.3; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+.lm-listing-info .lm-meta-row { display:flex; align-items:center; gap:7px; margin-top:2px; }
+
+.lm-listing-info .lm-url { font-size:12px; color:#6b7280; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:180px; }
+
+.lm-listing-info .lm-type-chip { font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; padding:2px 6px; border-radius:3px; flex-shrink:0; }
+
+.lm-listing-actions { display:flex; align-items:center; gap:8px; flex-shrink:0; margin-left:auto; }
+
+.lm-item-edit, .lm-item-delete {
+            background:transparent; border:1px solid #2a2a2a; color:#d0d5dd; font-size:11.5px; font-weight:500;
+            padding:5px 16px; border-radius:100px; cursor:pointer; transition:0.2s; font-family:inherit;
+         }
+
+.lm-item-edit:hover { background:#1a1a1a; border-color:#4a4a4a; color:#fff; }
+
+.lm-item-delete { border-color:#3a1a22; color:#f87171; }
+
+.lm-item-delete:hover { background:#1a0a10; border-color:#5a2a38; color:#fca5a5; }
+
+/* ─── /sell TYPE PICKER GRID ───
+            Was a single flex column (1-per-row) regardless of viewport,
+            so it looked identical — and wasted all the extra width — on
+            a wide desktop screen. Now a responsive grid: still 1 column
+            on phones, opens up to 2/3 columns as space allows. */
+.sell-type-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            text-align: left;
+         }
+
+@media (min-width: 640px) {
+            .sell-type-grid { grid-template-columns: repeat(2, 1fr); }
+         }
+
+@media (min-width: 980px) {
+            .sell-type-grid { grid-template-columns: repeat(3, 1fr); }
+         }
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 700px) {
+            .lm-app { padding: 0 16px 22px; }
+            .lm-pricing-grid { grid-template-columns:repeat(2, 1fr); }
+            .lm-limit-row { flex-direction:column; align-items:stretch; gap:10px; }
+            .lm-btn-plan-upgrade { justify-content:center; }
+            .lm-limit-track { max-width:100%; }
+            .lm-listing-item { flex-wrap:wrap; }
+            .lm-listing-actions { margin-left:0; width:100%; justify-content:flex-end; }
+         }
+
+@media (max-width: 480px) {
+            .lm-category-tabs { gap:6px; }
+            .lm-tab-btn { padding:9px 4px; font-size:11px; gap:4px; }
+            .lm-tab-btn svg { width:14px; height:14px; }
+            .lm-cta-btn { width:100%; justify-content:center; }
+         }
+
