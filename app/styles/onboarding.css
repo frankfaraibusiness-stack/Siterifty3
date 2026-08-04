@@ -1,0 +1,588 @@
+/* ===== ONBOARDING WIZARD ===== */
+.ob-wizard {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: #0a0a0c;
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    overscroll-behavior: none;
+    touch-action: none;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+/* .ob-intro / .ob-intro-image / .ob-intro-bottom / .ob-intro-cta removed —
+   the intro splash screen (full-bleed remote marketing image + "GET
+   STARTED" gate) was removed from OnboardingWizard.tsx. It forced a
+   network-dependent image load before a brand-new signup could see
+   anything, with no functional purpose beyond gating step 1. */
+.ob-container {
+    width: 100%;
+    height: 100%;
+    max-width: 500px;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+/* ===== Placeholder Header (shared by intro and wizard) ===== */
+.ob-header-placeholder {
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 18px;
+    background: #0a0a0c;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    flex-shrink: 0;
+    z-index: 5;
+}
+
+.ob-header-logo {
+    font-size: 18px;
+    font-weight: 700;
+    color: #a3e635;
+    letter-spacing: 0.5px;
+}
+
+.ob-header-logout {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-family: inherit;
+}
+
+.ob-header-logout:hover {
+    background: #dc2626;
+}
+
+/* ===== Progress Bar ===== */
+.ob-progress-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 18px 8px;
+    flex-shrink: 0;
+    background: #0a0a0c;
+}
+
+.ob-progress-track {
+    flex: 1;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.ob-progress-fill {
+    height: 100%;
+    background: #a3e635;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.ob-step-counter {
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.45);
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+}
+
+/* ===== Scrollable Content Area ===== */
+.ob-content-wrapper {
+    flex: 1;
+    position: relative;
+    overflow-y: auto;
+    padding: 4px 18px 0;
+    -webkit-overflow-scrolling: touch;
+}
+
+.ob-step {
+    position: relative;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transform: translateX(28px);
+    transition: all 0.35s ease-out;
+    padding: 6px 0 20px;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.ob-step.active {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+@keyframes ob-fallIn {
+    0%   { opacity: 0; transform: translateY(-70px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+.ob-step:nth-of-type(6).active {
+    animation: ob-fallIn 0.55s ease-out forwards;
+    transition: none;
+}
+
+/* ===== Falling Green Dots (finish step) ===== */
+.ob-final-dots {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.ob-final-dots .green-dot {
+    position: absolute;
+    top: -20px;
+    left: var(--x);
+    width: 6px;
+    height: 6px;
+    background: #a3e635;
+    border-radius: 50%;
+    opacity: 0;
+    animation: ob-fallGreenDot 3s ease-out forwards;
+    animation-delay: var(--delay);
+}
+
+@keyframes ob-fallGreenDot {
+    0%   { transform: translateY(0) scale(1); opacity: 1; }
+    80%  { opacity: 1; }
+    100% { transform: translateY(110vh) scale(0.5); opacity: 0; }
+}
+
+/* ===== Step Icons & Text ===== */
+.ob-icon {
+    width: 56px;
+    height: 56px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(163, 230, 53, 0.10);
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 2;
+}
+
+.ob-icon svg { width: 28px; height: 28px; }
+
+.ob-title {
+    font-size: 26px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.02em;
+    margin: 0 0 8px 0;
+    line-height: 1.2;
+    text-shadow: 0 2px 20px rgba(0, 0, 0, 0.6);
+    position: relative;
+    z-index: 2;
+}
+
+.ob-title span { color: #a3e635; }
+
+.ob-subtitle {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.65);
+    line-height: 1.5;
+    margin: 0 0 18px 0;
+    max-width: 340px;
+    text-shadow: 0 1px 12px rgba(0, 0, 0, 0.5);
+    position: relative;
+    z-index: 2;
+}
+
+.ob-features {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    text-align: left;
+    width: 100%;
+    max-width: 300px;
+    position: relative;
+    z-index: 2;
+}
+
+.ob-features li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #e4e4e7;
+}
+
+.ob-check {
+    width: 18px;
+    height: 18px;
+    background: rgba(163, 230, 53, 0.15);
+    color: #a3e635;
+    border-radius: 50%;
+    font-weight: 800;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+/* Role selection */
+.ob-role-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    max-width: 340px;
+    position: relative;
+    z-index: 2;
+}
+
+.ob-role-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1.5px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+    text-align: left;
+}
+
+.ob-role-btn:hover {
+    border-color: rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.07);
+}
+
+.ob-role-btn.selected {
+    border-color: #a3e635;
+    background: rgba(163, 230, 53, 0.10);
+    box-shadow: 0 0 0 1px #a3e635;
+}
+
+.ob-role-icon {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #a3e635;
+}
+
+.ob-role-label { font-weight: 700; font-size: 15px; }
+
+.ob-role-desc {
+    display: block;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: 400;
+    margin-top: 2px;
+}
+
+/* Forms */
+.ob-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    width: 100%;
+    max-width: 340px;
+    position: relative;
+    z-index: 2;
+}
+
+.ob-avatar-upload {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+    border: 2px dashed rgba(255, 255, 255, 0.15);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    gap: 3px;
+    color: rgba(255, 255, 255, 0.35);
+    font-size: 10px;
+    transition: 0.2s;
+    margin: 0 auto 6px;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.ob-avatar-upload:hover { border-color: #a3e635; }
+
+.ob-avatar-upload svg { width: 22px; height: 22px; opacity: 0.5; }
+
+.ob-input {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #fff;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    text-align: center;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+
+.ob-input:focus { border-color: #a3e635; }
+
+.ob-input::placeholder { color: rgba(255, 255, 255, 0.25); }
+
+.ob-textarea { resize: vertical; min-height: 70px; text-align: left; }
+
+/* Escrow */
+.ob-escrow-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    max-width: 320px;
+    text-align: left;
+    position: relative;
+    z-index: 2;
+}
+
+.ob-escrow-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 10px;
+    padding: 10px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.ob-escrow-num {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: rgba(163, 230, 53, 0.15);
+    color: #a3e635;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
+.ob-escrow-text { font-size: 13px; color: rgba(255, 255, 255, 0.75); line-height: 1.4; }
+
+.ob-escrow-text strong { color: #fff; }
+
+/* Plans */
+.ob-plans-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+    max-width: 340px;
+    position: relative;
+    z-index: 2;
+}
+
+.ob-plan-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    padding: 10px 8px;
+    text-align: center;
+    transition: border-color 0.2s;
+}
+
+.ob-plan-card:hover { border-color: rgba(255, 255, 255, 0.15); }
+
+.ob-plan-name { font-size: 13px; font-weight: 700; color: #fff; letter-spacing: 0.03em; }
+
+.ob-plan-fee { font-size: 15px; font-weight: 800; color: var(--plan-color, #a3e635); margin: 2px 0; }
+
+.ob-plan-limit { font-size: 11px; color: rgba(255, 255, 255, 0.4); }
+
+/* Explore buttons */
+.ob-explore-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    max-width: 340px;
+    position: relative;
+    z-index: 2;
+}
+
+.ob-explore-btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: background 0.2s, border-color 0.2s;
+    font-family: inherit;
+}
+
+.ob-explore-btn:hover { background: rgba(255, 255, 255, 0.10); border-color: rgba(255, 255, 255, 0.15); }
+
+.ob-explore-primary {
+    background: #a3e635;
+    color: #0a0a0c;
+    border: none;
+    font-weight: 700;
+}
+
+.ob-explore-primary:hover { background: #b8f04a; }
+
+.ob-hint {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.30);
+    margin-top: 12px;
+    position: relative;
+    z-index: 2;
+}
+
+/* Footer */
+.ob-footer {
+    display: flex;
+    align-items: center;
+    padding: 12px 18px 20px;
+    flex-shrink: 0;
+    background: #0a0a0c;
+}
+
+.ob-next {
+    flex: 1;
+    background: #a3e635;
+    color: #0a0a0c;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: transform 0.1s, box-shadow 0.2s;
+    box-shadow: 0 4px 24px rgba(163, 230, 53, 0.18);
+}
+
+.ob-next:disabled { opacity: 0.4; pointer-events: none; filter: grayscale(0.3); }
+
+.ob-next:active { transform: scale(0.97); }
+
+.ob-arrow { width: 16px; height: 16px; }
+
+/* ===== Responsive ===== */
+@media (max-width: 480px) {
+    .ob-header-placeholder { height: 48px; padding: 0 14px; }
+    .ob-header-logo { font-size: 16px; }
+    .ob-header-logout { padding: 5px 14px; font-size: 12px; }
+    .ob-progress-header { padding: 10px 14px 6px; }
+    .ob-content-wrapper { padding: 4px 14px 0; }
+    .ob-footer { padding: 10px 14px 18px; }
+    .ob-title { font-size: 22px; }
+    .ob-subtitle { font-size: 13px; max-width: 300px; }
+    .ob-icon { width: 48px; height: 48px; }
+    .ob-icon svg { width: 24px; height: 24px; }
+    .ob-features li { font-size: 13px; }
+    .ob-escrow-item { padding: 8px 12px; }
+    .ob-escrow-text { font-size: 12px; }
+    .ob-plan-card { padding: 8px 6px; }
+    .ob-plan-name { font-size: 11px; }
+    .ob-plan-fee { font-size: 13px; }
+    .ob-plan-limit { font-size: 10px; }
+    .ob-explore-btn { padding: 12px; font-size: 13px; }
+    .ob-next { padding: 12px; font-size: 14px; }
+    .ob-role-btn { padding: 12px; }
+    .ob-role-label { font-size: 14px; }
+    .ob-role-desc { font-size: 10px; }
+}
+
+@media (max-width: 380px) {
+    .ob-header-placeholder { height: 44px; padding: 0 10px; }
+    .ob-header-logo { font-size: 15px; }
+    .ob-progress-header { padding: 8px 10px 4px; }
+    .ob-content-wrapper { padding: 4px 10px 0; }
+    .ob-footer { padding: 8px 10px 14px; }
+    .ob-title { font-size: 19px; }
+    .ob-subtitle { font-size: 12px; }
+    .ob-icon { width: 40px; height: 40px; margin-bottom: 8px; }
+    .ob-icon svg { width: 20px; height: 20px; }
+    .ob-plans-grid { gap: 6px; }
+    .ob-plan-card { padding: 6px 4px; }
+    .ob-plan-fee { font-size: 12px; }
+    .ob-explore-btn { padding: 10px; font-size: 12px; gap: 6px; }
+    .ob-explore-btn svg { width: 15px; height: 15px; }
+    .ob-next { padding: 10px; font-size: 13px; }
+    .ob-escrow-item { padding: 6px 10px; gap: 8px; }
+    .ob-escrow-num { width: 22px; height: 22px; font-size: 11px; }
+    .ob-escrow-text { font-size: 11px; }
+    .ob-features { gap: 6px; }
+    .ob-features li { font-size: 12px; }
+    .ob-check { width: 16px; height: 16px; font-size: 10px; }
+    .ob-role-btn { padding: 10px; }
+    .ob-role-icon svg { width: 20px; height: 20px; }
+}
+
+@media (max-height: 640px) and (orientation: landscape) {
+    .ob-header-placeholder { height: 40px; }
+    .ob-progress-header { padding: 6px 14px 2px; }
+    .ob-content-wrapper { padding: 2px 14px 0; }
+    .ob-footer { padding: 6px 14px 10px; }
+    .ob-icon { width: 36px; height: 36px; margin-bottom: 6px; }
+    .ob-icon svg { width: 18px; height: 18px; }
+    .ob-title { font-size: 18px; margin-bottom: 4px; }
+    .ob-subtitle { font-size: 12px; margin-bottom: 10px; }
+    .ob-features li { font-size: 12px; gap: 8px; }
+    .ob-form-group { gap: 8px; }
+    .ob-avatar-upload { width: 54px; height: 54px; }
+    .ob-input { padding: 8px 12px; font-size: 13px; }
+    .ob-escrow-item { padding: 6px 10px; gap: 8px; }
+    .ob-escrow-text { font-size: 11px; }
+    .ob-plans-grid { gap: 4px; }
+    .ob-plan-card { padding: 4px 4px; }
+    .ob-plan-name { font-size: 10px; }
+    .ob-plan-fee { font-size: 11px; }
+    .ob-plan-limit { font-size: 9px; }
+    .ob-explore-btn { padding: 8px; font-size: 12px; gap: 6px; }
+    .ob-next { padding: 8px; font-size: 13px; }
+    .ob-role-btn { padding: 8px; }
+    .ob-role-label { font-size: 13px; }
+}
+
