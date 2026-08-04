@@ -1,0 +1,418 @@
+/* ── extracted style block 13 (originally around char offset 1903360) ── */
+#ntfStack {
+            position: fixed; top: 16px; right: 16px; z-index: 10050;
+            display: flex; flex-direction: column; gap: 10px;
+            width: min(340px, calc(100vw - 32px));
+            pointer-events: none;
+            }
+
+.ntf-toast {
+            pointer-events: auto;
+            display: flex; align-items: flex-start; gap: 0.7rem;
+            background: rgba(10,10,18,0.96);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 1rem; padding: 0.8rem 0.9rem;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+            backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+            cursor: pointer; transform: translateX(120%); opacity: 0;
+            transition: transform 0.32s cubic-bezier(.16,.84,.44,1), opacity 0.32s;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            position: relative;
+            }
+
+.ntf-toast.show { transform: translateX(0); opacity: 1; }
+
+.ntf-toast.leaving { transform: translateX(120%); opacity: 0; }
+
+.ntf-toast::before {
+            content: ''; position: absolute; left: 0; top: 0.6rem; bottom: 0.6rem; width: 3px;
+            border-radius: 3px; background: var(--ntf-accent, #a3e635);
+            }
+
+.ntf-toast.t-deal_accepted    { --ntf-accent: #a3e635; }
+
+.ntf-toast.t-deal_rejected    { --ntf-accent: #f87171; }
+
+.ntf-toast.t-deal_request     { --ntf-accent: #60a5fa; }
+
+.ntf-toast.t-message          { --ntf-accent: #c084fc; }
+
+.ntf-toast.t-deal_sent        { --ntf-accent: #60a5fa; }
+
+.ntf-toast.t-payment_reminder { --ntf-accent: #fbbf24; }
+
+.ntf-toast.t-escrow_funded    { --ntf-accent: #a3e635; }
+
+.ntf-toast.t-deal_delivered   { --ntf-accent: #60a5fa; }
+
+.ntf-toast.t-escrow_released  { --ntf-accent: #a3e635; }
+
+.ntf-toast.t-escrow_refunded  { --ntf-accent: #60a5fa; }
+
+.ntf-toast.t-deal_disputed    { --ntf-accent: #f87171; }
+
+.ntf-icon {
+            width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            background: color-mix(in srgb, var(--ntf-accent, #a3e635) 16%, transparent);
+            color: var(--ntf-accent, #a3e635);
+            }
+
+.ntf-icon svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+
+.ntf-icon.filled svg { fill: currentColor; stroke: none; }
+
+.ntf-body { flex: 1; min-width: 0; }
+
+.ntf-title { font-size: 0.82rem; font-weight: 700; color: #fff; line-height: 1.3; }
+
+.ntf-text { font-size: 0.76rem; color: rgba(255,255,255,0.55); margin-top: 2px; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+
+.ntf-close {
+            flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%;
+            background: rgba(255,255,255,0.06); border: none; color: rgba(255,255,255,0.4);
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            transition: all 0.15s;
+            }
+
+.ntf-close:hover { background: rgba(255,255,255,0.12); color: #fff; }
+
+.ntf-close svg { width: 10px; height: 10px; stroke: currentColor; fill: none; stroke-width: 2.6; stroke-linecap: round; }
+
+.ntf-progress {
+            position: absolute; left: 0; bottom: 0; height: 2px; border-radius: 0 0 1rem 1rem;
+            background: var(--ntf-accent, #a3e635); width: 100%;
+            transform-origin: left; animation: ntf-shrink linear forwards;
+            }
+
+@keyframes ntf-shrink { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+
+/* Missed-notifications panel — single card at a time, Next/Prev nav.
+               Shown automatically on login if there are unread notifications
+               from while the user was away (not gated behind opening inbox). */
+#ntfMissedPanel {
+            position: fixed; inset: 0; z-index: 10060;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+            display: none; align-items: center; justify-content: center;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            padding: 1rem;
+            }
+
+.ntf-missed-box {
+            background: #0a0a12; border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 1.5rem; width: min(360px, 100%);
+            display: flex; flex-direction: column; overflow: hidden;
+            box-shadow: 0 24px 70px rgba(0,0,0,0.7);
+            transform: translateY(10px) scale(0.97); opacity: 0;
+            transition: transform 0.22s cubic-bezier(.16,.84,.44,1), opacity 0.22s;
+            }
+
+#ntfMissedPanel.visible .ntf-missed-box { transform: translateY(0) scale(1); opacity: 1; }
+
+.ntf-missed-header {
+            padding: 1rem 1.1rem 0.8rem; border-bottom: 1px solid rgba(255,255,255,0.07);
+            display: flex; align-items: center; justify-content: space-between;
+            }
+
+.ntf-missed-title { font-size: 0.95rem; font-weight: 700; color: #fff; }
+
+.ntf-missed-count {
+            font-size: 0.68rem; font-weight: 800; color: rgba(255,255,255,0.5);
+            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 1rem; padding: 0.15rem 0.55rem;
+            }
+
+.ntf-missed-close {
+            width: 30px; height: 30px; border-radius: 9px; background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.6);
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            }
+
+.ntf-missed-close svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round; }
+
+/* ── Card ── */
+.ntf-missed-card {
+            padding: 1.4rem 1.3rem 1.1rem; display: flex; flex-direction: column;
+            align-items: center; text-align: center; gap: 0.8rem;
+            }
+
+.ntf-missed-card .ntf-icon {
+            width: 48px; height: 48px; border-radius: 14px;
+            }
+
+.ntf-missed-card .ntf-icon svg { width: 22px; height: 22px; }
+
+.ntf-missed-card-title { font-size: 1rem; font-weight: 800; color: #fff; line-height: 1.3; }
+
+.ntf-missed-card-text { font-size: 0.82rem; color: rgba(255,255,255,0.55); line-height: 1.5; }
+
+/* ── Footer: prev / dots / next, then primary action ── */
+.ntf-missed-footer {
+            padding: 0 1.1rem 1.1rem; display: flex; flex-direction: column; gap: 0.7rem;
+            }
+
+.ntf-missed-nav {
+            display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
+            }
+
+.ntf-missed-nav-btn {
+            width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0;
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.7); cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: all 0.15s;
+            }
+
+.ntf-missed-nav-btn:hover:not(:disabled) { background: rgba(255,255,255,0.1); color: #fff; }
+
+.ntf-missed-nav-btn:disabled { opacity: 0.3; cursor: default; }
+
+.ntf-missed-nav-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+
+.ntf-missed-dots { display: flex; gap: 0.3rem; align-items: center; }
+
+.ntf-missed-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.18); transition: all 0.15s; }
+
+.ntf-missed-dot.active { background: #a3e635; width: 14px; border-radius: 3px; }
+
+.ntf-missed-cta {
+            width: 100%; padding: 0.7rem 1rem; border-radius: 0.9rem;
+            font-size: 0.85rem; font-weight: 700; cursor: pointer; border: none;
+            font-family: inherit; transition: all 0.15s;
+            background: var(--ntf-accent, #a3e635); color: #000;
+            }
+
+.ntf-missed-cta:hover { filter: brightness(1.08); }
+
+/* ══════════════════════════════════════════════════════════════════════
+   Notification Center — brand new build. Fullscreen, pure-black modal
+   opened from the bell icon in the announcement bar. Every accent touch
+   point (badge, active tab, unread dot, spinner, unread row wash) reads
+   from --mp-accent so it always matches the live theme color instead of
+   a hardcoded green. ══════════════════════════════════════════════════ */
+
+#notifCenterOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10070;
+  background: #000;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+
+#notifCenterOverlay.visible { opacity: 1; }
+
+/* Real route at /notifications/panel — in normal document flow below the
+   global fixed Header/AnnouncementBar (see app/layout.tsx), same
+   marginTop:92 convention SellerDashboard.tsx uses for /dashboard.
+   Deliberately NOT position:fixed/inset:0 like #notifCenterOverlay above:
+   that fixed-overlay approach is what let the old modal's backdrop end up
+   inside the announcement bar's own stacking context and fail to paint
+   opaque. A plain block-level page sidesteps that class of bug entirely. */
+.notif-center-page {
+  width: 100%;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+}
+
+.notif-center-panel {
+  width: 100%;
+  min-height: inherit;
+  display: flex;
+  flex-direction: column;
+  background: #000;
+}
+
+.notif-center-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  padding: 1.2rem 1.2rem 1rem;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  flex-shrink: 0;
+}
+
+.notif-center-title-row { display: flex; align-items: center; gap: 0.65rem; min-width: 0; }
+
+.notif-center-header h2 {
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: #fff;
+  margin: 0;
+}
+
+.notif-center-badge {
+  font-size: 0.66rem;
+  font-weight: 800;
+  color: var(--mp-accent, #a3e635);
+  background: color-mix(in srgb, var(--mp-accent, #a3e635) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--mp-accent, #a3e635) 40%, transparent);
+  border-radius: 1rem;
+  padding: 0.2rem 0.6rem;
+  flex-shrink: 0;
+}
+
+.notif-center-actions { display: flex; align-items: center; gap: 0.7rem; flex-shrink: 0; }
+
+.notif-center-markall {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--mp-accent, #a3e635);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0.3rem 0.2rem;
+}
+
+.notif-center-markall:hover { text-decoration: underline; }
+
+.notif-center-close {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.75);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+
+.notif-center-close:hover { background: rgba(255,255,255,0.14); color: #fff; }
+
+.notif-center-close svg { width: 15px; height: 15px; }
+
+.notif-center-tabs {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.9rem 1.2rem;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  overflow-x: auto;
+  flex-shrink: 0;
+  scrollbar-width: none;
+}
+
+.notif-center-tabs::-webkit-scrollbar { display: none; }
+
+.notif-center-tab {
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+  color: rgba(255,255,255,0.55);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 2rem;
+  padding: 0.42rem 0.9rem;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.notif-center-tab:hover { background: rgba(255,255,255,0.09); color: #fff; }
+
+.notif-center-tab.active {
+  background: color-mix(in srgb, var(--mp-accent, #a3e635) 18%, transparent);
+  border-color: color-mix(in srgb, var(--mp-accent, #a3e635) 45%, transparent);
+  color: var(--mp-accent, #a3e635);
+}
+
+.notif-center-list { padding: 0.5rem 0 2.5rem; }
+
+.notif-center-group { padding: 0.7rem 0; }
+
+.notif-center-day-label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: rgba(255,255,255,0.35);
+  padding: 0.4rem 1.2rem;
+}
+
+.notif-center-row {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+  padding: 0.75rem 1.2rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+
+.notif-center-row:hover { background: rgba(255,255,255,0.04); }
+
+.notif-center-row.unread {
+  background: color-mix(in srgb, var(--mp-accent, #a3e635) 5%, transparent);
+}
+
+.notif-center-row.unread:hover {
+  background: color-mix(in srgb, var(--mp-accent, #a3e635) 9%, transparent);
+}
+
+.notif-center-row-body { flex: 1; min-width: 0; }
+
+.notif-center-row-title {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.35;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.notif-center-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--mp-accent, #a3e635);
+  flex-shrink: 0;
+}
+
+.notif-center-row-text {
+  font-size: 0.79rem;
+  color: rgba(255,255,255,0.5);
+  margin-top: 3px;
+  line-height: 1.45;
+}
+
+.notif-center-row-time {
+  font-size: 0.68rem;
+  color: rgba(255,255,255,0.32);
+  flex-shrink: 0;
+  padding-top: 1px;
+  white-space: nowrap;
+}
+
+.notif-center-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+  padding: 4.5rem 2rem;
+  text-align: center;
+}
+
+.notif-center-empty p { font-size: 0.95rem; font-weight: 700; color: rgba(255,255,255,0.6); margin: 0; }
+
+.notif-center-empty span { font-size: 0.8rem; color: rgba(255,255,255,0.4); max-width: 260px; line-height: 1.5; }
+
+.notif-center-spinner {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2.5px solid rgba(255,255,255,0.12);
+  border-top-color: var(--mp-accent, #a3e635);
+  animation: boot-ring-spin 0.8s linear infinite;
+}
