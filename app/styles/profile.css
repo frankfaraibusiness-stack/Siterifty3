@@ -1,0 +1,1232 @@
+/* ── extracted style block 4 (originally around char offset 892980) ── */
+#profileModal {
+    font-family: inherit;
+    /* Was position:fixed; inset:0 — correct for the original's
+       over-the-marketplace overlay, but this is now rendered as the real
+       routed page content at /myprofile (see MyProfileHub.tsx), sitting
+       inside <main> above the site-wide <Footer/> in normal document
+       flow. Fixed+inset:0 made it cover the entire viewport including
+       everything after it in the DOM, so the footer technically
+       rendered but was always hidden behind this layer. min-height
+       instead of a hard height keeps the same full-viewport look on
+       short pages while letting content taller than the viewport (and
+       the footer after it) push below normally.
+       marginTop:92 clears the real site Header (52px) + AnnouncementBar
+       (40px), both position:fixed at the top of every page — every other
+       real page (StaticPage, dashboard, sellers, leaderboard, etc.) uses
+       this same 92px offset. This page used to get that clearance from
+       its own now-removed PanelHeader instead, which is why the banner
+       rotator was rendering underneath the real fixed header. */
+    margin-top: 92px;
+    min-height: calc(100dvh - 92px);
+    background: var(--mp-bg);
+    display: flex;
+    flex-direction: column;
+    /* Brighter, more visible section borders — the shared --mp-border
+       (rgba(255,255,255,0.07)) is nearly invisible against the photo
+       background, so every card in this modal gets its own crisper edge. */
+    --mp-border: rgba(255,255,255,0.22);
+    --mp-border-hover: rgba(255,255,255,0.4);
+  }
+
+#profileModal *,
+  #profileModal *::before,
+  #profileModal *::after {
+    box-sizing: border-box;
+  }
+
+.pm-modal {
+    width: 100%;
+    min-height: 100dvh;
+    background: #050506;
+    display: flex;
+    flex-direction: column;
+    /* was overflow:hidden — harmless while a fixed-height ancestor
+       clipped content to the viewport, but now that this flows in the
+       page normally, hidden would clip any content taller than one
+       viewport instead of letting the page (and footer) extend below. */
+  }
+
+/* ── Header — matches settingsModal's .modal-header / .brand / .cancel-btn pattern ── */
+.pm-modal-header {
+    position: sticky;
+    top: 92px;
+    z-index: 10;
+    background: rgba(5,5,8,0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--mp-border);
+    padding: 1.1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 1rem;
+    flex-shrink: 0;
+  }
+
+/* Rotating CTA banner strip that replaced the static "My Profile" title.
+   Header keeps its sticky position/backdrop; just drop the side padding
+   and centering so the banner image can run edge-to-edge. */
+.pm-modal-header-banner {
+    padding: 0;
+    align-items: stretch;
+    justify-content: stretch;
+    overflow: hidden;
+  }
+
+.pm-banner-rotator {
+    position: relative;
+    width: 100%;
+    height: 50px;
+  }
+
+.pm-banner-slide {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 50px;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+  }
+
+.pm-banner-slide[data-active="true"] {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+.pm-banner-slide img {
+    display: block;
+    width: 100%;
+    height: 50px;
+    object-fit: cover;
+  }
+
+.pm-left-title {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+.pm-left-title svg {
+    width: 24px;
+    height: 24px;
+    stroke: var(--mp-accent);
+    fill: none;
+    stroke-width: 2;
+  }
+
+.pm-left-title span {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--mp-text);
+    letter-spacing: -0.3px;
+    white-space: nowrap;
+  }
+
+.pm-close-btn {
+    background: transparent;
+    border: 1px solid var(--mp-border);
+    color: var(--mp-text-sec);
+    padding: 0.5rem 1.1rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.82rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: background var(--mp-transition), border-color var(--mp-transition), color var(--mp-transition);
+    white-space: nowrap;
+    font-family: inherit;
+  }
+
+.pm-close-btn:hover {
+    background: rgba(255,255,255,0.05);
+    border-color: var(--mp-border-hover);
+    color: var(--mp-text);
+  }
+
+.pm-close-btn svg {
+    width: 15px;
+    height: 15px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+  }
+
+.pm-modal-content {
+    flex: 1;
+    padding: 1.75rem 1.5rem 2.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+/* ── Skeleton loading state ── */
+@keyframes pm-shimmer { 0% { background-position: -400px 0; } 100% { background-position: 400px 0; } }
+
+.pm-skel {
+    background: linear-gradient(90deg, var(--mp-surface-raised) 25%, #1c1c22 50%, var(--mp-surface-raised) 75%);
+    background-size: 800px 100%;
+    animation: pm-shimmer 1.4s infinite linear;
+    border-radius: 0.5rem;
+    display: inline-block;
+  }
+
+.pm-skel-avatar { width: 88px; height: 88px; border-radius: 50%; }
+
+.pm-skel-name { height: 1.3rem; width: 150px; margin-top: 0.1rem; }
+
+.pm-skel-handle { height: 0.85rem; width: 100px; }
+
+/* ── Identity block ──
+     Single quiet lime ring instead of a rainbow gradient — the ring reads
+     as "this account is active," reusing the app's one accent color rather
+     than introducing a second, unrelated palette. */
+.pm-identity {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    width: 100%;
+    max-width: 440px;
+    text-align: center;
+  }
+
+.pm-avatar-wrapper {
+    position: relative;
+    width: 88px;
+    height: 88px;
+    margin-bottom: 0.35rem;
+  }
+
+.pm-avatar-ring {
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: var(--mp-accent);
+    padding: 2px;
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #fff calc(100% - 2px));
+    mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #fff calc(100% - 2px));
+  }
+
+.pm-avatar-circle {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: var(--mp-surface-raised);
+    border: 3px solid var(--mp-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--mp-text-sec);
+    letter-spacing: 0.02em;
+  }
+
+.pm-avatar-circle svg {
+    width: 40px;
+    height: 40px;
+    stroke: var(--mp-text-muted);
+    fill: none;
+    stroke-width: 1.5;
+  }
+
+#pmAvatar:hover .pm-avatar-hover { opacity: 1; }
+
+.pm-username-text {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--mp-text);
+    letter-spacing: -0.2px;
+  }
+
+.pm-handle-text {
+    color: var(--mp-text-sec);
+    font-size: 0.85rem;
+  }
+
+.pm-email-text {
+    /* kept for #pmLoginEmail — unused visually by default, JS sets textContent */
+    color: var(--mp-text-muted);
+    font-size: 0.78rem;
+  }
+
+/* ── Primary action: Messages & Deals ── */
+.pm-inbox-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 440px;
+    background: var(--mp-surface-raised);
+    border: 1px solid var(--mp-border);
+    border-radius: var(--mp-radius-lg);
+    padding: 1rem 1.25rem;
+    cursor: pointer;
+    transition: border-color var(--mp-transition), background var(--mp-transition);
+    font-family: inherit;
+    color: var(--mp-text);
+    text-align: left;
+  }
+
+.pm-inbox-btn:hover {
+    border-color: var(--mp-border-hover);
+    background: #141419;
+  }
+
+.pm-inbox-btn:disabled {
+    cursor: default;
+    opacity: 0.85;
+  }
+
+.pm-inbox-spinner {
+    animation: dcpSpin 0.7s linear infinite;
+  }
+
+.pm-inbox-btn-left {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+  }
+
+.pm-inbox-btn-left svg {
+    width: 19px;
+    height: 19px;
+    stroke: var(--mp-accent);
+    fill: none;
+    stroke-width: 2;
+    flex-shrink: 0;
+  }
+
+.pm-inbox-label {
+    font-size: 0.95rem;
+    font-weight: 700;
+  }
+
+.pm-inbox-badge-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+.pm-inbox-unread-badge {
+    background: var(--mp-accent);
+    color: #06210b;
+    font-size: 0.72rem;
+    font-weight: 800;
+    padding: 2px 9px;
+    border-radius: 2rem;
+    min-width: 22px;
+    text-align: center;
+  }
+
+.pm-inbox-arrow {
+    width: 15px;
+    height: 15px;
+    stroke: var(--mp-text-muted);
+  }
+
+/* ── Secondary actions row ── */
+.pm-quick-row {
+    display: flex;
+    gap: 0.65rem;
+    width: 100%;
+    max-width: 440px;
+  }
+
+.pm-quick-btn {
+    flex: 1 1 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: var(--mp-surface);
+    border: 1px solid var(--mp-border);
+    border-radius: var(--mp-radius);
+    padding: 0.8rem 0.75rem;
+    cursor: pointer;
+    transition: border-color var(--mp-transition), background var(--mp-transition), color var(--mp-transition);
+    font-family: inherit;
+    font-size: 0.83rem;
+    font-weight: 700;
+    color: var(--mp-text-sec);
+  }
+
+.pm-quick-btn:hover {
+    border-color: var(--mp-border-hover);
+    color: var(--mp-text);
+    background: var(--mp-surface-raised);
+  }
+
+.pm-quick-btn:disabled {
+    cursor: default;
+    opacity: 0.7;
+  }
+
+.pm-quick-btn:disabled:hover {
+    border-color: var(--mp-border);
+    background: var(--mp-surface);
+  }
+
+.pm-quick-btn svg { width: 17px; height: 17px; flex-shrink: 0; stroke: currentColor; }
+
+/* ── AI Agent button: shimmer + glitter, so it reads as "AI-powered" ── */
+.pm-quick-btn.pm-ai-btn {
+    position: relative;
+    overflow: hidden;
+    border-color: rgba(167,139,250,0.35);
+    background: linear-gradient(135deg, rgba(124,58,237,0.14), rgba(167,139,250,0.06) 55%, rgba(124,58,237,0.14));
+    color: #d8ccff;
+  }
+
+.pm-quick-btn.pm-ai-btn:hover {
+    border-color: rgba(167,139,250,0.55);
+    color: #efe9ff;
+    background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(167,139,250,0.1) 55%, rgba(124,58,237,0.2));
+  }
+
+.pm-quick-btn.pm-ai-btn svg { position: relative; z-index: 2; filter: drop-shadow(0 0 3px rgba(167,139,250,0.6)); }
+
+.pm-quick-btn.pm-ai-btn span { position: relative; z-index: 2; }
+
+/* Moving diagonal sheen */
+.pm-quick-btn.pm-ai-btn::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -60%;
+    width: 40%; height: 200%;
+    background: linear-gradient(115deg, transparent, rgba(255,255,255,0.55), rgba(216,204,255,0.35), transparent);
+    transform: rotate(8deg);
+    animation: pmAiSheen 3.2s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+/* Twinkling sparkle dots */
+.pm-quick-btn.pm-ai-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    background-image:
+      radial-gradient(circle, #fff 1px, transparent 1.4px),
+      radial-gradient(circle, #d8ccff 1px, transparent 1.4px),
+      radial-gradient(circle, #fff 1px, transparent 1.4px);
+    background-size: 100% 100%;
+    background-position: 18% 30%, 68% 65%, 85% 25%;
+    background-repeat: no-repeat;
+    opacity: 0;
+    animation: pmAiTwinkle 2.6s ease-in-out infinite;
+  }
+
+@media (prefers-reduced-motion: reduce) {
+    .pm-quick-btn.pm-ai-btn::before, .pm-quick-btn.pm-ai-btn::after { animation: none; }
+  }
+
+/* ── Dashboard CTA: lime data glow + a tiny animated bar-chart so it
+       reads as "analytics" at a glance, not just another nav button. ── */
+.pm-quick-btn.pm-dash-btn {
+    position: relative;
+    overflow: hidden;
+    border-color: rgba(163,230,53,0.35);
+    box-shadow: 0 0 0 1px rgba(163,230,53,0.1), 0 0 10px rgba(163,230,53,0.14);
+    background: linear-gradient(135deg, rgba(163,230,53,0.1), rgba(163,230,53,0.03) 60%);
+    color: #d9f5b0;
+  }
+
+.pm-quick-btn.pm-dash-btn:hover {
+    border-color: rgba(163,230,53,0.6);
+    box-shadow: 0 0 0 1px rgba(163,230,53,0.18), 0 0 14px rgba(163,230,53,0.26);
+    color: #eafdd0;
+    background: linear-gradient(135deg, rgba(163,230,53,0.16), rgba(163,230,53,0.05) 60%);
+  }
+
+.pm-dash-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 2.5px;
+    height: 15px;
+    flex-shrink: 0;
+  }
+
+.pm-dash-bar {
+    width: 3px;
+    border-radius: 1.5px 1.5px 0 0;
+    background: currentColor;
+    opacity: 0.85;
+    filter: drop-shadow(0 0 2px rgba(163,230,53,0.5));
+    animation: pmDashPulse 2.4s ease-in-out infinite;
+    transform-origin: bottom;
+  }
+
+.pm-dash-bar:nth-child(1) { height: 40%; animation-delay: -1.8s; }
+
+.pm-dash-bar:nth-child(2) { height: 90%; animation-delay: -0.6s; }
+
+.pm-dash-bar:nth-child(3) { height: 60%; animation-delay: -1.2s; }
+
+.pm-dash-bar:nth-child(4) { height: 100%; animation-delay: 0s; }
+
+@media (prefers-reduced-motion: reduce) {
+    .pm-dash-bar { animation: none; transform: scaleY(0.85); }
+  }
+
+/* ── Parent tabs — reduced to Profile / Listings; Settings + Sign out
+       live in the always-visible bottom row since Settings never actually
+       rendered as an in-modal pane (its click handler opens settingsModal
+       directly and stops propagation before the tab-switch runs). ── */
+.pm-parent-tab-row {
+    display: flex;
+    align-items: stretch;
+    gap: 0.3rem;
+    background: var(--mp-surface);
+    padding: 0.28rem;
+    border-radius: 60px;
+    border: 1px solid var(--mp-border);
+    width: 100%;
+    max-width: 440px;
+    min-height: 48px;
+    box-sizing: border-box;
+    flex-shrink: 0;
+    /* Was flex-item tabs with flex:1 sized to fit exactly 3 tabs in this
+       pill — adding a 4th (Following) meant 4 equal-width, nowrap tabs no
+       longer fit a narrow phone screen, and the row had no overflow
+       handling, so the last tab just got clipped off the right edge
+       instead of shrinking or wrapping. Making the row itself scroll
+       horizontally fixes this regardless of how many tabs exist, rather
+       than re-tuning flex-basis math every time a tab is added/removed.
+       min-height + flex-shrink:0 stop the row from collapsing to a
+       sliver if a parent flex container ever squeezes it. */
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+.pm-parent-tab-row::-webkit-scrollbar { display: none; width: 0; height: 0; }
+
+.pm-parent-tab {
+    flex: 1 0 auto;
+    padding: 0.65rem 0.9rem;
+    border: none;
+    background: transparent;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 0.83rem;
+    color: var(--mp-text-sec);
+    cursor: pointer;
+    transition: background var(--mp-transition), color var(--mp-transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    white-space: nowrap;
+    font-family: inherit;
+    min-height: 40px;
+  }
+
+.pm-parent-tab.active {
+    background: var(--mp-text);
+    color: #050505;
+  }
+
+.pm-parent-content {
+    width: 100%;
+    max-width: 440px;
+    display: none;
+    flex-direction: column;
+    gap: 1.1rem;
+  }
+
+.pm-parent-content.active { display: flex; }
+
+/* ── Sub tabs (Account / Public Profile) ── */
+.pm-sub-tab-row {
+    display: flex;
+    gap: 0.25rem;
+    background: var(--mp-surface);
+    padding: 0.2rem;
+    border-radius: 60px;
+    border: 1px solid var(--mp-border);
+    width: 100%;
+  }
+
+.pm-sub-tab {
+    flex: 1;
+    padding: 0.5rem 0.5rem;
+    border: none;
+    background: transparent;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.76rem;
+    color: var(--mp-text-sec);
+    cursor: pointer;
+    transition: background var(--mp-transition), color var(--mp-transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    white-space: nowrap;
+    font-family: inherit;
+  }
+
+.pm-sub-tab.active {
+    background: var(--mp-surface-raised);
+    color: var(--mp-text);
+  }
+
+.pm-sub-tab-content {
+    display: none;
+    flex-direction: column;
+    gap: 1.1rem;
+  }
+
+.pm-sub-tab-content.active { display: flex; }
+
+/* ── Inputs ── */
+.pm-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    width: 100%;
+  }
+
+.pm-input-group label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--mp-text-muted);
+    margin-left: 0.1rem;
+  }
+
+.pm-input-field {
+    background: var(--mp-surface);
+    border: 1px solid var(--mp-border);
+    border-radius: var(--mp-radius-sm);
+    padding: 0.75rem 1rem;
+    font-size: 0.92rem;
+    color: var(--mp-text);
+    outline: none;
+    transition: border-color var(--mp-transition), background var(--mp-transition);
+    font-family: inherit;
+  }
+
+.pm-input-field::placeholder { color: var(--mp-text-muted); }
+
+.pm-input-field:focus {
+    border-color: var(--mp-accent-border);
+    background: var(--mp-surface-raised);
+  }
+
+.pm-input-field:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+.pm-hint {
+    font-size: 0.7rem;
+    color: var(--mp-text-muted);
+    margin-left: 0.1rem;
+  }
+
+.pm-save-btn {
+    background: var(--mp-text);
+    border: none;
+    color: #050505;
+    font-weight: 700;
+    padding: 0.8rem 1.6rem;
+    border-radius: 50px;
+    font-size: 0.87rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    transition: opacity var(--mp-transition);
+    width: 100%;
+    font-family: inherit;
+  }
+
+.pm-save-btn:hover { opacity: 0.88; }
+
+.pm-save-btn svg { width: 17px; height: 17px; stroke: #050505; fill: none; stroke-width: 2.2; }
+
+/* ── Toggles ── */
+.pm-toggle-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    background: var(--mp-surface);
+    border: 1px solid var(--mp-border);
+    border-radius: var(--mp-radius-sm);
+    padding: 0.75rem 1.05rem;
+    width: 100%;
+  }
+
+.pm-toggle-label { font-size: 0.87rem; color: var(--mp-text); }
+
+.pm-toggle-switch { position: relative; display: inline-block; width: 40px; height: 23px; flex-shrink: 0; }
+
+.pm-toggle-switch input { opacity: 0; width: 0; height: 0; }
+
+.pm-slider {
+    position: absolute; cursor: pointer; inset: 0;
+    background-color: #26262c;
+    transition: 0.2s;
+    border-radius: 24px;
+  }
+
+.pm-slider:before {
+    position: absolute; content: "";
+    height: 17px; width: 17px; left: 3px; bottom: 3px;
+    background-color: #fff;
+    transition: 0.2s;
+    border-radius: 50%;
+  }
+
+/* ── Plan / subscription card ── */
+.pm-plan-card {
+    width: 100%;
+    max-width: 440px;
+    background: var(--mp-surface-raised);
+    border: 1px solid var(--mp-border);
+    border-radius: var(--mp-radius-lg);
+    padding: 1rem 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+.pm-plan-badge {
+    font-size: 0.68rem;
+    font-weight: 800;
+    padding: 3px 10px;
+    border-radius: 2rem;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+  }
+
+.pm-plan-free    { background: #1c1c22; color: var(--mp-text-sec); }
+
+.pm-plan-starter { background: rgba(163,230,53,0.12); color: var(--mp-accent); }
+
+.pm-plan-growth  { background: rgba(129,140,248,0.14); color: #818cf8; }
+
+.pm-plan-pro     { background: rgba(251,146,60,0.14); color: #fb923c; }
+
+/* pm-sub-badge kept as an alias: JS occasionally assigns this class name
+     instead of pm-plan-badge, and this class had no CSS at all before —
+     the sub badge silently rendered unstyled. Aliasing it here fixes that
+     without needing to touch the JS that sets className. */
+.pm-sub-badge { }
+
+.pm-sub-badge.pm-plan-free,
+  .pm-sub-badge.pm-plan-starter,
+  .pm-sub-badge.pm-plan-growth,
+  .pm-sub-badge.pm-plan-pro {
+    font-size: 0.68rem;
+    font-weight: 800;
+    padding: 3px 10px;
+    border-radius: 2rem;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+  }
+
+.pm-manage-plan-btn {
+    background: var(--mp-accent);
+    color: #06210b;
+    border: none;
+    border-radius: 50px;
+    padding: 0.5rem 1.05rem;
+    font-size: 0.78rem;
+    font-weight: 800;
+    cursor: pointer;
+    white-space: nowrap;
+    font-family: inherit;
+    transition: opacity var(--mp-transition);
+  }
+
+.pm-manage-plan-btn:hover { opacity: 0.88; }
+
+.pm-cancel-plan-btn {
+    background: transparent;
+    color: #f87171;
+    border: 1px solid rgba(248,113,113,0.25);
+    border-radius: 50px;
+    padding: 0.42rem 0.95rem;
+    font-size: 0.74rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    font-family: inherit;
+    transition: background var(--mp-transition), border-color var(--mp-transition);
+  }
+
+.pm-cancel-plan-btn:hover { background: rgba(248,113,113,0.08); border-color: rgba(248,113,113,0.4); }
+
+/* ── GitHub connect row ── */
+.pm-github-row {
+    background: var(--mp-surface);
+    border: 1px solid var(--mp-border);
+    border-radius: var(--mp-radius);
+    padding: 1rem 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+.pm-github-icon {
+    width: 34px; height: 34px;
+    background: var(--mp-surface-raised);
+    border: 1px solid var(--mp-border);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+.pm-github-name { font-size: 0.85rem; font-weight: 700; color: var(--mp-text); line-height: 1.2; }
+
+.pm-github-status { font-size: 0.7rem; color: var(--mp-text-muted); margin-top: 0.15rem; }
+
+.pm-github-connect-btn,
+  .pm-github-disconnect-btn {
+    border: none;
+    border-radius: 0.65rem;
+    padding: 0.42rem 0.9rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    white-space: nowrap;
+    transition: opacity var(--mp-transition), background var(--mp-transition);
+  }
+
+.pm-github-connect-btn { background: var(--mp-text); color: #050505; }
+
+.pm-github-connect-btn:hover { opacity: 0.88; }
+
+.pm-github-disconnect-btn { background: transparent; color: #f87171; border: 1px solid rgba(248,113,113,0.25); }
+
+.pm-github-disconnect-btn:hover { background: rgba(248,113,113,0.08); }
+
+/* ── GitHub repo list ── */
+.pm-repo-list {
+    margin-top: 0.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+.pm-repo-item {
+    background: var(--mp-surface);
+    border: 1px solid var(--mp-border);
+    border-radius: var(--mp-radius);
+    padding: 0.7rem 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+.pm-repo-info { min-width: 0; }
+
+.pm-repo-name {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--mp-text);
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+  }
+
+.pm-repo-name:hover { text-decoration: underline; }
+
+.pm-repo-meta {
+    font-size: 0.7rem;
+    color: var(--mp-text-muted);
+    margin-top: 0.15rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+.pm-repo-private-badge {
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--mp-text-muted);
+    border: 1px solid var(--mp-border);
+    border-radius: 4px;
+    padding: 0.08rem 0.35rem;
+  }
+
+.pm-repo-empty, .pm-repo-loading, .pm-repo-error {
+    font-size: 0.75rem;
+    color: var(--mp-text-muted);
+    padding: 0.6rem 0.2rem;
+  }
+
+.pm-repo-error { color: #f87171; }
+
+/* ── Listings grid ── */
+.pm-listings-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    width: 100%;
+  }
+
+.pm-listing-card {
+    background: var(--mp-surface-raised);
+    border: 1px solid var(--mp-border);
+    border-radius: var(--mp-radius);
+    overflow: hidden;
+    transition: border-color var(--mp-transition);
+  }
+
+.pm-listing-card:hover { border-color: var(--mp-border-hover); }
+
+.pm-favorite-remove-btn {
+    position: absolute; top: 8px; right: 8px; z-index: 2;
+    height: 26px; padding: 0 10px; border-radius: 13px;
+    background: rgba(239,68,68,0.14); backdrop-filter: blur(4px);
+    border: 1px solid rgba(239,68,68,0.35);
+    color: #f87171;
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+    font-size: 11.5px; font-weight: 700; line-height: 1; white-space: nowrap;
+    cursor: pointer; transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+
+.pm-favorite-remove-btn svg { width: 12px; height: 12px; flex: none; }
+
+.pm-favorite-remove-btn:hover { background: rgba(239,68,68,0.24); border-color: rgba(239,68,68,0.55); color: #fca5a5; }
+
+.pm-favorite-remove-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Following tab — list of sellers the signed-in user follows, each row
+     opens that seller's profile; the Unfollow button stops propagation so
+     tapping it doesn't also navigate away before the write completes. */
+.pm-following-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    width: 100%;
+  }
+
+.pm-following-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--mp-surface-raised);
+    border: 1px solid var(--mp-border);
+    border-radius: var(--mp-radius);
+    padding: 0.65rem 0.85rem;
+    transition: border-color var(--mp-transition);
+  }
+
+.pm-following-row:hover { border-color: var(--mp-border-hover); }
+
+.pm-following-av {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: var(--mp-surface);
+  }
+
+.pm-following-av-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--mp-text-sec);
+  }
+
+.pm-following-name {
+    flex: 1;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--mp-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+.pm-following-unfollow-btn {
+    flex-shrink: 0;
+    height: 30px;
+    padding: 0 12px;
+    border-radius: 15px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--mp-border);
+    color: var(--mp-text-sec);
+    font-size: 12px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+
+.pm-following-unfollow-btn:hover {
+    background: rgba(239,68,68,0.14);
+    border-color: rgba(239,68,68,0.35);
+    color: #f87171;
+  }
+
+.pm-listing-image {
+    width: 100%;
+    height: 96px;
+    object-fit: cover;
+    background: var(--mp-surface);
+  }
+
+.pm-listing-info { padding: 0.75rem 0.85rem 0.85rem; }
+
+.pm-listing-title {
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--mp-text);
+    margin-bottom: 0.3rem;
+  }
+
+.pm-listing-desc {
+    font-size: 0.72rem;
+    color: var(--mp-text-sec);
+    line-height: 1.35;
+    margin-bottom: 0.7rem;
+  }
+
+/* Boost CTA — kept as the one deliberate second accent (a premium
+     upsell), but tuned down and given the app's own radius/shadow scale
+     so it reads as "special," not as a different app fighting for
+     attention against the lime accent used everywhere else. */
+.pm-listing-boost {
+    position: relative;
+    display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+    width: 100%;
+    background: linear-gradient(120deg, #7c3aed, #9333ea, #7c3aed);
+    background-size: 200% 200%;
+    border: none;
+    color: #fff;
+    font-family: inherit;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    padding: 0.55rem 0.6rem;
+    border-radius: 100px;
+    cursor: pointer;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+    transition: opacity var(--mp-transition);
+  }
+
+.pm-listing-boost:hover { opacity: 0.9; }
+
+.pm-listing-boost svg { width: 12px; height: 12px; flex-shrink: 0; }
+
+.pm-listing-boost:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* Unboost is a "stop/cancel" action, not the same premium upsell — muted
+     neutral fill instead of the purple gradient so it doesn't read as
+     "boost again." */
+.pm-listing-unboost {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.75);
+  }
+
+.pm-listing-unboost:hover { opacity: 1; background: rgba(255,255,255,0.1); }
+
+.pm-listing-actions-row { display: flex; width: 100%; gap: 0.5rem; }
+
+.pm-listing-actions-row button {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex; align-items: center; justify-content: center; gap: 0.35rem;
+    font-family: inherit;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    padding: 0.5rem 0.4rem;
+    border-radius: 100px;
+    cursor: pointer;
+    transition: background var(--mp-transition), border-color var(--mp-transition);
+  }
+
+.pm-listing-actions-row button svg { width: 12px; height: 12px; flex-shrink: 0; }
+
+.pm-listing-edit-btn { background: var(--mp-surface); border: 1px solid var(--mp-border); color: var(--mp-text-sec); }
+
+.pm-listing-edit-btn:hover { background: #17171c; border-color: var(--mp-border-hover); color: var(--mp-text); }
+
+.pm-listing-delete-btn { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); color: #f87171; }
+
+.pm-listing-delete-btn:hover { background: rgba(239,68,68,0.14); border-color: rgba(239,68,68,0.4); }
+
+.pm-add-listing-btn {
+    background: transparent;
+    border: 1px dashed var(--mp-border-hover);
+    color: var(--mp-text-sec);
+    padding: 0.7rem 1.3rem;
+    border-radius: 50px;
+    font-size: 0.83rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+    font-family: inherit;
+    width: 100%;
+    transition: border-color var(--mp-transition), color var(--mp-transition);
+  }
+
+.pm-add-listing-btn:hover { border-color: var(--mp-accent-border); color: var(--mp-accent); }
+
+.pm-add-listing-btn:disabled { cursor: default; opacity: 0.7; }
+
+.pm-add-listing-btn:disabled:hover { border-color: var(--mp-border); color: var(--mp-text-sec); }
+
+/* ── Bottom action row: always visible, holds Settings + Sign out
+       (Settings is a direct action, not a tab — see note above) ── */
+.pm-bottom-actions {
+    display: flex; flex-direction: column; gap: 0.6rem;
+    width: 100%; max-width: 440px;
+    margin-top: 0.25rem;
+  }
+
+.pm-bottom-row { display: flex; gap: 0.6rem; }
+
+.pm-bottom-btn {
+    flex: 1;
+    display: flex; align-items: center; justify-content: center;
+    gap: 0.5rem; padding: 0.8rem 1rem;
+    border-radius: var(--mp-radius-sm); cursor: pointer; font-family: inherit;
+    font-size: 0.82rem; font-weight: 700;
+    border: 1px solid var(--mp-border);
+    background: var(--mp-surface);
+    color: var(--mp-text-sec);
+    transition: background var(--mp-transition), border-color var(--mp-transition), color var(--mp-transition);
+  }
+
+.pm-bottom-btn:hover { border-color: var(--mp-border-hover); color: var(--mp-text); background: var(--mp-surface-raised); }
+
+.pm-bottom-btn:disabled { cursor: default; opacity: 0.7; }
+
+.pm-bottom-btn:disabled:hover { border-color: var(--mp-border); background: var(--mp-surface); }
+
+.pm-bottom-btn svg { width: 16px; height: 16px; flex-shrink: 0; stroke: currentColor; fill: none; }
+
+.pm-bottom-dispute { color: #fbbf24; }
+
+.pm-bottom-dispute:hover { background: rgba(251,191,36,0.08); border-color: rgba(251,191,36,0.3); }
+
+.pm-bottom-logout { color: #f87171; }
+
+.pm-bottom-logout:hover { background: rgba(248,113,113,0.08); border-color: rgba(248,113,113,0.3); }
+
+@media (max-width: 480px) {
+    .pm-modal-content { padding: 1.5rem 1.1rem 2rem; }
+    .pm-parent-tab { font-size: 0.78rem; }
+    .pm-listing-image { height: 84px; }
+  }
+
+/* ── Desktop widening ──
+     Every direct child of .pm-modal-content (.pm-identity, .pm-inbox-btn,
+     .pm-quick-row, .pm-plan-card, .pm-parent-tab-row, .pm-parent-content,
+     .pm-bottom-actions) was hard-capped at max-width:440px — a phone-width
+     single column — with no larger breakpoint, so on a wide viewport the
+     page was centered but never actually used the available width; a
+     real desktop monitor just showed a narrow phone-shaped card floating
+     in a sea of empty background. All of them widen together here so the
+     page reads as one coherent desktop layout rather than a narrow header
+     sitting above a suddenly-wide tab area. Two tiers: 900px+ gets a
+     comfortable reading width (2-column listings), 1280px+ (an actual
+     desktop monitor, not just a large tablet) opens up further. Nothing
+     changes below 900px. */
+@media (min-width: 900px) {
+    .pm-identity,
+    .pm-inbox-btn,
+    .pm-quick-row,
+    .pm-plan-card,
+    .pm-parent-tab-row,
+    .pm-parent-content,
+    .pm-bottom-actions {
+      max-width: 720px;
+    }
+    .pm-modal-content {
+      padding: 2.25rem 2rem 3rem;
+    }
+    .pm-listings-grid {
+      max-width: 720px;
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+@media (min-width: 1280px) {
+    .pm-identity,
+    .pm-inbox-btn,
+    .pm-quick-row,
+    .pm-plan-card,
+    .pm-parent-tab-row,
+    .pm-parent-content,
+    .pm-bottom-actions {
+      max-width: 980px;
+    }
+    .pm-modal-content {
+      padding: 2.5rem 2rem 3.5rem;
+    }
+    .pm-listings-grid {
+      max-width: 980px;
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+/* Note: .pm-bottom-actions / .pm-bottom-row / .pm-bottom-btn are defined
+   once, earlier in this file (search "Bottom action row") — a duplicate
+   unscoped copy used to live here and silently won (later in source
+   order, same specificity) over the @media(min-width:900px) widening
+   above, undoing it at every viewport width. Removed rather than kept
+   "for safety," since a dead duplicate that overrides a real fix is
+   worse than no duplicate at all. */
+            .pm-sub-badge is aliased to the same rule set: pmRender() sets
+            className to 'pm-sub-badge ' + planClass on #pmSubBadge, but
+            .pm-sub-badge previously had no CSS of its own anywhere in this
+            file, so the subscription-row badge silently rendered unstyled.
+            This alias fixes that without changing the JS. */
+.pm-plan-badge,
+         .pm-sub-badge {
+         font-size: 0.68rem;
+         font-weight: 800;
+         padding: 3px 10px;
+         border-radius: 2rem;
+         letter-spacing: 0.4px;
+         text-transform: uppercase;
+         }
+
+.pm-plan-free    { background: #1c1c22; color: var(--mp-text-sec); }
+
+.pm-plan-starter { background: rgba(163,230,53,0.12); color: var(--mp-accent); }
+
+.pm-plan-growth  { background: rgba(129,140,248,0.14); color: #818cf8; }
+
+.pm-plan-pro     { background: rgba(251,146,60,0.14); color: #fb923c; }
+
