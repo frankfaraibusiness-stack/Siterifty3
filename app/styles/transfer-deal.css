@@ -1,0 +1,700 @@
+.tdm-zip-card {
+              display: flex; align-items: center; gap: 0.7rem;
+              background: #12160d; border: 1px solid rgba(163,230,53,0.35);
+              border-radius: 1rem; padding: 0.7rem 0.8rem; min-width: 220px; max-width: 260px;
+            }
+
+.tdm-zip-card-icon {
+              width: 2.2rem; height: 2.2rem; flex-shrink: 0; border-radius: 0.6rem;
+              background: rgba(163,230,53,0.15); color: #a3e635;
+              display: flex; align-items: center; justify-content: center;
+            }
+
+.tdm-zip-card-icon svg { width: 1.15rem; height: 1.15rem; }
+
+.tdm-zip-card-body { flex: 1; min-width: 0; }
+
+.tdm-zip-card-title { font-size: 0.82rem; font-weight: 600; color: #e8ffd6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.tdm-zip-card-sub { font-size: 0.68rem; color: #8fae72; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.tdm-zip-download-btn {
+              width: 2.1rem; height: 2.1rem; flex-shrink: 0; border-radius: 50%;
+              background: #a3e635; border: none; color: #0a1005; cursor: pointer;
+              display: flex; align-items: center; justify-content: center; transition: transform 0.15s, background 0.15s;
+              padding: 0;
+            }
+
+.tdm-zip-download-btn svg { width: 1.05rem; height: 1.05rem; }
+
+.tdm-zip-download-btn:hover { background: #bef264; transform: scale(1.06); }
+
+.tdm-zip-download-btn:disabled { opacity: 0.6; cursor: default; transform: none; }
+
+.tdm-zip-readonly-badge {
+              width: 2.1rem; height: 2.1rem; flex-shrink: 0; border-radius: 50%;
+              background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.4);
+              display: flex; align-items: center; justify-content: center;
+            }
+
+.tdm-zip-onetime-notice {
+              margin-top: 0.4rem; max-width: 260px; font-size: 0.64rem; line-height: 1.4;
+              color: rgba(255,255,255,0.4); font-style: italic;
+            }
+
+/* ── Modal overlay (full screen host) ── */
+#transferDealModal {
+       display: none;
+       position: fixed;
+       inset: 0;
+       z-index: 9999;
+       background: #000000;
+       color: #e0e0e0;
+       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+       flex-direction: column;
+       overflow: hidden;
+     }
+
+#transferDealModal.tdm-open { display: flex; }
+
+#transferDealModal * { box-sizing: border-box; }
+
+/* header (kept from original — brand + cancel) */
+.tdm-header {
+       position: sticky; top: 0; z-index: 10;
+       background: #000; border-bottom: 1px solid #1a1a1a;
+       padding: 1rem 1.25rem;
+       display: flex; align-items: center; justify-content: space-between;
+       flex-shrink: 0; gap: 0.75rem;
+     }
+
+.tdm-brand { display: flex; align-items: center; gap: 0.5rem; }
+
+.tdm-brand svg { width: 22px; height: 22px; stroke: #a5b4fc; fill: none; stroke-width: 2; }
+
+.tdm-brand h2 { font-size: 1rem; font-weight: 800; color: #fff; letter-spacing: -0.2px; white-space: nowrap; }
+
+.tdm-cancel-btn {
+       background: #e74c3c; border: none; color: #fff;
+       padding: 0.4rem 0.9rem; border-radius: 50px;
+       font-weight: 700; font-size: 0.78rem; cursor: pointer;
+       display: flex; align-items: center; gap: 0.3rem;
+       font-family: inherit; transition: background 0.2s; white-space: nowrap;
+     }
+
+.tdm-cancel-btn:hover { background: #ff4757; }
+
+.tdm-cancel-btn svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2.5; }
+
+/* payment / escrow status banner (kept from original — real status, not static) */
+.tdm-warning-banner {
+       display: none;
+       background: #1e1b0a;
+       border-bottom: 1px solid #4d3a0a;
+       color: #eab308;
+       padding: 0.7rem 1.2rem;
+       text-align: center;
+       font-weight: 500;
+       font-size: 0.82rem;
+       letter-spacing: 0.01em;
+       flex-shrink: 0;
+     }
+
+.tdm-warning-banner.active { display: block; }
+
+.tdm-warning-banner.tdm-status-funded,
+     .tdm-warning-banner.tdm-status-delivered {
+       background: #0a1a0f; border-bottom-color: #1f4d2a; color: #a3e635;
+     }
+
+.tdm-warning-banner.tdm-status-disputed {
+       background: #1a0a0a; border-bottom-color: #4d1a1a; color: #ef4444;
+     }
+
+.tdm-warning-banner b { font-weight: 700; }
+
+/* GITHUB REPO CARD */
+#tdmGithubCard { flex-shrink: 0; padding: 0.9rem 1.2rem 0; }
+
+.tdm-gh-card {
+       background: #0d0d0f; border: 1px solid #22252a; border-radius: 14px;
+       padding: 0.9rem 1rem; color: #fff;
+     }
+
+.tdm-gh-card-top { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+
+.tdm-gh-repo-name { color: #fff; font-size: 0.85rem; font-weight: 700; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.tdm-gh-repo-name:hover { text-decoration: underline; }
+
+.tdm-gh-badge {
+       font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em;
+       border: 1px solid #333; border-radius: 4px; padding: 1px 6px; color: rgba(255,255,255,0.5);
+       margin-left: auto; flex-shrink: 0;
+     }
+
+.tdm-gh-change-btn {
+       background: none; border: 1px solid rgba(255,255,255,0.15); border-radius: 6px;
+       color: rgba(255,255,255,0.5); font-size: 0.68rem; font-weight: 600; padding: 3px 8px;
+       cursor: pointer; font-family: inherit; flex-shrink: 0;
+     }
+
+.tdm-gh-change-btn:hover { border-color: rgba(255,255,255,0.3); color: #fff; }
+
+.tdm-gh-status-row { margin-bottom: 8px; }
+
+.tdm-gh-status { font-size: 0.78rem; color: rgba(255,255,255,0.45); }
+
+.tdm-gh-status-pending { color: #eab308; }
+
+.tdm-gh-status-done { color: #a3e635; }
+
+.tdm-gh-invite-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.tdm-gh-input {
+       flex: 1; min-width: 160px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12);
+       border-radius: 9px; padding: 8px 11px; font-size: 0.8rem; color: #fff; font-family: inherit; outline: none;
+     }
+
+.tdm-gh-input:focus { border-color: rgba(163,230,53,0.5); }
+
+.tdm-gh-invite-btn {
+       background: #a3e635; border: none; border-radius: 9px; padding: 8px 14px;
+       font-size: 0.78rem; font-weight: 700; color: #000; cursor: pointer; white-space: nowrap; font-family: inherit;
+     }
+
+.tdm-gh-invite-btn:hover { filter: brightness(1.08); }
+
+.tdm-gh-invite-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.tdm-gh-invite-msg { font-size: 0.74rem; margin-top: 6px; color: rgba(255,255,255,0.45); }
+
+.tdm-gh-msg-success { color: #a3e635; }
+
+.tdm-gh-msg-error { color: #ef4444; }
+
+/* NAVIGATION (pasted model's tabs, restyled to fit dark host) */
+.tdm-checklist-nav {
+       display: flex; justify-content: center; align-items: center;
+       padding: 1rem 0.8rem; gap: 0.4rem;
+       border-bottom: 1px solid #1f1f1f;
+       background: #000;
+       flex-shrink: 0;
+     }
+
+.tdm-checklist-nav .tdm-nav-btn {
+       background: #0a0a0a; border: 1px solid #1f1f1f; color: #888;
+       padding: 0.6rem 1.1rem; border-radius: 2rem;
+       font-size: 0.78rem; font-weight: 600; text-transform: uppercase;
+       letter-spacing: 0.07em; cursor: pointer; transition: all 0.2s ease;
+       white-space: nowrap; font-family: inherit;
+     }
+
+.tdm-checklist-nav .tdm-nav-btn:hover { border-color: #555; color: #ccc; background: #141414; }
+
+.tdm-checklist-nav .tdm-nav-btn.active { background: #fff; color: #000; border-color: #fff; font-weight: 700; }
+
+/* body / scroll area */
+.tdm-checklist-main {
+       flex: 1 1 auto;
+       min-height: 0; /* required so this flex child scrolls instead of
+                          growing to fit content and overflowing the parent,
+                          which is what made items below the fold unreachable */
+       overflow-y: auto;
+       -webkit-overflow-scrolling: touch;
+       padding: 1.2rem 0.9rem 6.5rem; /* bottom padding clears the floating CTA */
+       width: 100%; max-width: 700px; margin: 0 auto;
+     }
+
+.tdm-checklist-container { display: flex; flex-direction: column; gap: 0.9rem; width: 100%; }
+
+@media (min-width: 600px) {
+       .tdm-checklist-container { flex-direction: row; gap: 1.5rem; }
+       .tdm-checklist-column { flex: 1 1 50%; display: flex; flex-direction: column; gap: 0.9rem; }
+     }
+
+.tdm-checklist-item {
+       display: flex; align-items: center; gap: 0.9rem;
+       padding: 0.95rem 1.1rem; background: #0a0a0a; border: 1px solid #1f1f1f;
+       border-radius: 0.85rem; transition: all 0.2s ease; cursor: pointer; position: relative;
+     }
+
+.tdm-checklist-item:hover { border-color: #444; background: #0f0f0f; transform: translateY(-1px); }
+
+.tdm-checklist-item.tdm-completed { border-color: #22c55e; background: #0a1a0f; }
+
+.tdm-checklist-item.tdm-completed .tdm-item-label { color: #aaa; }
+
+.tdm-checklist-item.tdm-completed .tdm-icon-wrapper svg { stroke: #22c55e !important; }
+
+.tdm-icon-wrapper { width: 1.6rem; height: 1.6rem; flex-shrink: 0; }
+
+.tdm-icon-wrapper svg { width: 100%; height: 100%; fill: none; stroke-width: 1.8; transition: filter 0.2s; }
+
+.tdm-checklist-item:hover .tdm-icon-wrapper svg { filter: brightness(1.25) drop-shadow(0 0 4px currentColor); }
+
+.tdm-item-label { font-size: 0.85rem; font-weight: 450; color: #ccc; flex: 1; }
+
+.tdm-arrow-wrapper { width: 1.2rem; height: 1.2rem; }
+
+.tdm-arrow-wrapper svg { width: 100%; height: 100%; stroke: #666; stroke-width: 3; fill: none; }
+
+.tdm-checklist-item:hover .tdm-arrow-wrapper svg { stroke: #ffffff; }
+
+.tdm-checkmark-icon {
+       display: none; width: 1.4rem; height: 1.4rem; flex-shrink: 0; margin-left: auto;
+       stroke: #22c55e; fill: none; stroke-width: 2.5;
+     }
+
+.tdm-checklist-item.tdm-completed .tdm-checkmark-icon { display: block; }
+
+.tdm-checklist-item.tdm-completed .tdm-arrow-wrapper { display: none; }
+
+/* item modal (per-checklist-item) */
+.tdm-item-modal-overlay {
+       display: none; position: fixed; inset: 0;
+       background: rgba(0,0,0,0.85); z-index: 10010;
+       justify-content: center; align-items: center; padding: 1rem;
+     }
+
+.tdm-item-modal-overlay.active { display: flex; }
+
+.tdm-item-modal {
+       background: #0d0d0d; border: 1px solid #2a2a2a; border-radius: 1.5rem;
+       max-width: 500px; width: 100%; max-height: 80vh; overflow-y: auto;
+       padding: 1.8rem; color: #ddd; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8);
+     }
+
+.tdm-item-modal h2 { font-size: 1.2rem; font-weight: 600; margin-bottom: 0; color: #fff; }
+
+/* per-type themed head */
+.tdm-modal-theme-head {
+       display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.6rem;
+     }
+
+.tdm-modal-theme-icon {
+       width: 2.4rem; height: 2.4rem; flex-shrink: 0; border-radius: 0.7rem;
+       display: flex; align-items: center; justify-content: center;
+       background: color-mix(in srgb, var(--tdm-accent, #a3e635) 15%, transparent);
+       color: var(--tdm-accent, #a3e635);
+       border: 1px solid color-mix(in srgb, var(--tdm-accent, #a3e635) 35%, transparent);
+     }
+
+.tdm-modal-theme-icon svg { width: 1.3rem; height: 1.3rem; }
+
+.tdm-modal-theme-kicker {
+       font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+       color: var(--tdm-accent, #a3e635); margin-bottom: 0.15rem;
+     }
+
+.tdm-modal-blurb { color: #999; font-size: 0.85rem; line-height: 1.4; margin-bottom: 1.2rem; }
+
+.tdm-item-modal .tdm-buyer-email {
+       background: #1a1a1a; border: 1px solid #333; padding: 0.6rem 1rem; border-radius: 0.5rem;
+       display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem;
+     }
+
+.tdm-item-modal .tdm-buyer-email span { font-family: monospace; color: #aaa; word-break: break-all; }
+
+.tdm-item-modal .tdm-copy-btn {
+       background: #333; border: none; color: #fff; padding: 0.3rem 0.8rem;
+       border-radius: 0.3rem; cursor: pointer; font-size: 0.8rem; font-family: inherit;
+     }
+
+.tdm-item-modal .tdm-copy-btn:hover { background: #555; }
+
+.tdm-dropzone {
+       border: 2px dashed #2a2a2a; border-radius: 0.75rem; padding: 2rem 1rem;
+       text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s;
+       margin-bottom: 1rem; background: #060606;
+     }
+
+.tdm-dropzone:hover, .tdm-dropzone.tdm-dragover { border-color: var(--tdm-accent, #aaa); background: #111; }
+
+.tdm-dropzone p { color: #777; margin: 0; }
+
+.tdm-dropzone .tdm-file-list { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.8rem; justify-content: center; }
+
+.tdm-file-chip {
+       position: relative; display: inline-flex; align-items: center; gap: 0.4rem;
+       background: #1a1a1a; padding: 0.25rem 1.6rem 0.25rem 0.7rem; border-radius: 0.3rem;
+       font-size: 0.8rem; color: #ccc; border: 1px solid #333;
+     }
+
+.tdm-file-chip-remove {
+       position: absolute; right: 0.35rem; top: 50%; transform: translateY(-50%);
+       background: none; border: none; color: #888; cursor: pointer; font-size: 0.75rem;
+       padding: 0; line-height: 1; font-family: inherit;
+     }
+
+.tdm-file-chip-remove:hover { color: #f87171; }
+
+.tdm-file-thumb {
+       position: relative; width: 4.5rem; display: flex; flex-direction: column; align-items: center; gap: 0.25rem;
+     }
+
+.tdm-file-thumb img {
+       width: 4.5rem; height: 4.5rem; object-fit: cover; border-radius: 0.5rem;
+       border: 1px solid #333; background: #111;
+     }
+
+.tdm-file-thumb span {
+       font-size: 0.65rem; color: #999; max-width: 4.5rem; overflow: hidden;
+       text-overflow: ellipsis; white-space: nowrap;
+     }
+
+.tdm-file-thumb-remove {
+       position: absolute; top: -0.4rem; right: -0.4rem; width: 1.2rem; height: 1.2rem;
+       border-radius: 50%; background: #1a1a1a; border: 1px solid #444; color: #ccc;
+       cursor: pointer; font-size: 0.65rem; line-height: 1; display: flex; align-items: center; justify-content: center;
+       font-family: inherit; padding: 0;
+     }
+
+.tdm-file-thumb-remove:hover { background: #f87171; color: #000; border-color: #f87171; }
+
+.tdm-item-modal input[type="text"],
+     .tdm-item-modal input[type="email"],
+     .tdm-item-modal input[type="password"] {
+       background: #1a1a1a; border: 1px solid #333; color: #eee;
+       padding: 0.6rem; border-radius: 0.5rem; width: 100%; margin-bottom: 0.8rem; font-family: inherit;
+     }
+
+.tdm-login-toggle {
+       color: #888; text-decoration: underline; cursor: pointer; font-size: 0.85rem;
+       display: inline-block; margin-bottom: 0.5rem;
+     }
+
+.tdm-login-toggle:hover { color: #fff; }
+
+.tdm-login-form {
+       display: none; background: #111; border: 1px solid #2a2a2a; border-radius: 0.75rem;
+       padding: 1rem; margin-bottom: 1rem;
+     }
+
+.tdm-login-form.active { display: block; }
+
+.tdm-login-form label { display: block; margin-bottom: 0.3rem; font-weight: 500; }
+
+.tdm-btn-group { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1.5rem; flex-wrap: wrap; }
+
+.tdm-btn { padding: 0.6rem 1.4rem; border-radius: 2rem; border: none; cursor: pointer; font-weight: 500; font-size: 0.85rem; font-family: inherit; }
+
+.tdm-btn-done { background: #fff; color: #000; }
+
+.tdm-btn-done:hover { background: #e0e0e0; }
+
+.tdm-btn-done:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.tdm-btn-cancel { background: transparent; border: 1px solid #444; color: #aaa; }
+
+.tdm-btn-cancel:hover { background: #1a1a1a; color: #fff; }
+
+.tdm-btn-login-submit { background: #4f46e5; color: #fff; margin-top: 0.5rem; }
+
+.tdm-btn-login-submit:hover { background: #4338ca; }
+
+/* ── seller's-choice toggle (e.g. Source Code Repository) ── */
+.tdm-type-choice { display: flex; gap: 0.5rem; margin-bottom: 1.1rem; }
+
+.tdm-type-choice-btn {
+       flex: 1; padding: 0.55rem 0.7rem; border-radius: 0.6rem;
+       border: 1px solid #2a2a2a; background: #0a0a0a; color: #888;
+       font-size: 0.78rem; font-weight: 600; cursor: pointer; font-family: inherit;
+       transition: border-color 0.15s, color 0.15s, background 0.15s;
+     }
+
+.tdm-type-choice-btn:hover { border-color: #3a3a3a; color: #bbb; }
+
+.tdm-type-choice-btn.active {
+       border-color: var(--tdm-accent, #a3e635); color: var(--tdm-accent, #a3e635);
+       background: color-mix(in srgb, var(--tdm-accent, #a3e635) 10%, transparent);
+     }
+
+/* ── dropzone icon (replaces bare text-only dropzone) ── */
+.tdm-dropzone-icon { width: 1.6rem; height: 1.6rem; color: #555; margin: 0 auto 0.6rem; display: block; }
+
+.tdm-dropzone:hover .tdm-dropzone-icon, .tdm-dropzone.tdm-dragover .tdm-dropzone-icon { color: var(--tdm-accent, #aaa); }
+
+/* ── file_upload: freeform "how it was built" panel ── */
+.tdm-buildinfo-section {
+       margin-top: 1.1rem; margin-bottom: 0.4rem; padding: 1rem 1.1rem;
+       background: #0a0a0a; border: 1px solid #232323; border-radius: 0.9rem;
+     }
+
+.tdm-buildinfo-head { display: flex; align-items: flex-start; gap: 0.7rem; margin-bottom: 0.7rem; }
+
+.tdm-buildinfo-head svg { flex-shrink: 0; color: var(--tdm-accent, #60a5fa); margin-top: 0.1rem; }
+
+.tdm-buildinfo-title { font-size: 0.85rem; font-weight: 700; color: #eee; }
+
+.tdm-buildinfo-sub { font-size: 0.74rem; color: #888; line-height: 1.5; margin-top: 0.2rem; }
+
+.tdm-buildinfo-textarea {
+       width: 100%; background: #111; border: 1px solid #2a2a2a; color: #ddd;
+       padding: 0.7rem 0.8rem; border-radius: 0.6rem; font-family: inherit; font-size: 0.82rem;
+       line-height: 1.5; resize: vertical; min-height: 90px;
+     }
+
+.tdm-buildinfo-textarea:focus { outline: none; border-color: var(--tdm-accent, #60a5fa); }
+
+.tdm-buildinfo-textarea::placeholder { color: #4a4a4a; }
+
+/* ── secure_secret panel: warning banner, mode tabs, labeled fields ── */
+.tdm-secret-warning {
+       display: flex; align-items: flex-start; gap: 0.7rem;
+       background: color-mix(in srgb, #e879f9 8%, transparent);
+       border: 1px solid color-mix(in srgb, #e879f9 25%, transparent);
+       border-radius: 0.75rem; padding: 0.85rem 1rem; margin-bottom: 1.1rem;
+     }
+
+.tdm-secret-warning svg { flex-shrink: 0; color: #e879f9; margin-top: 0.15rem; }
+
+.tdm-secret-warning p { font-size: 0.78rem; color: #d9b8de; line-height: 1.55; margin: 0; }
+
+.tdm-secret-warning p strong { color: #f0d3f3; font-weight: 700; }
+
+.tdm-secret-tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+
+.tdm-secret-tab {
+       flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+       padding: 0.55rem 0.6rem; border-radius: 0.6rem; border: 1px solid #2a2a2a;
+       background: #0a0a0a; color: #888; font-size: 0.78rem; font-weight: 600;
+       cursor: pointer; font-family: inherit; transition: border-color 0.15s, color 0.15s;
+     }
+
+.tdm-secret-tab:hover { color: #bbb; }
+
+.tdm-secret-tab.active { border-color: var(--tdm-accent, #e879f9); color: var(--tdm-accent, #e879f9); }
+
+.tdm-secret-fields { display: flex; flex-direction: column; gap: 0.85rem; margin-bottom: 0.3rem; }
+
+.tdm-field label {
+       display: flex; align-items: center; gap: 0.4rem; font-size: 0.76rem; font-weight: 600;
+       color: #999; margin-bottom: 0.35rem;
+     }
+
+.tdm-field label svg { flex-shrink: 0; color: #666; }
+
+.tdm-field-optional { color: #555; font-weight: 400; }
+
+.tdm-field input[type="text"],
+     .tdm-field input[type="password"],
+     .tdm-field input[type="email"] { margin-bottom: 0; }
+
+/* ── registry_transfer / account_ownership: numbered recipient steps ── */
+.tdm-recipient-steps { display: flex; flex-direction: column; gap: 0.9rem; margin-bottom: 1.2rem; }
+
+.tdm-recipient-step { display: flex; align-items: flex-start; gap: 0.75rem; }
+
+.tdm-recipient-step-num {
+       flex-shrink: 0; width: 1.5rem; height: 1.5rem; border-radius: 50%;
+       background: color-mix(in srgb, var(--tdm-accent, #a3e635) 16%, transparent);
+       color: var(--tdm-accent, #a3e635); border: 1px solid color-mix(in srgb, var(--tdm-accent, #a3e635) 40%, transparent);
+       display: flex; align-items: center; justify-content: center;
+       font-size: 0.72rem; font-weight: 700;
+     }
+
+.tdm-recipient-step-title { font-size: 0.82rem; font-weight: 700; color: #eee; margin-bottom: 0.3rem; }
+
+.tdm-recipient-step-sub { font-size: 0.76rem; color: #888; line-height: 1.5; }
+
+.tdm-recipient-step .tdm-buyer-email { margin-bottom: 0; margin-top: 0.4rem; }
+
+/* ── Full-screen "Protected Transaction" cover (shown before any item's
+        completion panel) — ported from the standalone mockup, restyled
+        onto the app's lime accent (#a3e635) and dark surface tokens
+        instead of the mockup's blue palette. ── */
+.tdm-cover-overlay {
+       position: fixed; inset: 0; z-index: 10020; background: #000;
+       display: flex; flex-direction: column; align-items: center;
+       font-family: inherit; color: #e8e8e8;
+     }
+
+.tdm-cover-cancel {
+       position: absolute; top: 16px; right: 16px; z-index: 5;
+       display: inline-flex; align-items: center; gap: 6px;
+       background: rgba(10,10,10,0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+       border: 1px solid #1a1a1a; color: #9a9a9a; font-size: 0.8rem; font-weight: 500;
+       padding: 8px 14px; border-radius: 8px; cursor: pointer; font-family: inherit;
+       transition: color 0.2s, border-color 0.2s, background 0.2s;
+     }
+
+.tdm-cover-cancel:hover { color: #e8e8e8; border-color: #2a2a2a; background: rgba(20,20,20,0.9); }
+
+.tdm-cover-scroll {
+       width: 100%; height: 100%; overflow-y: auto;
+       display: flex; flex-direction: column; align-items: center;
+     }
+
+.tdm-cover-hero {
+       width: 100%; display: flex; flex-direction: column; align-items: center;
+       text-align: center; padding: 60px 24px 40px; position: relative;
+     }
+
+.tdm-cover-hero::after {
+       content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+       width: 280px; height: 280px;
+       background: radial-gradient(circle at center, color-mix(in srgb, #a3e635 6%, transparent) 0%, transparent 70%);
+       border-radius: 50%; pointer-events: none; z-index: 0;
+     }
+
+.tdm-cover-hero-icon {
+       position: relative; z-index: 1; display: flex; align-items: center; justify-content: center;
+       width: 44px; height: 44px; border-radius: 50%;
+       background: color-mix(in srgb, #a3e635 8%, transparent);
+       border: 1px solid color-mix(in srgb, #a3e635 20%, transparent);
+       color: #a3e635; margin-bottom: 22px;
+     }
+
+.tdm-cover-hero-icon svg { width: 20px; height: 20px; }
+
+.tdm-cover-title {
+       position: relative; z-index: 1; font-size: 1.4rem; font-weight: 700; color: #f0f0f0;
+       margin: 0 0 12px; letter-spacing: -0.025em; line-height: 1.25;
+     }
+
+.tdm-cover-desc {
+       position: relative; z-index: 1; font-size: 0.875rem; color: #9a9a9a;
+       line-height: 1.65; max-width: 460px; font-weight: 400;
+     }
+
+.tdm-cover-desc strong { color: #d0d0d0; font-weight: 600; }
+
+.tdm-cover-highlight { color: #a3e635; font-weight: 600; }
+
+.tdm-cover-image-section {
+       width: 100%; max-width: 700px; aspect-ratio: 16 / 9; background: #030303;
+       border-top: 1px solid #1a1a1a; border-bottom: 1px solid #1a1a1a;
+       overflow: hidden; display: flex; align-items: center; justify-content: center;
+     }
+
+.tdm-cover-image-section img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.tdm-cover-content {
+       width: 100%; max-width: 460px; padding: 36px 24px 120px;
+       display: flex; flex-direction: column; align-items: center; text-align: center;
+     }
+
+.tdm-cover-notice {
+       display: flex; align-items: flex-start; gap: 12px; width: 100%;
+       background: color-mix(in srgb, #a3e635 5%, transparent);
+       border: 1px solid color-mix(in srgb, #a3e635 14%, transparent);
+       border-radius: 10px; padding: 15px 16px; margin-bottom: 24px; text-align: left;
+     }
+
+.tdm-cover-notice svg { flex-shrink: 0; margin-top: 1px; color: #a3e635; }
+
+.tdm-cover-notice p { font-size: 0.8rem; color: #b9c9a0; line-height: 1.55; margin: 0; }
+
+.tdm-cover-notice p strong { color: #d7ecb8; font-weight: 600; }
+
+.tdm-cover-footer-link {
+       display: inline-flex; align-items: center; gap: 6px; margin-top: 18px;
+       font-size: 0.75rem; color: #5c5c5c; text-decoration: none;
+       transition: color 0.2s;
+     }
+
+.tdm-cover-footer-link span { text-decoration: underline; text-underline-offset: 4px; text-decoration-color: #1f1f1f; }
+
+.tdm-cover-footer-link:hover { color: #b0b0b0; }
+
+.tdm-cover-continue {
+       display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+       width: calc(100% - 48px); max-width: 460px; padding: 14px 24px;
+       font-size: 0.9rem; font-weight: 600; letter-spacing: -0.01em; color: #000;
+       background: #a3e635; border: none; border-radius: 10px; cursor: pointer;
+       font-family: inherit; position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+       z-index: 10021; box-shadow: 0 16px 44px rgba(0,0,0,0.85), 0 0 0 1px rgba(255,255,255,0.03);
+       transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+     }
+
+.tdm-cover-continue:hover { background: #b3f04a; box-shadow: 0 8px 28px color-mix(in srgb, #a3e635 30%, transparent); }
+
+.tdm-cover-continue:active { transform: translateX(-50%) scale(0.98); }
+
+.tdm-cover-continue:not(.tdm-cover-continue-fixed) {
+       position: static; transform: none; width: 100%; margin-top: 4px; box-shadow: none;
+     }
+
+.tdm-cover-continue:not(.tdm-cover-continue-fixed):active { transform: scale(0.98); }
+
+@media (max-width: 500px) {
+       .tdm-cover-hero { padding: 44px 18px 32px; }
+       .tdm-cover-title { font-size: 1.2rem; }
+       .tdm-cover-desc { font-size: 0.8rem; }
+       .tdm-cover-content { padding: 28px 18px 120px; }
+       .tdm-cover-notice { padding: 13px; gap: 10px; }
+       .tdm-cover-continue { padding: 13px 20px; font-size: 0.85rem; width: calc(100% - 36px); bottom: 20px; }
+     }
+
+/* floating cta */
+.tdm-floating-cta {
+       position: absolute; bottom: 1.25rem; left: 50%; transform: translateX(-50%);
+       z-index: 50; width: 92%; max-width: 640px;
+       background: #2a2a2a; border: 1px solid #444; color: #666;
+       padding: 0.9rem 2.5rem; border-radius: 3rem; font-size: 0.95rem; font-weight: 600;
+       letter-spacing: 0.06em; cursor: not-allowed; pointer-events: auto;
+       transition: all 0.3s ease; text-transform: uppercase; text-align: center;
+       font-family: inherit;
+     }
+
+.tdm-floating-cta.tdm-enabled {
+       background: #ffffff; color: #000000; border-color: #ffffff;
+       box-shadow: 0 10px 30px rgba(255,255,255,0.2); cursor: pointer; pointer-events: auto;
+     }
+
+.tdm-floating-cta.tdm-finalized {
+       background: #22c55e; border-color: #22c55e; color: #000;
+       pointer-events: auto; cursor: default; box-shadow: 0 10px 30px rgba(34,197,94,0.3);
+     }
+
+/* preview sheet */
+.tdm-preview-overlay {
+       display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+       z-index: 10010; justify-content: flex-end; align-items: flex-end;
+     }
+
+.tdm-preview-overlay.active { display: flex; }
+
+.tdm-preview-sheet {
+       background: #0d0d0d; border: 1px solid #2a2a2a; border-radius: 1.5rem 1.5rem 0 0;
+       width: 100%; max-width: 500px; max-height: 70vh; overflow-y: auto;
+       padding: 1.5rem; color: #ddd; box-shadow: 0 -10px 40px rgba(0,0,0,0.9); margin: 0 auto;
+     }
+
+.tdm-preview-sheet h3 { font-size: 1.1rem; margin-bottom: 1rem; color: #fff; }
+
+.tdm-preview-item {
+       display: flex; align-items: center; justify-content: space-between;
+       padding: 0.7rem 1rem; background: #111; border: 1px solid #2a2a2a;
+       border-radius: 0.6rem; margin-bottom: 0.5rem;
+     }
+
+.tdm-preview-item span { font-size: 0.9rem; color: #ccc; }
+
+.tdm-remove-btn {
+       background: transparent; border: 1px solid #444; color: #888; border-radius: 50%;
+       width: 1.8rem; height: 1.8rem; display: flex; align-items: center; justify-content: center;
+       cursor: pointer; transition: all 0.2s; font-family: inherit;
+     }
+
+.tdm-remove-btn:hover { border-color: #f87171; color: #f87171; background: #1a1010; }
+
+.tdm-confirm-btn {
+       background: #ffffff; color: #000000; border: none; padding: 0.8rem 2rem;
+       border-radius: 2rem; font-weight: 600; margin-top: 1.2rem; width: 100%; cursor: pointer;
+       font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em; font-family: inherit;
+     }
+
+.tdm-confirm-btn:hover { background: #e0e0e0; }
+
+.td-status.complete, .td-status.completed { background: var(--mp-accent-muted, rgba(163,230,53,0.1)); color: var(--mp-accent, #a3e635); border: 1px solid var(--mp-accent-border, rgba(163,230,53,0.2)); }
+
+.td-status.pending { background: rgba(251,191,36,0.1); color: #fbbf24; border: 1px solid rgba(251,191,36,0.2); }
+
+.td-status.cancelled, .td-status.rejected, .td-status.refunded { background: rgba(248,113,113,0.08); color: #f87171; border: 1px solid rgba(248,113,113,0.15); }
+
+.td-status.accepted, .td-status.funded, .td-status.delivered, .td-status.active { background: rgba(96,165,250,0.1); color: #60a5fa; border: 1px solid rgba(96,165,250,0.2); }
+
+.td-status.disputed { background: rgba(251,113,133,0.1); color: #fb7185; border: 1px solid rgba(251,113,133,0.2); }
+
