@@ -1,0 +1,17 @@
+/*
+  NOT a full globals.css — just the small addition needed for the
+  Messages & Deals button's click-feedback fix.
+
+  Open your real app/globals.css, find the existing `.pm-inbox-btn:hover`
+  rule (around line ~6852, inside the `.pm-inbox-btn { ... }` block),
+  and add the two rules below immediately after it. Then delete this
+  file — it's a reference snippet, not a file your app imports.
+*/
+
+.pm-inbox-btn:disabled {
+  cursor: default;
+  opacity: 0.85;
+}
+.pm-inbox-spinner {
+  animation: dcpSpin 0.7s linear infinite;
+}
