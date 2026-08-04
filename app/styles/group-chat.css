@@ -1,0 +1,217 @@
+/* ── extracted style block 11 (originally around char offset 1847747) ── */
+#groupChatPanel *, #groupChatPanel *::before, #groupChatPanel *::after { box-sizing: border-box; }
+
+/* Desktop split-view variant (see InboxShell.tsx / GroupChatPanel's
+   `embedded` prop) — same box-sizing reset as #groupChatPanel above,
+   scoped to the plain-pane class used when this renders inline next to
+   the thread list instead of as its own fixed overlay. */
+.gcp-embedded *, .gcp-embedded *::before, .gcp-embedded *::after { box-sizing: border-box; }
+
+/* ── Header ── */
+.gcp-header {
+              display: flex; align-items: center; gap: 0.75rem;
+              padding: 1rem 1.4rem; flex-shrink: 0;
+              border-bottom: 1px solid rgba(255,255,255,0.07);
+              background: #06060e;
+            }
+
+.gcp-back-btn {
+              width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+              background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+              color: rgba(255,255,255,0.6); cursor: pointer;
+              display: flex; align-items: center; justify-content: center;
+              transition: all 0.18s; font-family: inherit;
+            }
+
+.gcp-back-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+.gcp-back-btn svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+.gcp-av {
+              width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+              background: linear-gradient(135deg, #a3e635 0%, #65a30d 100%);
+              display: flex; align-items: center; justify-content: center;
+              font-size: 0.8rem; font-weight: 700; color: #000;
+              overflow: hidden;
+            }
+
+.gcp-av img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+
+.gcp-title { font-size: 0.92rem; font-weight: 700; color: #fff; letter-spacing: -0.01em; line-height: 1.2; }
+
+.gcp-desc  { font-size: 0.7rem; color: rgba(255,255,255,0.4); margin-top: 1px; }
+
+/* ── Messages area ── */
+#gcpMessages {
+              flex: 1; overflow-y: auto; padding: 1rem 1.2rem;
+              display: flex; flex-direction: column; gap: 0.65rem;
+              scrollbar-width: thin; scrollbar-color: #1a1a1a transparent;
+              min-height: 0;
+            }
+
+#gcpMessages::-webkit-scrollbar { width: 4px; }
+
+#gcpMessages::-webkit-scrollbar-thumb { background: #1a1a1a; border-radius: 4px; }
+
+/* System message */
+.gcp-msg-system {
+              text-align: center; font-size: 0.75rem;
+              color: rgba(255,255,255,0.38); padding: 0.4rem 1rem;
+              background: rgba(255,255,255,0.03); border-radius: 2rem;
+              margin: 0.3rem auto; max-width: 90%; line-height: 1.5;
+            }
+
+/* Outer row: avatar + message column */
+.gcp-msg-outer {
+              display: flex; align-items: flex-end; gap: 0.5rem;
+            }
+
+.gcp-msg-outer.mine   { flex-direction: row-reverse; }
+
+.gcp-msg-outer.theirs { flex-direction: row; }
+
+/* Avatar (theirs) */
+.gcp-msg-av {
+              width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+              background: linear-gradient(135deg, #a3e635 0%, #65a30d 100%);
+              display: flex; align-items: center; justify-content: center;
+              font-size: 0.65rem; font-weight: 700; color: #000; overflow: hidden;
+              align-self: flex-end; margin-bottom: 2px;
+            }
+
+.gcp-msg-av img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+
+.gcp-msg-av-spacer { width: 28px; flex-shrink: 0; }
+
+/* Message column */
+.gcp-msg-row { display: flex; flex-direction: column; max-width: 74%; gap: 3px; }
+
+.gcp-msg-row.mine   { align-items: flex-end; }
+
+.gcp-msg-row.theirs { align-items: flex-start; }
+
+/* Meta: name + time + dots */
+.gcp-msg-meta {
+              display: flex; align-items: center; gap: 0.4rem;
+              padding: 0 4px; position: relative;
+            }
+
+.gcp-msg-row.mine .gcp-msg-meta { flex-direction: row-reverse; }
+
+.gcp-msg-name { font-size: 0.62rem; font-weight: 700; color: #a3e635; }
+
+.gcp-msg-row.mine .gcp-msg-name { display: none; }
+
+.gcp-msg-time { font-size: 0.6rem; color: rgba(255,255,255,0.25); }
+
+/* 3-dot button */
+.gcp-msg-dots {
+              width: 20px; height: 20px; border-radius: 50%; border: none; background: transparent;
+              color: rgba(255,255,255,0.3); cursor: pointer; display: flex; align-items: center;
+              justify-content: center; transition: all 0.15s; padding: 0; font-family: inherit; opacity: 0;
+            }
+
+.gcp-msg-outer:hover .gcp-msg-dots { opacity: 1; }
+
+.gcp-msg-dots:hover { background: rgba(255,255,255,0.08); color: #fff; }
+
+.gcp-msg-dots svg { width: 13px; height: 13px; stroke: none; fill: currentColor; }
+
+/* Bubble */
+.gcp-bubble {
+              padding: 0.6rem 0.95rem; border-radius: 1.2rem;
+              font-size: 0.85rem; line-height: 1.5; word-break: break-word;
+            }
+
+.gcp-msg-row.mine   .gcp-bubble { background: #a3e635; color: #000; font-weight: 500; border-bottom-right-radius: 4px; }
+
+.gcp-msg-row.theirs .gcp-bubble { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.9); border: 1px solid rgba(255,255,255,0.07); border-bottom-left-radius: 4px; }
+
+/* Image bubble */
+.gcp-bubble.img-bubble { padding: 4px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); }
+
+.gcp-bubble.img-bubble img { display: block; max-width: 220px; max-height: 220px; border-radius: 0.9rem; cursor: pointer; object-fit: cover; }
+
+/* Link bubble */
+.gcp-bubble.link-bubble { padding: 0; background: transparent; border: none; }
+
+/* Context menu */
+.gcp-ctx-menu {
+              position: absolute; top: 100%; right: 0; z-index: 99;
+              background: #111118; border: 1px solid rgba(255,255,255,0.09);
+              border-radius: 0.75rem; padding: 0.3rem; min-width: 140px;
+              box-shadow: 0 8px 28px rgba(0,0,0,0.6);
+            }
+
+.gcp-msg-row.theirs .gcp-ctx-menu { right: auto; left: 0; }
+
+.gcp-ctx-item {
+              display: flex; align-items: center; gap: 0.55rem;
+              padding: 0.5rem 0.7rem; border-radius: 0.5rem; cursor: pointer;
+              font-size: 0.8rem; font-weight: 600; color: rgba(255,255,255,0.75);
+              border: none; background: none; font-family: inherit; width: 100%; text-align: left; transition: background 0.12s;
+            }
+
+.gcp-ctx-item:hover { background: rgba(255,255,255,0.07); color: #fff; }
+
+.gcp-ctx-item.danger { color: #f87171; }
+
+.gcp-ctx-item.danger:hover { background: rgba(239,68,68,0.1); }
+
+.gcp-ctx-item svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+
+/* ── Input area ── */
+.gcp-input-row {
+              display: flex; flex-direction: column; align-items: center;
+              padding: 0.55rem 0 calc(0.55rem + env(safe-area-inset-bottom, 0px)) 0;
+              border-top: 1px solid rgba(255,255,255,0.07);
+              flex-shrink: 0; background: #06060e; gap: 0.45rem;
+            }
+
+.gcp-attach-row {
+              width: 90%; display: flex; align-items: center; gap: 0.4rem;
+            }
+
+.gcp-attach-btn {
+              display: flex; align-items: center; gap: 0.4rem;
+              padding: 0.3rem 0.7rem; border-radius: 2rem; flex-shrink: 0;
+              background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+              color: rgba(255,255,255,0.5); font-size: 0.72rem; font-weight: 600;
+              cursor: pointer; font-family: inherit; transition: all 0.15s; white-space: nowrap;
+            }
+
+.gcp-attach-btn:hover { background: rgba(255,255,255,0.08); color: #fff; border-color: rgba(255,255,255,0.15); }
+
+.gcp-attach-btn svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+
+.gcp-input-inner { width: 90%; }
+
+.gcp-textarea-wrap {
+              display: flex; align-items: flex-end; gap: 0.5rem;
+              background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09);
+              border-radius: 1.2rem; padding: 0.55rem 0.55rem 0.55rem 0.85rem;
+              transition: border-color 0.15s;
+            }
+
+.gcp-textarea-wrap:focus-within { border-color: rgba(163,230,53,0.35); }
+
+.gcp-textarea-wrap textarea {
+              flex: 1; background: none; border: none; outline: none; resize: none;
+              color: #fff; font-size: 0.875rem; font-family: inherit; line-height: 1.45;
+              min-height: 22px; max-height: 120px; padding: 0;
+              scrollbar-width: thin; scrollbar-color: #333 transparent;
+            }
+
+.gcp-textarea-wrap textarea::placeholder { color: rgba(255,255,255,0.28); }
+
+.gcp-textarea-wrap button {
+              width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+              background: #a3e635; border: none; cursor: pointer;
+              display: flex; align-items: center; justify-content: center;
+              transition: filter 0.15s; align-self: flex-end;
+            }
+
+.gcp-textarea-wrap button:hover { filter: brightness(1.12); }
+
+.gcp-textarea-wrap button svg { width: 14px; height: 14px; stroke: #000; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
