@@ -1,0 +1,620 @@
+/* ── extracted style block 10 (originally around char offset 1813473) ── */
+#dealChatPanel {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            width: 100%; height: 100dvh; z-index: 9997;
+            background: #06060e;
+            display: none; flex-direction: column;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            }
+
+#dealChatPanel *, #dealChatPanel *::before, #dealChatPanel *::after { box-sizing: border-box; }
+
+/* Desktop split-view variant (see InboxShell.tsx's wide-viewport layout
+   and DealChatPanel's `embedded` prop) — same visual panel, but as a
+   plain flex-fill pane sitting next to the thread list instead of a
+   fixed, viewport-covering overlay. Reuses every .dcp-* class below
+   unchanged; only the outer wrapper's positioning differs. */
+.dcp-embedded {
+            position: relative;
+            width: 100%; height: 100%;
+            z-index: auto;
+            background: #06060e;
+            display: flex; flex-direction: column;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            }
+
+.dcp-embedded *, .dcp-embedded *::before, .dcp-embedded *::after { box-sizing: border-box; }
+
+.dcp-box {
+            background: #06060e; border: none;
+            border-radius: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; overflow: hidden;
+            margin: 0;
+            }
+
+.dcp-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 1rem 1.4rem; flex-shrink: 0;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+            background: #06060e;
+            }
+
+.dcp-header-left { display: flex; align-items: center; gap: 0.7rem; }
+
+.dcp-back-btn {
+            width: 34px; height: 34px; border-radius: 10px;
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.6); cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.18s; font-family: inherit; flex-shrink: 0;
+            }
+
+.dcp-back-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+.dcp-back-btn svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+.dcp-header-titles { display: flex; flex-direction: column; gap: 2px; }
+
+.dcp-title { font-size: 0.92rem; font-weight: 700; color: #fff; letter-spacing: -0.01em; line-height: 1.2; }
+
+.dcp-countdown { font-size: 0.7rem; font-weight: 700; color: #a3e635; letter-spacing: 0.01em; }
+
+/* hamburger menu button */
+#dcpMenuBtn {
+            width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+            background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);
+            color: rgba(255,255,255,0.5); cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.18s; font-family: inherit; position: relative;
+            }
+
+#dcpMenuBtn:hover { background: rgba(255,255,255,0.08); color: #fff; }
+
+#dcpMenuBtn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* dropdown */
+#dcpMenuDropdown {
+            position: absolute; top: calc(100% + 6px); right: 0; z-index: 999;
+            background: #111118; border: 1px solid rgba(255,255,255,0.09);
+            border-radius: 0.85rem; padding: 0.3rem; min-width: 170px;
+            box-shadow: 0 10px 32px rgba(0,0,0,0.7);
+            display: none;
+            }
+
+#dcpMenuDropdown.open { display: block; }
+
+.dcp-menu-item {
+            display: flex; align-items: center; gap: 0.6rem;
+            padding: 0.55rem 0.8rem; border-radius: 0.6rem; cursor: pointer;
+            font-size: 0.82rem; font-weight: 600; color: rgba(255,255,255,0.75);
+            border: none; background: none; font-family: inherit; width: 100%;
+            text-align: left; transition: background 0.12s;
+            }
+
+.dcp-menu-item:hover { background: rgba(255,255,255,0.07); color: #fff; }
+
+.dcp-menu-item.danger { color: #f87171; }
+
+.dcp-menu-item.danger:hover { background: rgba(239,68,68,0.1); }
+
+.dcp-menu-item.dcp-menu-item-exit { color: #a3e635; }
+
+.dcp-menu-item.dcp-menu-item-exit:hover { background: rgba(163,230,53,0.12); }
+
+.dcp-menu-item svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+
+.dcp-menu-divider { height: 1px; background: rgba(255,255,255,0.07); margin: 0.25rem 0.5rem; }
+
+#dcpMessages {
+            flex: 1; overflow-y: auto; padding: 1rem 1.2rem;
+            display: flex; flex-direction: column; gap: 0.5rem;
+            scrollbar-width: thin; scrollbar-color: #1a1a1a transparent;
+            min-height: 0;
+            }
+
+#dcpMessages::-webkit-scrollbar { width: 4px; }
+
+#dcpMessages::-webkit-scrollbar-thumb { background: #1a1a1a; border-radius: 4px; }
+
+/* ── Themed system messages ──
+               Base card shared by every theme; theme classes below only
+               override accent color / background / border. */
+.dcp-msg-system {
+              display: flex; align-items: flex-start; gap: 0.55rem;
+              text-align: left; font-size: 0.76rem; line-height: 1.5;
+              color: rgba(255,255,255,0.75); padding: 0.65rem 0.9rem;
+              background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
+              border-radius: 0.9rem; margin: 0.35rem auto; max-width: 92%;
+              animation: dcpSysIn 0.35s ease both;
+            }
+
+.dcp-msg-system .dcp-sys-icon {
+              flex-shrink: 0; width: 1.5rem; height: 1.5rem; border-radius: 50%;
+              display: flex; align-items: center; justify-content: center;
+              margin-top: 0.05rem;
+            }
+
+.dcp-msg-system .dcp-sys-icon svg { width: 0.85rem; height: 0.85rem; }
+
+.dcp-msg-system .dcp-sys-text { flex: 1; padding-top: 0.15rem; }
+
+/* accepted — soft lime/success, deal kickoff */
+.dcp-msg-system.theme-accepted {
+              background: linear-gradient(135deg, rgba(163,230,53,0.09), rgba(163,230,53,0.03));
+              border-color: rgba(163,230,53,0.3);
+            }
+
+.dcp-msg-system.theme-accepted .dcp-sys-icon { background: rgba(163,230,53,0.18); color: #a3e635; }
+
+/* paid / funded — blue, informational */
+.dcp-msg-system.theme-paid {
+              background: linear-gradient(135deg, rgba(96,165,250,0.1), rgba(96,165,250,0.03));
+              border-color: rgba(96,165,250,0.3);
+            }
+
+.dcp-msg-system.theme-paid .dcp-sys-icon { background: rgba(96,165,250,0.18); color: #60a5fa; }
+
+/* delivered — amber, needs action */
+.dcp-msg-system.theme-delivered {
+              background: linear-gradient(135deg, rgba(245,158,11,0.1), rgba(245,158,11,0.03));
+              border-color: rgba(245,158,11,0.3);
+            }
+
+.dcp-msg-system.theme-delivered .dcp-sys-icon { background: rgba(245,158,11,0.18); color: #f59e0b; }
+
+/* released / complete — green success, premium */
+.dcp-msg-system.theme-released {
+              background: linear-gradient(135deg, rgba(34,197,94,0.12), rgba(34,197,94,0.03));
+              border-color: rgba(34,197,94,0.35);
+            }
+
+.dcp-msg-system.theme-released .dcp-sys-icon { background: rgba(34,197,94,0.2); color: #22c55e; }
+
+/* refunded / closed — neutral slate */
+.dcp-msg-system.theme-refunded {
+              background: linear-gradient(135deg, rgba(148,163,184,0.1), rgba(148,163,184,0.03));
+              border-color: rgba(148,163,184,0.28);
+            }
+
+.dcp-msg-system.theme-refunded .dcp-sys-icon { background: rgba(148,163,184,0.18); color: #94a3b8; }
+
+/* disputed — red, alert */
+.dcp-msg-system.theme-disputed {
+              background: linear-gradient(135deg, rgba(239,68,68,0.1), rgba(239,68,68,0.03));
+              border-color: rgba(239,68,68,0.32);
+            }
+
+.dcp-msg-system.theme-disputed .dcp-sys-icon { background: rgba(239,68,68,0.18); color: #ef4444; }
+
+/* expired — muted, no accent */
+.dcp-msg-system.theme-expired {
+              background: rgba(255,255,255,0.025); border-color: rgba(255,255,255,0.08);
+              color: rgba(255,255,255,0.4);
+            }
+
+.dcp-msg-system.theme-expired .dcp-sys-icon { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.4); }
+
+/* ── Celebration overlay: confetti + falling flowers ──
+               Fired for "accepted" and "released" system events. Absolutely
+               positioned within #dealChatPanel, pointer-events none so it
+               never blocks taps, and removes itself after the animation. */
+.dcp-celebrate-layer {
+              position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+              z-index: 40;
+            }
+
+.dcp-celebrate-piece {
+              position: absolute; top: -5%; will-change: transform, opacity;
+              animation-name: dcpFall; animation-timing-function: ease-in;
+              animation-fill-mode: forwards;
+            }
+
+/* ── First-time "welcome to this deal chat" overlay ── */
+.dcp-welcome-layer {
+              position: absolute; inset: 0; z-index: 50;
+              display: flex; align-items: center; justify-content: center;
+              background: rgba(6,8,4,0.72); backdrop-filter: blur(6px);
+              animation: dcpWelcomeBgIn 0.4s ease both;
+            }
+
+.dcp-welcome-card {
+              display: flex; flex-direction: column; align-items: center; text-align: center;
+              gap: 0.9rem; padding: 2rem 1.8rem; max-width: 300px;
+              animation: dcpWelcomeCardIn 0.55s cubic-bezier(0.22,1,0.36,1) both;
+            }
+
+.dcp-welcome-icon {
+              width: 4rem; height: 4rem; border-radius: 50%;
+              background: radial-gradient(circle at 35% 30%, rgba(163,230,53,0.35), rgba(163,230,53,0.08));
+              border: 1px solid rgba(163,230,53,0.4);
+              display: flex; align-items: center; justify-content: center;
+              color: #a3e635; animation: dcpWelcomePulse 1.8s ease-in-out infinite;
+            }
+
+.dcp-welcome-icon svg { width: 1.9rem; height: 1.9rem; }
+
+.dcp-welcome-title { font-size: 1.05rem; font-weight: 700; color: #fff; }
+
+.dcp-welcome-sub { font-size: 0.8rem; line-height: 1.5; color: rgba(255,255,255,0.55); }
+
+.dcp-welcome-dismiss {
+              margin-top: 0.3rem; padding: 0.55rem 1.3rem; border-radius: 1rem;
+              background: #a3e635; color: #06110a; font-weight: 700; font-size: 0.8rem;
+              border: none; cursor: pointer; transition: transform 0.15s, background 0.15s;
+            }
+
+.dcp-welcome-dismiss:hover { background: #bef264; transform: scale(1.04); }
+
+.dcp-welcome-layer.dcp-welcome-out { animation: dcpWelcomeBgOut 0.3s ease both; }
+
+.dcp-msg-row { display: flex; flex-direction: column; max-width: 76%; gap: 3px; }
+
+.dcp-msg-row.mine  { align-self: flex-end;  align-items: flex-end; }
+
+.dcp-msg-row.theirs { align-self: flex-start; align-items: flex-start; }
+
+.dcp-bubble {
+            padding: 0.6rem 0.95rem; border-radius: 1.2rem;
+            font-size: 0.85rem; line-height: 1.5; word-break: break-word;
+            }
+
+.dcp-msg-row.mine   .dcp-bubble { background: #a3e635; color: #000; font-weight: 500; border-bottom-right-radius: 4px; }
+
+.dcp-msg-row.theirs .dcp-bubble { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.9); border: 1px solid rgba(255,255,255,0.07); border-bottom-left-radius: 4px; }
+
+/* Deal-chat image messages (.dcp-bubble.img-bubble) had no size
+               cap at all, unlike the group-chat equivalent (.gcp-bubble.img-bubble)
+               below — this is why sent/received photos rendered at full
+               native resolution instead of a chat-sized thumbnail. */
+.dcp-bubble.img-bubble { padding: 4px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); }
+
+.dcp-bubble.img-bubble img { display: block; max-width: 220px; max-height: 220px; width: 100%; height: auto; border-radius: 0.9rem; cursor: pointer; object-fit: cover; }
+
+/* Transfer Deal ZIP delivery card — overrides default bubble coloring */
+.dcp-bubble.tdm-zip-bubble {
+              padding: 0 !important; background: transparent !important; border: none !important;
+            }
+
+/* Transfer Methods bar (injected into sticky item bar) */
+.dcp-transfer-methods-bar {
+              display: flex; align-items: center; gap: 0.6rem;
+              padding: 0.55rem 1rem; background: rgba(255,255,255,0.025);
+              border-bottom: 1px solid rgba(255,255,255,0.06);
+              flex-wrap: wrap; row-gap: 0.4rem;
+            }
+
+.dcp-transfer-methods-label {
+              font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+              letter-spacing: 0.06em; color: rgba(255,255,255,0.35);
+              flex-shrink: 0;
+            }
+
+.dcp-transfer-methods-pills {
+              display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; row-gap: 0.4rem;
+            }
+
+.dcp-transfer-pill {
+              display: inline-flex; align-items: center; gap: 0.35rem;
+              padding: 0.28rem 0.65rem; border-radius: 1rem;
+              background: rgba(163,230,53,0.09); border: 1px solid rgba(163,230,53,0.25);
+              color: #d3f5a8; font-size: 0.68rem; font-weight: 600; white-space: nowrap;
+              line-height: 1;
+            }
+
+.dcp-transfer-pill svg { flex-shrink: 0; }
+
+.dcp-msg-time { font-size: 0.6rem; color: rgba(255,255,255,0.25); }
+
+.dcp-msg-meta { display: flex; align-items: center; gap: 0.4rem; padding: 0 4px; position: relative; }
+
+.dcp-msg-row.mine .dcp-msg-meta { flex-direction: row-reverse; }
+
+.dcp-msg-dots {
+            width: 20px; height: 20px; border-radius: 50%; border: none; background: transparent;
+            color: rgba(255,255,255,0.3); cursor: pointer; display: flex; align-items: center;
+            justify-content: center; transition: all 0.15s; padding: 0; font-family: inherit; opacity: 0;
+            }
+
+.dcp-msg-row:hover .dcp-msg-dots { opacity: 1; }
+
+.dcp-msg-dots:hover { background: rgba(255,255,255,0.08); color: #fff; }
+
+.dcp-msg-dots svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+.dcp-ctx-menu {
+            position: absolute; top: 100%; right: 0; z-index: 99;
+            background: #111118; border: 1px solid rgba(255,255,255,0.09);
+            border-radius: 0.75rem; padding: 0.3rem; min-width: 130px;
+            box-shadow: 0 8px 28px rgba(0,0,0,0.6);
+            }
+
+.dcp-msg-row.theirs .dcp-ctx-menu { right: auto; left: 0; }
+
+.dcp-ctx-item {
+            display: flex; align-items: center; gap: 0.55rem;
+            padding: 0.5rem 0.7rem; border-radius: 0.5rem; cursor: pointer;
+            font-size: 0.8rem; font-weight: 600; color: rgba(255,255,255,0.75);
+            border: none; background: none; font-family: inherit; width: 100%; text-align: left; transition: background 0.12s;
+            }
+
+.dcp-ctx-item:hover { background: rgba(255,255,255,0.07); color: #fff; }
+
+.dcp-ctx-item.danger { color: #f87171; }
+
+.dcp-ctx-item.danger:hover { background: rgba(239,68,68,0.1); }
+
+.dcp-ctx-item svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+
+.dcp-msg-name { font-size: 0.62rem; font-weight: 700; color: #a3e635; }
+
+.dcp-msg-row.mine .dcp-msg-name { display: none; }
+
+/* Siterifty AI bot messages — the only sender type with a visible avatar
+   in this chat today. Scoped entirely to .bot-msg so every other message
+   row (buyer/seller/system) keeps its existing layout untouched. */
+.dcp-msg-row.bot-msg { flex-direction: row; align-items: flex-end; gap: 0.5rem; max-width: 84%; }
+
+.dcp-msg-row.bot-msg .dcp-bot-avatar {
+              width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+              background: #0c0c10; border: 1px solid rgba(163,230,53,0.35);
+              display: flex; align-items: center; justify-content: center; overflow: hidden;
+            }
+
+.dcp-msg-row.bot-msg .dcp-bot-avatar img { width: 100%; height: 100%; object-fit: contain; padding: 3px; }
+
+.dcp-msg-row.bot-msg .dcp-bot-body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+
+.dcp-msg-row.bot-msg .dcp-msg-name { color: #a3e635; }
+
+.dcp-msg-row.bot-msg .dcp-bubble { background: rgba(163,230,53,0.08); border: 1px solid rgba(163,230,53,0.18); color: rgba(255,255,255,0.92); border-bottom-left-radius: 4px; }
+
+#dcpExpiredBanner {
+            display: none; align-items: center; justify-content: center;
+            gap: 0.5rem; padding: 0.75rem 1.4rem;
+            background: rgba(239,68,68,0.07); border-top: 1px solid rgba(239,68,68,0.14);
+            font-size: 0.78rem; color: #f87171; font-weight: 600; flex-shrink: 0;
+            }
+
+#dcpExpiredBanner.dcp-outcome-successful {
+            background: rgba(163,230,53,0.08); border-top: 1px solid rgba(163,230,53,0.2);
+            color: #a3e635;
+            }
+
+#dcpExpiredBanner.dcp-outcome-closed {
+            background: rgba(239,68,68,0.07); border-top: 1px solid rgba(239,68,68,0.14);
+            color: #f87171;
+            }
+
+#dcpInputRow {
+            display: flex; flex-direction: column; align-items: center;
+            padding: 0.55rem 0 calc(0.55rem + env(safe-area-inset-bottom, 0px)) 0;
+            border-top: 1px solid rgba(255,255,255,0.07);
+            flex-shrink: 0; background: #06060e; gap: 0.45rem;
+            }
+
+#dcpAttachRow {
+            width: 90%; display: flex; align-items: center; gap: 0.4rem;
+            }
+
+.dcp-attach-pill {
+            display: flex; align-items: center; gap: 0.4rem;
+            padding: 0.3rem 0.7rem; border-radius: 2rem; flex-shrink: 0;
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.5); cursor: pointer; font-size: 0.75rem; font-weight: 600;
+            font-family: inherit; transition: all 0.15s; white-space: nowrap;
+            }
+
+.dcp-attach-pill:hover { background: rgba(255,255,255,0.09); color: #fff; }
+
+.dcp-attach-pill svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+
+.dcp-attach-pill:disabled { opacity: 0.6; cursor: default; }
+
+.dcp-attach-pill:disabled:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.5); }
+
+#dcpInputInner {
+            width: 90%; display: flex; flex-direction: column; align-items: stretch; position: relative;
+            }
+
+/* Staged image/file preview strip — sits above the textarea,
+               inside #dcpInputInner, so it visually reads as "attached to
+               this message" rather than a separate overlay. Scrolls
+               horizontally if more than a couple of files are staged at
+               once (multi-file pick for html/css/js handoffs). */
+.dcp-attach-preview-strip {
+            width: 100%; display: flex; gap: 0.5rem; overflow-x: auto;
+            padding: 0 0.1rem 0.55rem; scrollbar-width: none; -ms-overflow-style: none;
+            }
+
+.dcp-attach-preview-strip::-webkit-scrollbar { display: none; width: 0; height: 0; }
+
+.dcp-attach-preview-card {
+            position: relative; flex-shrink: 0; width: 76px;
+            display: flex; flex-direction: column; align-items: center; gap: 0.3rem;
+            }
+
+.dcp-attach-preview-thumb {
+            width: 64px; height: 64px; border-radius: 0.85rem; object-fit: cover;
+            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+            flex-shrink: 0;
+            }
+
+.dcp-attach-preview-file {
+            display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.4);
+            }
+
+.dcp-attach-preview-file svg { width: 24px; height: 24px; }
+
+.dcp-attach-preview-name {
+            width: 100%; font-size: 0.62rem; color: rgba(255,255,255,0.5); text-align: center;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+            }
+
+.dcp-attach-preview-remove {
+            position: absolute; top: -6px; right: -6px; width: 20px; height: 20px;
+            border-radius: 50%; background: #1a1a1a; border: 1px solid rgba(255,255,255,0.18);
+            color: rgba(255,255,255,0.75); display: flex; align-items: center; justify-content: center;
+            cursor: pointer; padding: 0;
+            }
+
+.dcp-attach-preview-remove svg { width: 11px; height: 11px; }
+
+.dcp-attach-preview-remove:hover { background: rgba(239,68,68,0.24); border-color: rgba(239,68,68,0.55); color: #fca5a5; }
+
+.dcp-attach-preview-remove:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.dcp-textarea-wrap {
+            flex: 1; position: relative; display: flex; align-items: flex-end;
+            background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.09);
+            border-radius: 1.3rem; transition: border-color 0.18s;
+            }
+
+.dcp-textarea-wrap:focus-within { border-color: rgba(163,230,53,0.35); }
+
+.dcp-attach-menu {
+            position: absolute; bottom: calc(100% + 8px); left: 0;
+            background: #0e0e1a; border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 1rem; padding: 0.4rem;
+            display: none; flex-direction: column; gap: 2px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6); z-index: 10;
+            min-width: 160px;
+            }
+
+.dcp-attach-menu.open { display: flex; }
+
+#dcpInput {
+            flex: 1; background: transparent; border: none; border-radius: 1.3rem;
+            padding: 0.6rem 2.8rem 0.6rem 0.95rem; font-size: 0.88rem; color: #fff;
+            font-family: inherit; outline: none; resize: none;
+            max-height: 110px; min-height: 40px; line-height: 1.45;
+            }
+
+#dcpInput::placeholder { color: rgba(255,255,255,0.25); }
+
+#dcpInput:disabled { opacity: 0.4; }
+
+#dcpSendBtn {
+            position: absolute; right: 5px; bottom: 5px;
+            width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0;
+            background: #a3e635; border: none; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: filter 0.15s, transform 0.12s;
+            }
+
+#dcpSendBtn:hover { filter: brightness(1.1); }
+
+#dcpSendBtn:active { transform: scale(0.93); }
+
+#dcpSendBtn:disabled { opacity: 0.35; cursor: default; }
+
+#dcpSendBtn:disabled:hover { filter: none; }
+
+#dcpSendBtn:disabled:active { transform: none; }
+
+#dcpSendBtn svg { width: 14px; height: 14px; stroke: #000; fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ── Deal chat sticky item bar ── */
+#dcpItemBar {
+            display: flex; align-items: center; gap: 0.75rem;
+            padding: 0.65rem 1rem; background: rgba(255,255,255,0.03);
+            border-bottom: 1px solid rgba(255,255,255,0.07); flex-shrink: 0;
+            }
+
+#dcpItemThumb {
+            width: 42px; height: 42px; border-radius: 0.6rem; object-fit: cover;
+            background: rgba(255,255,255,0.06); flex-shrink: 0;
+            border: 1px solid rgba(255,255,255,0.08);
+            }
+
+#dcpItemThumbFallback {
+            width: 42px; height: 42px; border-radius: 0.6rem; flex-shrink: 0;
+            background: rgba(163,230,53,0.08); border: 1px solid rgba(163,230,53,0.15);
+            display: flex; align-items: center; justify-content: center;
+            }
+
+#dcpItemThumbFallback svg { width: 18px; height: 18px; stroke: #a3e635; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+#dcpItemInfo { flex: 1; min-width: 0; }
+
+#dcpItemTitle {
+            font-size: 0.82rem; font-weight: 700; color: #fff;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            max-width: 100%;
+            }
+
+#dcpItemPrice { font-size: 0.72rem; color: #a3e635; font-weight: 700; margin-top: 1px; }
+
+#dcpViewListingBtn {
+            flex-shrink: 0; padding: 0.3rem 0.75rem; border-radius: 2rem;
+            background: rgba(163,230,53,0.1); border: 1px solid rgba(163,230,53,0.25);
+            color: #a3e635; font-size: 0.72rem; font-weight: 700; cursor: pointer;
+            font-family: inherit; transition: all 0.15s; white-space: nowrap;
+            }
+
+#dcpViewListingBtn:hover { background: rgba(163,230,53,0.18); }
+
+/* ── Deal chat announcement bar ── */
+#dcpAnnouncementBar {
+            display: flex; align-items: center; gap: 0.6rem;
+            padding: 0.55rem 1rem; flex-shrink: 0;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            }
+
+#dcpAnnouncementBar.seller-mode {
+            background: rgba(251,191,36,0.06);
+            border-top-color: rgba(251,191,36,0.15);
+            }
+
+#dcpAnnouncementBar.buyer-mode {
+            background: rgba(163,230,53,0.05);
+            border-top-color: rgba(163,230,53,0.12);
+            }
+
+#dcpAnnouncementBar.disputed-mode {
+            background: rgba(239,68,68,0.07);
+            border-top-color: rgba(239,68,68,0.2);
+            }
+
+.dcp-ann-sub-link {
+            background: none; border: none; padding: 0; margin-top: 2px;
+            font-size: 0.68rem; font-weight: 600; color: rgba(255,255,255,0.4);
+            text-decoration: underline; cursor: pointer; font-family: inherit;
+            }
+
+.dcp-ann-sub-link:hover { color: rgba(255,255,255,0.65); }
+
+.dcp-ann-icon {
+            width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            }
+
+.dcp-ann-icon svg { width: 15px; height: 15px; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+.dcp-ann-text { flex: 1; min-width: 0; }
+
+.dcp-ann-label { font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+
+.dcp-ann-msg { font-size: 0.78rem; color: rgba(255,255,255,0.7); margin-top: 1px; font-weight: 500; }
+
+.dcp-ann-cta {
+            flex-shrink: 0; padding: 0.35rem 0.9rem; border-radius: 2rem;
+            font-size: 0.75rem; font-weight: 700; cursor: pointer;
+            font-family: inherit; transition: all 0.15s; border: none; white-space: nowrap;
+            }
+
+/* ── Transfer pill override — wider to fit label ── */
+#dcpOptTransfer.dcp-transfer-pill {
+       background: rgba(163,230,53,0.08);
+       border-color: rgba(163,230,53,0.35);
+       color: #a3e635;
+       font-weight: 700;
+       letter-spacing: 0.01em;
+     }
+
+#dcpOptTransfer.dcp-transfer-pill svg { stroke: #a3e635; }
+
+#dcpOptTransfer.dcp-transfer-pill:hover {
+       background: rgba(163,230,53,0.15);
+       border-color: #a3e635;
+     }
+
