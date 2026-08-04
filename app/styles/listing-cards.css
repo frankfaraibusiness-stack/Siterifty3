@@ -1,0 +1,1432 @@
+/* ── Native ad slots — inserted every N listings by
+                  mpRenderCards. Sits in a single grid cell (own
+                  rounded/curved frame so the ad network's default iframe
+                  styling never touches the page's own design; the iframe
+                  itself supplies isolated atOptions scope per slot — see
+                  mpBuildAdCard). Deliberately NOT grid-column:1/-1 — on a
+                  multi-column desktop grid a full-width ad forces an early
+                  row break and strands the remaining cells in that row
+                  empty, since ad cadence is based on a raw listing count,
+                  not on how many columns actually fit. A single-cell ad
+                  just flows into the grid like any other card. ── */
+.sr-ad-slot {
+               display: flex; align-items: center; justify-content: center;
+               background: var(--sr-surface, #0d0d12);
+               border: 1px solid var(--sr-line, rgba(255,255,255,0.08));
+               border-radius: 14px;
+               padding: 14px;
+               position: relative;
+               overflow: hidden;
+               }
+
+.sr-ad-slot::before {
+               content: 'Advertisement';
+               position: absolute; top: 6px; left: 12px;
+               font-size: 9px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+               color: rgba(255,255,255,0.25);
+               }
+
+.sr-ad-slot iframe {
+               border: none; border-radius: 10px; display: block;
+               overflow: hidden;
+               }
+
+.sr-ad-slot.sr-ad-banner { padding: 10px; }
+
+/* Shimmer placeholder shown in .sr-ad-slot while the ad
+                  network's iframe hasn't fired its load event yet (or on
+                  a genuine no-fill) — see AdSlot.tsx's AdPlaceholder —
+                  so a slot never reads as a bare empty box. */
+@keyframes sr-ad-shimmer {
+               0% { background-position: 100% 0; }
+               100% { background-position: 0 0; }
+               }
+
+/* ── Desktop leaderboard ad (728x90) — much wider than a
+                  single grid cell (290px), so unlike the small rect/banner
+                  ads above it needs to span the full row like the
+                  seller-promo banner does, otherwise the 728px unit would
+                  overflow or force an awkward squeeze into one column. ── */
+.sr-ad-slot.sr-ad-leaderboard {
+               grid-column: 1 / -1;
+               padding: 12px;
+               }
+
+/* ── Seller-promo card — inserted into the marketplace feed
+                  at listing #5, then every 15 listings after that (see
+                  mpRenderCards' SELLER_PROMO_FIRST/SELLER_PROMO_REPEAT).
+                  Full-width row like .sr-ad-slot, but themed with the real
+                  site accent (--mp-accent, #a3e635) rather than a plain
+                  CSS `lime` keyword — promotes listing on the platform
+                  itself, so it should look native to the design, not like
+                  an ad unit. ── */
+.sr-seller-promo {
+               grid-column: 1 / -1;
+               display: flex;
+               background: #0d0d0d;
+               border-radius: 20px;
+               overflow: hidden;
+               box-shadow: 0 12px 40px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.05);
+               }
+
+.sr-seller-promo-inner {
+               display: flex;
+               flex-direction: column;
+               width: 100%;
+               }
+
+.sr-seller-promo-media {
+               position: relative;
+               width: 100%;
+               padding-top: 32%;
+               background-size: cover;
+               background-position: center;
+               background-repeat: no-repeat;
+               }
+
+.sr-seller-promo-media::after {
+               content: '';
+               position: absolute; inset: 0;
+               background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.25) 60%, rgba(0,0,0,0.7) 100%);
+               }
+
+.sr-seller-promo-badge {
+               position: absolute; top: 14px; right: 14px;
+               background: rgba(255,255,255,0.08);
+               backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+               border: 1px solid rgba(255,255,255,0.15);
+               border-radius: 20px;
+               padding: 5px 12px;
+               color: #fff;
+               font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+               z-index: 1;
+               }
+
+.sr-seller-promo-body {
+               padding: 22px 22px 20px;
+               }
+
+.sr-seller-promo-title {
+               margin: 0 0 10px; font-size: 21px; font-weight: 800;
+               letter-spacing: 0.02em; color: #fff; line-height: 1.2;
+               }
+
+.sr-seller-promo-accent {
+               width: 44px; height: 4px; border-radius: 2px;
+               background: var(--mp-accent, #a3e635);
+               margin-bottom: 14px;
+               animation: sr-promo-accent-slide 1.8s ease-in-out infinite alternate;
+               }
+
+@keyframes sr-promo-accent-slide {
+                 0%   { transform: translateX(0); }
+                 100% { transform: translateX(26px); }
+               }
+
+.sr-seller-promo-desc {
+               margin: 0 0 22px; font-size: 14px; line-height: 1.6; color: #a8a8b8;
+               }
+
+.sr-seller-promo-cta {
+               display: flex; align-items: center; justify-content: center; gap: 8px;
+               width: 100%;
+               padding: 14px 20px;
+               background: linear-gradient(110deg,
+                 color-mix(in srgb, var(--mp-accent, #a3e635) 14%, #14150f) 0%,
+                 color-mix(in srgb, var(--mp-accent, #a3e635) 14%, #14150f) 30%,
+                 color-mix(in srgb, var(--mp-accent, #a3e635) 30%, #14150f) 45%,
+                 color-mix(in srgb, var(--mp-accent, #a3e635) 42%, #14150f) 50%,
+                 color-mix(in srgb, var(--mp-accent, #a3e635) 30%, #14150f) 55%,
+                 color-mix(in srgb, var(--mp-accent, #a3e635) 14%, #14150f) 70%,
+                 color-mix(in srgb, var(--mp-accent, #a3e635) 14%, #14150f) 100%);
+               background-size: 220% 100%;
+               color: #fff;
+               border: 1.5px solid color-mix(in srgb, var(--mp-accent, #a3e635) 45%, transparent);
+               border-radius: 14px;
+               font-size: 15px; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase;
+               cursor: pointer;
+               animation: sr-promo-shimmer 2.6s ease-in-out infinite;
+               transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+               }
+
+.sr-seller-promo-cta:hover {
+               transform: translateY(-2px);
+               box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 20px color-mix(in srgb, var(--mp-accent, #a3e635) 25%, transparent);
+               border-color: color-mix(in srgb, var(--mp-accent, #a3e635) 80%, transparent);
+               }
+
+@keyframes sr-promo-shimmer {
+                 0%   { background-position: 220% 0; }
+                 100% { background-position: -20% 0; }
+               }
+
+@media (min-width: 640px) {
+                 .sr-seller-promo-inner { flex-direction: row; align-items: stretch; }
+                 .sr-seller-promo-media { width: 42%; padding-top: 0; }
+                 .sr-seller-promo-body { width: 58%; display: flex; flex-direction: column; justify-content: center; }
+               }
+
+/* ── AI-tools promo card — inserted into the feed at listing
+                  #10, then every 20 listings after that (see
+                  mpRenderCards' AI_PROMO_FIRST/AI_PROMO_REPEAT). Plain link
+                  navigation to /pages/aitools — no modal wiring — per the
+                  card's own spec. Kept as its own purple/indigo accent
+                  (not --mp-accent lime) since this card was supplied
+                  pre-themed and distinct from the seller-promo card. ── */
+.sr-ai-promo {
+               max-width: 380px;
+               margin: 0 auto;
+               background: #0a0a0f;
+               border-radius: 18px;
+               overflow: hidden;
+               box-shadow: 0 12px 36px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04);
+               }
+
+.sr-ai-promo-media {
+               position: relative;
+               width: 100%;
+               padding-top: 100%;
+               background-size: cover;
+               background-position: center;
+               }
+
+.sr-ai-promo-media::after {
+               content: '';
+               position: absolute; inset: 0;
+               background: linear-gradient(180deg, rgba(10,10,15,0.1) 0%, rgba(10,10,15,0.6) 100%);
+               }
+
+.sr-ai-promo-badge {
+               position: absolute; top: 14px; right: 14px;
+               background: rgba(255,255,255,0.07);
+               backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+               border: 1px solid rgba(255,255,255,0.1);
+               border-radius: 20px;
+               padding: 5px 13px;
+               color: #d4d4ff;
+               font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
+               z-index: 1;
+               }
+
+.sr-ai-promo-body {
+               padding: 18px 18px 16px;
+               }
+
+.sr-ai-promo-title {
+               margin: 0 0 6px; font-size: 19px; font-weight: 750; color: #fff; letter-spacing: 0.02em;
+               }
+
+.sr-ai-promo-accent {
+               width: 36px; height: 3px; border-radius: 2px;
+               background: linear-gradient(90deg, #a855f7, #6366f1);
+               margin-bottom: 12px;
+               }
+
+.sr-ai-promo-list {
+               margin: 0 0 14px; padding: 0 0 0 16px; list-style: none;
+               font-size: 12.5px; line-height: 1.7; color: #a0a0b8;
+               }
+
+.sr-ai-promo-list li {
+               margin-bottom: 5px; position: relative; padding-left: 14px;
+               }
+
+.sr-ai-promo-list li:last-child { margin-bottom: 0; }
+
+.sr-ai-promo-list li::before {
+               content: '•'; position: absolute; left: -14px; color: #a855f7; font-weight: 700;
+               }
+
+.sr-ai-promo-free {
+               margin: 0 0 14px; font-size: 11px; color: #a855f7; font-weight: 600; letter-spacing: 0.02em;
+               }
+
+.sr-ai-promo-cta {
+               display: flex; align-items: center; justify-content: center;
+               width: 100%;
+               padding: 12px 16px;
+               background: #15152a;
+               color: #fff;
+               text-decoration: none;
+               border-radius: 12px;
+               font-size: 13px; font-weight: 650; letter-spacing: 0.02em;
+               border: 1px solid rgba(168,85,247,0.35);
+               transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+               }
+
+.sr-ai-promo-cta:hover {
+               background: #1e1e3a;
+               border-color: rgba(168,85,247,0.7);
+               box-shadow: 0 0 18px rgba(168,85,247,0.15);
+               }
+
+/* ── Shared bits used by all three types ── */
+.sr-stat { display: flex; flex-direction: column; gap: 2px; }
+
+.sr-stat-k { font-size: 8.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--sr-text-faint); }
+
+.sr-stat-v { font-size: 12.5px; font-weight: 700; color: var(--sr-text); }
+
+.sr-stat-v.sr-pos { color: var(--sr-pos); }
+
+.sr-stat-v.sr-neg { color: var(--sr-neg); }
+
+.sr-av {
+  width: 27px; height: 27px; border-radius: 50%; flex-shrink: 0; overflow: hidden;
+  background: var(--sr-surface-2); border: 1px solid var(--sr-line);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10.5px; font-weight: 700; color: var(--sr-text-dim);
+}
+
+.sr-av img { width: 100%; height: 100%; object-fit: cover; }
+
+.sr-seller { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1 1 auto; }
+
+.sr-seller-txt { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1 1 auto; overflow: hidden; }
+
+.sr-seller-name { font-size: 11px; font-weight: 600; color: var(--sr-text-dim); display: flex; align-items: center; gap: 4px; min-width: 0; }
+
+.sr-seller-name-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+
+.sr-seller-name > .sr-badges { overflow: visible; flex-shrink: 0; }
+
+.sr-seller-stars { display: flex; align-items: center; gap: 3px; }
+
+.sr-icon-btn {
+  width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
+  background: var(--sr-surface-2); border: 1px solid var(--sr-line);
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  transition: background .15s, border-color .15s;
+}
+
+.sr-icon-btn:hover { background: rgba(255,255,255,.09); }
+
+.sr-icon-btn svg { width: 15px; height: 15px; transition: transform .15s; }
+
+.sr-icon-btn:hover svg { transform: scale(1.12); }
+
+.sr-icon-btn.sr-saved svg path { fill: #ff6b6b; stroke: #ff6b6b; }
+
+.sr-ghost-btn {
+  background: transparent; border: 1px solid var(--sr-line); color: var(--sr-text-dim);
+  border-radius: 9px; padding: 0 12px; height: 32px; font-size: 11px; font-weight: 700;
+  cursor: pointer; font-family: inherit; transition: background .15s, color .15s;
+  white-space: nowrap;
+}
+
+.sr-ghost-btn:hover { background: rgba(255,255,255,.06); color: var(--sr-text); }
+
+.sr-text-link {
+  background: none; border: none; padding: 0; font-family: inherit; cursor: pointer;
+  font-size: 10.5px; font-weight: 600; color: var(--sr-app); white-space: nowrap; flex-shrink: 0;
+}
+
+.sr-text-link:hover { text-decoration: underline; }
+
+/* ── Boosted badge ──
+   Attached directly onto the card (top-right corner, overlaid) rather
+   than floating in a separate wrapper above it. Cards (.sr-site/.sr-app/
+   .sr-game) provide the `position: relative` positioning context
+   themselves, so this just needs position: absolute + a high z-index to
+   sit above the card's own image/content. */
+.sr-boost {
+  position: absolute; top: 8px; right: 8px; z-index: 4;
+  display: flex; align-items: center; gap: 4px;
+  background: rgba(20,20,28,.88);
+  -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 7px; padding: 4px 9px 4px 7px; pointer-events: none;
+}
+
+.sr-boost svg { width: 12px; height: 12px; flex-shrink: 0; }
+
+.sr-boost span { font-size: 0.6rem; font-weight: 800; letter-spacing: .05em; color: #f5f5fa; text-transform: uppercase; }
+
+/* ── Premium-seller shimmer ──
+   Replaces the old "Featured" badge pill entirely — no badge shape, no
+   extra reserved space, no card-footer clutter. Instead the card's own
+   border gets a slow-moving light sweep, similar to a skeleton-loading
+   shimmer but subtle and permanent, signaling "premium" ambiently rather
+   than with a label. Layered as a ::after so it never interferes with
+   the card's own click target or its overflow:hidden content clipping. */
+.sr-premium-shimmer { position: relative; }
+
+.sr-premium-shimmer::after {
+  content: '';
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 3;
+  background: linear-gradient(
+    115deg,
+    transparent 0%,
+    transparent 40%,
+    rgba(255,255,255,.16) 48%,
+    rgba(255,255,255,.28) 50%,
+    rgba(255,255,255,.16) 52%,
+    transparent 60%,
+    transparent 100%
+  );
+  background-size: 250% 250%;
+  background-position: 200% 0;
+  animation: sr-shimmer-sweep 4.5s ease-in-out infinite;
+}
+
+@keyframes sr-shimmer-sweep {
+  0%   { background-position: 200% 0; }
+  55%  { background-position: -50% 0; }
+  100% { background-position: -50% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sr-premium-shimmer::after { animation: none; display: none; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SITE — vertical card: portrait hero + 2 landscape thumbs below,
+   copy underneath. Clean rounded shell, flat, no glow.
+   ══════════════════════════════════════════════════════════════ */
+.sr-site {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  width: 100%;
+  background: linear-gradient(160deg, rgba(56,189,248,.05), var(--sr-surface) 45%);
+  border: 1px solid var(--sr-line);
+  border-radius: 14px;
+  overflow: hidden;
+  position: relative;
+  transition: transform .16s ease, border-color .16s ease;
+}
+
+.sr-site:hover { transform: translateY(-2px); border-color: rgba(56,189,248,.4); }
+
+.sr-site.sr-boosted { border-color: #e5b84b; box-shadow: 0 0 0 1px rgba(229,184,75,.35), 0 0 18px rgba(229,184,75,.12); }
+
+.sr-site-media { display: flex; flex-direction: column; gap: 2px; background: #08080d; }
+
+.sr-site-media-main { position: relative; aspect-ratio: 16/9; max-height: 220px; overflow: hidden; background: #08080d; }
+
+.sr-site-media-main img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.sr-site-media-sub { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+
+.sr-site-media-thumb { position: relative; aspect-ratio: 3/4; overflow: hidden; background: #0c0c14; }
+
+.sr-site-media-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.sr-site-tag {
+  position: absolute; left: 8px; top: 8px;
+  background: rgba(8,8,13,.82);
+  color: var(--sr-site); font-size: 8.5px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: .06em; padding: 3px 9px; text-align: center; border-radius: 100px;
+  border: 1px solid rgba(56,189,248,.3);
+}
+
+/* ── Auction badge ──
+   Same convention as .sr-boost above: attached directly to the card root
+   (.sr-site/.sr-app/.sr-game/.sr-3d already provide position: relative),
+   positioned top-left so it never collides with .sr-boost's top-right
+   corner. z-index 3 sits below .sr-boost's 4 in the rare case a boosted
+   listing is also an auction — the boosted ribbon should still win. */
+.sr-auction-badge {
+  position: absolute; left: 8px; top: 8px; z-index: 3;
+  display: flex; flex-direction: column; gap: 2px;
+  background: rgba(8,8,13,.86);
+  -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+  border: 1px solid rgba(56,189,248,.3);
+  border-radius: 10px;
+  padding: 5px 9px;
+  max-width: calc(100% - 16px);
+  pointer-events: none;
+}
+
+.sr-auction-badge[data-phase="live"] { border-color: rgba(248,113,113,.4); }
+.sr-auction-badge[data-phase="ended"] { border-color: rgba(148,148,158,.35); opacity: .85; }
+
+.sr-auction-clock {
+  font-size: 9.5px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
+  color: #f87171;
+}
+.sr-auction-badge[data-phase="upcoming"] .sr-auction-clock { color: #38bdf8; }
+.sr-auction-badge[data-phase="ended"] .sr-auction-clock { color: #94949e; }
+
+.sr-auction-bid {
+  font-size: 10px; color: #cfcfd6; white-space: nowrap;
+}
+.sr-auction-bid strong { color: #fff; font-weight: 700; }
+
+.sr-site-main { padding: 12px 14px 13px; display: flex; flex-direction: column; min-width: 0;
+  border-top: 1px solid var(--sr-line); }
+
+.sr-site-headline { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+
+.sr-site-title-group { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; }
+
+.sr-site-title { margin: 0; font-size: 13.5px; font-weight: 700; color: var(--sr-text); line-height: 1.3;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
+
+.sr-site-price { font-size: 14px; font-weight: 800; color: var(--sr-site); flex-shrink: 0; }
+
+.sr-site-desc { margin: 3px 0 8px; font-size: 11px; color: var(--sr-text-dim); line-height: 1.45;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+.sr-site-stats { display: flex; gap: 14px; padding: 7px 0; border-top: 1px solid var(--sr-line-soft); border-bottom: 1px solid var(--sr-line-soft); margin-bottom: 6px; }
+
+.sr-site-tech { font-size: 9.5px; color: var(--sr-text-faint); margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.sr-site-foot { margin-top: auto; padding-top: 10px; border-top: 1px solid var(--sr-line-soft);
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: nowrap; }
+
+.sr-site-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+
+.sr-btn {
+  border-radius: 9px; padding: 0 14px; height: 32px; font-size: 11px; font-weight: 700;
+  cursor: pointer; font-family: inherit; white-space: nowrap; border: 1px solid transparent;
+  transition: background .15s, color .15s;
+}
+
+.sr-btn-site { background: transparent; border-color: var(--sr-site); color: var(--sr-site); }
+
+.sr-btn-site:hover { background: rgba(56,189,248,.12); }
+
+@media (max-width: 30em) {
+  .sr-site-media-main { max-height: 180px; }
+  .sr-site-title { font-size: 12.5px; }
+  .sr-site-actions { gap: 4px; }
+
+  /* Seller strip was sharing a row with the heart/Seller/CTA buttons,
+     cramming everything on small screens. Stack seller on its own line
+     and let the actions take the full row underneath. */
+  .sr-site-foot { flex-wrap: wrap; }
+  .sr-seller { width: 100%; }
+  .sr-site-actions { width: 100%; justify-content: flex-end; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   APP — stacked card, icon header, pill CTA
+   ══════════════════════════════════════════════════════════════ */
+.sr-app {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  width: 100%;
+  background: linear-gradient(160deg, rgba(180,139,250,.06), var(--sr-surface) 45%);
+  border: 1px solid var(--sr-line);
+  border-radius: 14px;
+  padding: 13px 13px 12px;
+  position: relative;
+  cursor: pointer;
+  transition: transform .16s ease, border-color .16s ease;
+}
+
+.sr-app:hover { transform: translateY(-2px); border-color: rgba(180,139,250,.4); }
+
+.sr-app.sr-boosted { border-color: #e5b84b; box-shadow: 0 0 0 1px rgba(229,184,75,.35), 0 0 18px rgba(229,184,75,.12); }
+
+.sr-app-head { display: flex; align-items: flex-start; gap: 12px; }
+
+.sr-app-icon {
+  width: 138px; height: 138px; border-radius: 22px; flex-shrink: 0; overflow: hidden;
+  background: var(--sr-surface-2); border: 1px solid rgba(180,139,250,.3);
+  position: relative;
+}
+
+.sr-app-icon img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.sr-app-platform-row {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  display: flex; align-items: center; justify-content: center; gap: 3px;
+  padding: 4px 3px 5px;
+  background: linear-gradient(to top, rgba(0,0,0,.85) 30%, rgba(0,0,0,0));
+}
+
+.sr-app-platform-badge {
+  width: 20px; height: 20px; border-radius: 6px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,.14); color: #fff;
+  backdrop-filter: blur(2px);
+  box-shadow: 0 1px 3px rgba(0,0,0,.4);
+}
+
+.sr-app-platform-badge svg { display: block; }
+
+.sr-badge-ios { background: #000; }
+
+.sr-badge-android { background: #fff; }
+
+.sr-badge-apk { background: rgba(15,15,20,.9); border: 1px solid rgba(164,198,57,.4); }
+
+.sr-app-head-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; align-self: stretch; }
+
+.sr-app-name-row { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+
+.sr-app-name { margin: 0; font-size: 15px; font-weight: 700; color: var(--sr-text); }
+
+.sr-app-cat {
+  font-size: 8.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em;
+  padding: 2px 8px; border-radius: 100px; background: rgba(180,139,250,.14); color: var(--sr-app);
+  border: 1px solid rgba(180,139,250,.3); white-space: nowrap;
+}
+
+.sr-app-desc { margin: 4px 0 0; font-size: 11.5px; color: var(--sr-text-dim); line-height: 1.45;
+  display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* Shared across SiteCard/AppCard/GameCard/listing detail — see
+   components/marketplace/VerifiedBadge.tsx for which tier renders which
+   class, and exactly what each tier does/doesn't prove. */
+.sr-verified-badge {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 8.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em;
+  padding: 2px 8px 2px 6px; border-radius: 100px; white-space: nowrap;
+}
+
+.sr-verified-badge--verified {
+  background: rgba(163,230,53,.14); color: #a3e635; border: 1px solid rgba(163,230,53,.35);
+}
+
+.sr-verified-badge--checked {
+  background: rgba(96,165,250,.14); color: #60a5fa; border: 1px solid rgba(96,165,250,.35);
+}
+
+.sr-verified-badge--provided {
+  background: rgba(255,255,255,.06); color: var(--sr-text-dim); border: 1px solid rgba(255,255,255,.12);
+}
+
+.sr-app-price { font-size: 16px; font-weight: 800; color: var(--sr-app); flex-shrink: 0; white-space: nowrap; margin-top: auto; padding-top: 8px; }
+
+.sr-app-stats {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 6px;
+  margin-top: 11px; padding: 9px 10px; background: var(--sr-surface-2); border-radius: 10px;
+}
+
+.sr-app-shots { display: flex; gap: 6px; margin-top: 10px; }
+
+.sr-app-shots img { flex: 1; width: 0; aspect-ratio: 3/4; object-fit: cover; border-radius: 8px; border: 1px solid var(--sr-line); background: var(--sr-surface-2); display: block; }
+
+.sr-app-foot { margin-top: auto; padding-top: 10px; border-top: 1px solid var(--sr-line-soft);
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: nowrap; }
+
+.sr-app-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+
+.sr-pill-btn {
+  border-radius: 100px; padding: 0 18px; height: 32px; font-size: 11px; font-weight: 700;
+  cursor: pointer; font-family: inherit; white-space: nowrap; border: none;
+  transition: background .15s;
+}
+
+.sr-pill-app { background: var(--sr-app); color: #1a0b2e; }
+
+.sr-pill-app:hover { background: #c3a5ff; }
+
+@media (max-width: 30em) {
+  .sr-app-icon { width: 96px; height: 96px; border-radius: 18px; }
+  .sr-app { padding: 11px 11px 10px; }
+
+  /* Same fix as the site card: seller strip gets its own row instead of
+     squeezing next to the heart/Seller/CTA buttons. */
+  .sr-app-foot { flex-wrap: wrap; }
+  .sr-seller { width: 100%; }
+  .sr-app-actions { width: 100%; justify-content: flex-end; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   GAME — full-bleed banner card, solid block CTA
+   ══════════════════════════════════════════════════════════════ */
+.sr-game {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  width: 100%;
+  background: linear-gradient(160deg, rgba(255,177,78,.06), var(--sr-surface) 45%);
+  border: 1px solid var(--sr-line);
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+  transition: transform .16s ease, border-color .16s ease;
+}
+
+.sr-game:hover { transform: translateY(-2px); border-color: rgba(255,177,78,.4); }
+
+.sr-game.sr-boosted { border-color: #e5b84b; box-shadow: 0 0 0 1px rgba(229,184,75,.35), 0 0 18px rgba(229,184,75,.12); }
+
+.sr-game-media { position: relative; aspect-ratio: 21/9; background: #08080d; overflow: hidden; }
+
+.sr-game-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.sr-game-badge {
+  position: absolute; top: 10px; left: 10px; width: 28px; height: 28px; border-radius: 9px;
+  background: rgba(8,8,13,.78); border: 1px solid rgba(255,177,78,.4);
+  display: flex; align-items: center; justify-content: center;
+}
+
+.sr-game-badge svg { width: 15px; height: 15px; color: var(--sr-game); }
+
+.sr-game-play {
+  position: absolute; top: 10px; right: 10px; width: 30px; height: 30px; border-radius: 50%;
+  background: rgba(8,8,13,.7); border: 1px solid rgba(255,255,255,.3);
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+
+.sr-game-play svg { fill: #fff; margin-left: 1px; }
+
+.sr-game-genre {
+  position: absolute; left: 10px; bottom: 10px;
+  background: rgba(8,8,13,.75); border: 1px solid rgba(255,177,78,.35); color: var(--sr-game);
+  font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em;
+  padding: 3px 9px; border-radius: 100px;
+}
+
+.sr-game-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px 0; }
+
+.sr-game-title-group { display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1; }
+
+.sr-game-title { margin: 0; font-size: 14px; font-weight: 700; color: var(--sr-text);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; flex: 1; }
+
+.sr-game-price { font-size: 14px; font-weight: 800; color: var(--sr-game); flex-shrink: 0; }
+
+.sr-game-stats { display: flex; gap: 14px; padding: 8px 12px; margin: 8px 0 0; border-top: 1px solid var(--sr-line-soft); border-bottom: 1px solid var(--sr-line-soft); }
+
+.sr-game-foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: nowrap; padding: 10px 12px 12px; }
+
+.sr-game-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+
+.sr-btn-game { background: var(--sr-game); border-color: var(--sr-game); color: #2a1500; }
+
+.sr-btn-game:hover { background: #ffc06e; }
+
+@media (max-width: 30em) {
+  /* Same fix as the site/app cards: seller strip gets its own row instead
+     of squeezing next to the heart/Seller/CTA buttons. */
+  .sr-game-foot { flex-wrap: wrap; }
+  .sr-seller { width: 100%; }
+  .sr-game-actions { width: 100%; justify-content: flex-end; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   3D ASSETS — same shape as GAME (full-bleed banner, solid block CTA),
+   but the "banner" is the seller's own iframe embed instead of a
+   screenshot: 3D assets have no upload-an-image step at all (see
+   AssetListingForm / AssetCard), just a preview URL that gets embedded
+   live. Teal accent (--sr-3d) matches the card already reserved for this
+   slot on /sell.
+   ══════════════════════════════════════════════════════════════ */
+.sr-3d {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  width: 100%;
+  background: linear-gradient(160deg, rgba(45,212,191,.06), var(--sr-surface) 45%);
+  border: 1px solid var(--sr-line);
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+  transition: transform .16s ease, border-color .16s ease;
+}
+
+.sr-3d:hover { transform: translateY(-2px); border-color: rgba(45,212,191,.4); }
+
+.sr-3d.sr-boosted { border-color: #e5b84b; box-shadow: 0 0 0 1px rgba(229,184,75,.35), 0 0 18px rgba(229,184,75,.12); }
+
+.sr-3d-media { position: relative; aspect-ratio: 21/9; background: #08080d; overflow: hidden; }
+
+/* The iframe itself is non-interactive in the grid card — a full 3D
+   viewer wants drag-to-orbit, which would hijack scroll/click on a card
+   that's meant to just preview-and-open. pointer-events: none keeps the
+   embed purely visual here; the real interactive viewer lives on the
+   listing detail page. */
+.sr-3d-media iframe { width: 100%; height: 100%; border: 0; display: block; pointer-events: none; }
+
+.sr-3d-badge {
+  position: absolute; top: 10px; left: 10px; height: 28px; border-radius: 9px;
+  background: rgba(8,8,13,.78); border: 1px solid rgba(45,212,191,.4);
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 0 10px;
+}
+
+.sr-3d-badge svg { width: 15px; height: 15px; color: var(--sr-3d); flex-shrink: 0; }
+
+.sr-3d-badge span { font-size: 11px; font-weight: 800; color: var(--sr-3d); text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }
+
+.sr-3d-play {
+  position: absolute; top: 10px; right: 10px; width: 30px; height: 30px; border-radius: 50%;
+  background: rgba(8,8,13,.7); border: 1px solid rgba(255,255,255,.3);
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+
+.sr-3d-play svg { fill: #fff; margin-left: 1px; }
+
+.sr-3d-category {
+  position: absolute; left: 10px; bottom: 10px;
+  background: rgba(8,8,13,.75); border: 1px solid rgba(45,212,191,.35); color: var(--sr-3d);
+  font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em;
+  padding: 3px 9px; border-radius: 100px;
+}
+
+.sr-3d-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px 0; }
+
+.sr-3d-title-group { display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1; }
+
+.sr-3d-title { margin: 0; font-size: 14px; font-weight: 700; color: var(--sr-text);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; flex: 1; }
+
+.sr-3d-price { font-size: 14px; font-weight: 800; color: var(--sr-3d); flex-shrink: 0; }
+
+.sr-3d-stats { display: flex; gap: 14px; padding: 8px 12px; margin: 8px 0 0; border-top: 1px solid var(--sr-line-soft); border-bottom: 1px solid var(--sr-line-soft); }
+
+.sr-3d-foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: nowrap; padding: 10px 12px 12px; }
+
+.sr-3d-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+
+.sr-btn-3d { background: var(--sr-3d); border-color: var(--sr-3d); color: #002420; }
+
+.sr-btn-3d:hover { background: #5eead4; }
+
+@media (max-width: 30em) {
+  .sr-3d-foot { flex-wrap: wrap; }
+  .sr-seller { width: 100%; }
+  .sr-3d-actions { width: 100%; justify-content: flex-end; }
+}
+
+/* ── Skeleton loading state retarget (site card shape) ── */
+.sr-site.sr-skel { pointer-events: none; }
+
+.sr-site.sr-skel .sr-site-media { background: rgba(255,255,255,0.04); }
+
+.sr-site.sr-skel .sr-site-media .skel-block { width: 100%; height: 100%; border-radius: 0; }
+
+/* ═══════════════════════════════════════════════════════
+                  SELLER TRUST BADGES — verified checkmark + deal-tier
+                  badge, generated by sellerBadgesHtml() and dropped inline
+                  next to the seller's name everywhere it renders (listing
+                  cards, marketplace modal, seller profile, leaderboard,
+                  top sellers strip). Kept as a single shared component so
+                  the tiers/thresholds only ever need to change in one place.
+               ═══════════════════════════════════════════════════════ */
+.sr-badges { display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; vertical-align: middle; }
+
+.sr-badge { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; line-height: 0; }
+
+.sr-badge svg { display: block; }
+
+.sr-badge[title] { cursor: default; }
+
+/* Verified checkmark — blue at 1k+ followers, gold if also Legendary tier */
+.sr-badge-verified-blue svg circle { fill: #3b9dff; }
+
+.sr-badge-verified-gold svg circle { fill: #f2b632; }
+
+.sr-badge-verified-blue svg path, .sr-badge-verified-gold svg path { stroke: #0a0a0d; }
+
+/* Premium plan verified checkmark — lime, shown for Starter/Growth/Pro
+                  subscribers regardless of follower count or deal history. Rendered
+                  alongside (not instead of) the earned follower/legendary badge if
+                  the seller has both. */
+.sr-badge-verified-premium svg circle { fill: #a3e635; }
+
+.sr-badge-verified-premium svg path { stroke: #0a0a0d; }
+
+/* Deal-count tier badge — icon + tight numeric chip, color keyed per tier */
+.sr-badge-tier { display: inline-flex; align-items: center; gap: 3px; padding: 1px 6px 1px 4px; border-radius: 20px; border: 1px solid; }
+
+.sr-badge-tier-count { font-size: 10px; font-weight: 800; letter-spacing: .01em; line-height: 1.5; }
+
+.sr-badge-tier-bronze { background: rgba(205,127,50,.13); border-color: rgba(205,127,50,.45); }
+
+.sr-badge-tier-bronze .sr-badge-tier-count { color: #d38a4e; }
+
+.sr-badge-tier-bronze svg circle, .sr-badge-tier-bronze svg path { fill: #cd7f32; }
+
+.sr-badge-tier-silver { background: rgba(192,197,206,.13); border-color: rgba(192,197,206,.45); }
+
+.sr-badge-tier-silver .sr-badge-tier-count { color: #c7ccd4; }
+
+.sr-badge-tier-silver svg circle, .sr-badge-tier-silver svg path { fill: #c0c5ce; }
+
+.sr-badge-tier-gold { background: rgba(242,182,50,.14); border-color: rgba(242,182,50,.5); }
+
+.sr-badge-tier-gold .sr-badge-tier-count { color: #f2b632; }
+
+.sr-badge-tier-gold svg circle, .sr-badge-tier-gold svg path { fill: #f2b632; }
+
+.sr-badge-tier-legendary { background: linear-gradient(135deg, rgba(242,182,50,.18), rgba(255,94,232,.14)); border-color: rgba(242,182,50,.6); }
+
+.sr-badge-tier-legendary .sr-badge-tier-count { background: linear-gradient(135deg, #f2b632, #ff9d5e); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+.sr-badge-tier-legendary svg path { fill: #f2b632; }
+
+/* Shared spinner for any button navigating to a server route/modal-route
+     (see lib/useNavigating.ts + components/shared/NavSpinnerIcon.tsx).
+     Reuses the same dcpSpin keyframe as .pm-inbox-spinner so every "tap and
+     wait for a page/modal to load" button across the site spins the same
+     way instead of each screen inventing its own timing. */
+.sr-nav-spinner {
+    animation: dcpSpin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+
+.sr-nav-btn-disabled {
+    cursor: default !important;
+    opacity: 0.85;
+  }
+
+.save-btn {
+         background: #fff;
+         border: none;
+         color: #000;
+         font-weight: 700;
+         padding: 0.8rem 1.6rem;
+         border-radius: 50px;
+         font-size: 0.88rem;
+         cursor: pointer;
+         display: inline-flex;
+         align-items: center;
+         justify-content: center;
+         gap: 0.4rem;
+         transition: background 0.2s, transform 0.15s;
+         font-family: inherit;
+         align-self: flex-start;
+         white-space: nowrap;
+         }
+
+.save-btn:hover {
+         background: #e0e0e0;
+         transform: translateY(-1px);
+         }
+
+.save-btn:active {
+         transform: scale(0.97);
+         }
+
+.save-btn svg {
+         width: 16px;
+         height: 16px;
+         stroke: #000;
+         fill: none;
+         stroke-width: 2.2;
+         }
+
+/* Lightweight UI-confirmation toasts (SrToastProvider / useSrToast) —
+   deliberately separate from #ntfStack above: #ntfStack is the
+   notifications system (deal updates, messages — persisted, has an
+   inbox/missed panel). These are instant, disposable feedback for a
+   just-performed UI action (link copied, filters cleared, etc.), so a
+   different visual language (compact pill, bottom-center, no accent
+   bar/click-to-open) makes that distinction obvious rather than
+   visually implying every toast here is a real notification. */
+#srToastStack {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 10060;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: 8px;
+  width: min(360px, calc(100vw - 32px));
+  pointer-events: none;
+}
+
+.sr-toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(20, 20, 26, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #f2f2f5;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  transform: translateY(12px) scale(0.96);
+  opacity: 0;
+  transition: transform 0.24s cubic-bezier(.16,.84,.44,1), opacity 0.24s;
+  white-space: nowrap;
+}
+
+.sr-toast.show { transform: translateY(0) scale(1); opacity: 1; }
+
+.sr-toast.leaving { transform: translateY(8px) scale(0.98); opacity: 0; }
+
+.sr-toast-icon { display: flex; flex-shrink: 0; width: 15px; height: 15px; }
+
+.sr-toast.t-success .sr-toast-icon { color: #a3e635; }
+
+.sr-toast.t-error .sr-toast-icon { color: #f87171; }
+
+.sr-toast.t-info .sr-toast-icon { color: #60a5fa; }
+
+@media (max-width: 560px) {
+  #srToastStack { bottom: 84px; }
+}
+
+/* ── Boosted/Featured badges hidden, card-slot padding reclaimed ──
+   .sr-boost and .sr-premium-badge are still built by _srBadgeCluster()
+   in marketplace.js and inserted into .sr-card-slot (see that function
+   and mpRenderCard's slot-wrap comment), but both are hidden here per
+   explicit request — no visual badge for boosted or premium/featured
+   sellers. .sr-card-slot's padding-top (reserved so an absolutely
+   positioned badge outside the card wouldn't get clipped by the card's
+   own overflow:hidden) is zeroed out since there's no visible badge
+   left to reserve space for. */
+.sr-boost,
+.sr-premium-badge {
+  display: none !important;
+}
+
+.sr-card-slot {
+  padding-top: 0 !important;   /* removes the reserved space */
+}
+
+/* Globally-scoped twin of #siterifty-loader .skel above, same look/
+   animation — used by ListingCardSkeleton (in-grid card placeholders)
+   and RecentlyViewedStrip, which render outside #siterifty-loader so
+   the scoped selector above doesn't reach them. */
+.sr-skel {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.sr-skel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.04) 35%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.04) 65%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: srfLoaderShimmer 2.2s ease-in-out infinite;
+}
+
+.sr-site-skeleton { pointer-events: none; }
+
+/* ===== Blog ===== */
+.sr-blog-page {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 92px 24px 80px;
+}
+
+.sr-blog-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.sr-blog-h1 {
+  margin: 0 0 6px;
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--sr-text);
+  letter-spacing: -0.01em;
+}
+
+.sr-blog-sub {
+  margin: 0;
+  font-size: 14px;
+  color: var(--sr-text-dim);
+}
+
+.sr-blog-add-btn {
+  flex-shrink: 0;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  color: #0d0d12;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.12);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.sr-blog-add-btn:hover {
+  transform: scale(1.06);
+  box-shadow: 0 8px 26px rgba(255, 255, 255, 0.18);
+}
+
+.sr-blog-add-btn:active {
+  transform: scale(0.97);
+}
+
+.sr-blog-empty {
+  padding: 60px 0;
+  text-align: center;
+  color: var(--sr-text-faint);
+  font-size: 14px;
+}
+
+.sr-blog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+.sr-blog-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--sr-surface);
+  border: 1px solid var(--sr-line);
+  border-radius: 16px;
+  overflow: hidden;
+  text-decoration: none;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.sr-blog-card:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+  transform: translateY(-2px);
+}
+
+.sr-blog-card-media {
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  overflow: hidden;
+  background: var(--sr-surface-2);
+}
+
+.sr-blog-card-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.sr-blog-card-body {
+  padding: 16px 18px 18px;
+}
+
+.sr-blog-card-title {
+  margin: 0 0 8px;
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--sr-text);
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.sr-blog-card-date {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--sr-text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Single post */
+.sr-blog-post {
+  max-width: 760px;
+  margin: 92px auto 0;
+  padding: 0 24px 80px;
+}
+
+.sr-blog-back {
+  display: inline-block;
+  margin-bottom: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sr-text-dim);
+  text-decoration: none;
+}
+
+.sr-blog-back:hover {
+  color: var(--sr-text);
+}
+
+.sr-blog-post-media {
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--sr-line);
+  margin-bottom: 24px;
+}
+
+.sr-blog-post-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.sr-blog-post-title {
+  margin: 0 0 8px;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--sr-text);
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.sr-blog-post-date {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sr-text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 28px;
+}
+
+.sr-blog-post-body {
+  font-size: 15.5px;
+  line-height: 1.75;
+  color: var(--sr-text-dim);
+}
+
+.sr-blog-post-body p {
+  margin: 0 0 18px;
+}
+
+/* Add-post modal */
+.sr-blog-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10200;
+  background: rgba(6, 6, 9, 0.72);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: srBlogFadeIn 0.15s ease;
+}
+
+.sr-blog-modal {
+  width: 100%;
+  max-width: 520px;
+  max-height: 88vh;
+  overflow-y: auto;
+  background: var(--sr-surface);
+  border: 1px solid var(--sr-line);
+  border-radius: 18px;
+  padding: 22px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+}
+
+.sr-blog-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.sr-blog-modal-head h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--sr-text);
+}
+
+.sr-blog-modal-close {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--sr-line);
+  color: var(--sr-text-dim);
+  cursor: pointer;
+}
+
+.sr-blog-modal-close:hover {
+  color: var(--sr-text);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.sr-blog-modal-dropzone {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  border: 1.5px dashed var(--sr-line);
+  background-color: var(--sr-surface-2);
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-bottom: 14px;
+  color: var(--sr-text-faint);
+  transition: border-color 0.15s ease;
+}
+
+.sr-blog-modal-dropzone:hover {
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.sr-blog-modal-dropzone span {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.sr-blog-modal-input {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--sr-surface-2);
+  border: 1px solid var(--sr-line);
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: var(--sr-text);
+  font-size: 14.5px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.sr-blog-modal-input:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.sr-blog-modal-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--sr-surface-2);
+  border: 1px solid var(--sr-line);
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: var(--sr-text);
+  font-size: 13.5px;
+  line-height: 1.55;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 140px;
+  margin-bottom: 10px;
+}
+
+.sr-blog-modal-textarea:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.sr-blog-modal-error {
+  font-size: 12.5px;
+  color: var(--sr-neg);
+  margin-bottom: 10px;
+}
+
+.sr-blog-modal-submit {
+  width: 100%;
+  padding: 13px;
+  border-radius: 10px;
+  border: none;
+  background: #fff;
+  color: #0d0d12;
+  font-size: 14.5px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.sr-blog-modal-submit:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.sr-blog-modal-submit:not(:disabled):hover {
+  opacity: 0.9;
+}
+
+@media (max-width: 560px) {
+  .sr-blog-page { padding: 92px 16px 60px; }
+  .sr-blog-h1 { font-size: 26px; }
+  .sr-blog-grid { grid-template-columns: 1fr; gap: 18px; }
+  .sr-blog-post { margin-top: 92px; }
+  .sr-blog-post-title { font-size: 22px; }
+}
+
+/* ── Listing form field rows (App/Website/Game) ──────────────────────────
+   Replaces hardcoded inline gridTemplateColumns on step 2/3/4 field
+   groups (Tech Stack, Settings, Financials) so they stack to a single
+   column on narrow phones instead of squashing 2-3 fields side by side.
+   .sr-lf-row-2 / .sr-lf-row-3 set the desktop/tablet column count; the
+   media query collapses both to 1fr on phones. Image-slot pickers
+   (screenshots, banner+icon) intentionally do NOT use these classes —
+   those stay multi-column at all sizes since they're thumbnail grids,
+   not stacked form fields. */
+.sr-lf-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.sr-lf-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+@media (max-width: 600px) {
+  .sr-lf-row-2, .sr-lf-row-3 { grid-template-columns: 1fr; }
+}
+
+/* ── Financials step card ─────────────────────────────────────────────
+   Wraps Asking Price / Revenue / Expenses in a bordered card with a
+   subtle accent-tinted background, instead of bare inputs floating on
+   plain black — meant to visually read as "this is the trust-sensitive
+   step" rather than looking like every other text field on the form. */
+.sr-lf-fin-card {
+  background: rgba(255,255,255,0.025);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 14px;
+  padding: 18px 16px 6px;
+  margin-bottom: 20px;
+}
+
+.sr-lf-fin-card .sr-lf-row-2,
+.sr-lf-fin-card .sr-lf-row-3 { margin-bottom: 14px; }
+
+/* Financial inputs get a $-prefixed look + a slightly stronger border
+   than ordinary text fields, so Price/Revenue/Expenses read as currency
+   inputs at a glance rather than generic text boxes. Wrap the <input>
+   in a .sr-lf-money div; the $ is a ::before pseudo-element so no extra
+   DOM/JS is needed per field. */
+.sr-lf-money { position: relative; }
+
+.sr-lf-money::before {
+  content: "$";
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255,255,255,0.35);
+  font-size: 14px;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.sr-lf-money input { padding-left: 26px !important; }
+
+/* Proof-of-revenue upload block — gets its own subtle warning-tinted
+   card so the "you must upload proof" requirement reads as a real
+   verification step, not just another optional field. */
+.sr-lf-proof-card {
+  background: rgba(251,191,36,0.045);
+  border: 1px solid rgba(251,191,36,0.18);
+  border-radius: 12px;
+  padding: 14px 14px 16px;
+  margin-bottom: 20px;
+}
+
