@@ -1,0 +1,172 @@
+/* ══════════════════════════════════════════════════════════════
+            ONBOARDING TOUR — full-screen, single-accent, no gamification.
+            Matches #welcomeBackScreen's visual language: #06060a base,
+            a soft lime radial glow, generous whitespace, restrained motion.
+            ══════════════════════════════════════════════════════════════ */
+#tourModal {
+         position: fixed; inset: 0; width: 100%; height: 100vh; height: 100dvh;
+         z-index: 999999;
+         background:
+           radial-gradient(circle at 85% 0%, rgba(163,230,53,0.08), transparent 55%),
+           #06060a;
+         display: none;
+         overflow: hidden;
+         opacity: 0; transition: opacity 0.35s ease;
+         }
+
+#tourModal.active { display: block; opacity: 1; }
+
+.tour-orb {
+         position: fixed; top: -140px; left: -110px; width: 420px; height: 420px; border-radius: 50%;
+         background: radial-gradient(circle, rgba(163,230,53,0.12), rgba(163,230,53,0) 70%);
+         filter: blur(6px); pointer-events: none;
+         }
+
+.tour-shell {
+         position: relative; max-width: 560px; margin: 0 auto;
+         height: 100%; min-height: 100%;
+         display: flex; flex-direction: column;
+         padding: 28px 24px calc(28px + env(safe-area-inset-bottom, 0px));
+         box-sizing: border-box;
+         }
+
+/* ── Top bar: step counter left, CTA top-right ── */
+.tour-topbar {
+         flex-shrink: 0;
+         display: flex; align-items: center; justify-content: space-between;
+         gap: 16px;
+         margin-bottom: clamp(24px, 5vh, 48px);
+         }
+
+.tour-step-count {
+         font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
+         text-transform: uppercase; color: rgba(255,255,255,0.32);
+         font-variant-numeric: tabular-nums;
+         }
+
+.tour-step-count b { color: rgba(163,230,53,0.85); font-weight: 800; }
+
+.tour-cta {
+         display: inline-flex; align-items: center; gap: 8px;
+         height: 42px; padding: 0 20px;
+         background: #a3e635; color: #06090c;
+         border: none; border-radius: 100px;
+         font-family: inherit; font-size: 13.5px; font-weight: 800; letter-spacing: 0.01em;
+         cursor: pointer; white-space: nowrap;
+         box-shadow: 0 8px 24px rgba(163,230,53,0.18);
+         transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+         }
+
+.tour-cta:hover { background: #bef264; transform: translateY(-1px); box-shadow: 0 10px 28px rgba(163,230,53,0.26); }
+
+.tour-cta:active { transform: translateY(0); }
+
+.tour-cta svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+.tour-topbar-actions { display: flex; align-items: center; gap: 14px; }
+
+/* ── Progress rail — thin, sits under the topbar ── */
+.tour-rail {
+         flex-shrink: 0;
+         display: flex; gap: 6px;
+         margin-bottom: clamp(28px, 6vh, 56px);
+         }
+
+.tour-rail-seg {
+         flex: 1; height: 2.5px; border-radius: 2px;
+         background: rgba(255,255,255,0.09);
+         overflow: hidden; position: relative;
+         }
+
+.tour-rail-seg::after {
+         content: ''; position: absolute; inset: 0;
+         background: #a3e635; transform-origin: left center;
+         transform: scaleX(0); transition: transform 0.5s cubic-bezier(.4,0,.2,1);
+         }
+
+.tour-rail-seg.done::after { transform: scaleX(1); }
+
+.tour-rail-seg.active::after { transform: scaleX(1); }
+
+/* ── Body: banner + copy, vertically centered in remaining space ── */
+.tour-body {
+         flex: 1 1 auto; min-height: 0;
+         display: flex; flex-direction: column;
+         justify-content: center;
+         overflow-y: auto;
+         }
+
+.tour-banner {
+         width: 100%;
+         aspect-ratio: 16 / 9;
+         border-radius: 20px;
+         background:
+           radial-gradient(circle at 50% 35%, rgba(163,230,53,0.10), transparent 65%),
+           #0a0a0f;
+         border: 1px solid rgba(255,255,255,0.08);
+         margin-bottom: clamp(28px, 5vh, 40px);
+         display: flex; align-items: center; justify-content: center;
+         overflow: hidden;
+         position: relative;
+         }
+
+/* object-fit: contain — the mascot graphic is a wide, non-square
+            promotional composition, not a 1:1 asset, so `cover` would crop
+            it depending on the card's exact proportions. `contain` keeps
+            the whole image visible at any viewport width. */
+.tour-banner img {
+         width: 100%; height: 100%; object-fit: contain; display: block;
+         position: relative; z-index: 1;
+         }
+
+/* Bottom fade — blends the image's lower edge into the banner's
+            own background instead of a hard cut, so it reads as part of
+            the same card surface rather than a pasted-in graphic. */
+.tour-banner::after {
+         content: '';
+         position: absolute; inset: 0;
+         background: linear-gradient(180deg, rgba(10,10,15,0) 55%, rgba(10,10,15,0.55) 82%, #0a0a0f 100%);
+         pointer-events: none;
+         z-index: 2;
+         }
+
+.tour-icon-wrap {
+         width: 52px; height: 52px; border-radius: 14px;
+         background: rgba(163,230,53,0.09);
+         border: 1px solid rgba(163,230,53,0.22);
+         display: flex; align-items: center; justify-content: center;
+         margin-bottom: 22px;
+         }
+
+.tour-icon-wrap svg { width: 24px; height: 24px; color: #a3e635; }
+
+.tour-title {
+         font-size: clamp(26px, 4.5vw, 38px);
+         font-weight: 800; letter-spacing: -0.03em; color: #fff;
+         line-height: 1.12; margin: 0 0 14px;
+         max-width: 480px;
+         }
+
+.tour-desc {
+         font-size: clamp(14.5px, 1.6vw, 16.5px);
+         color: rgba(255,255,255,0.48); line-height: 1.65;
+         margin: 0; max-width: 440px;
+         }
+
+.tour-step {
+         animation: tour-fade-up 0.45s cubic-bezier(.2,.8,.2,1) both;
+         }
+
+@keyframes tour-fade-up {
+         from { opacity: 0; transform: translateY(10px); }
+         to   { opacity: 1; transform: translateY(0); }
+         }
+
+@media (max-width: 560px) {
+         .tour-shell { padding: 22px 18px calc(22px + env(safe-area-inset-bottom, 0px)); }
+         .tour-topbar { margin-bottom: 20px; }
+         .tour-rail { margin-bottom: 24px; }
+         .tour-cta span { display: none; }
+         .tour-cta { width: 42px; padding: 0; justify-content: center; border-radius: 50%; }
+         }
+
