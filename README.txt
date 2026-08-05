@@ -1,44 +1,33 @@
-Auction feature — patch zip
-============================
-Extract this zip directly into the root of your project, overwriting
-existing files at matching paths. Folder structure already matches
-your project (app/, components/, lib/).
+Blog build-error fix — 2 files only
+=====================================
+Fixes: "Error occurred prerendering page /blog" / UNAUTHENTICATED at build time.
 
-NEW FILES (didn't exist before):
-  lib/useAuctionTimer.ts
-  components/marketplace/AuctionBadge.tsx
-  components/listing/BidModal.tsx
+Extract into your project root, overwriting:
+  app/blog/page.tsx
+  app/blog/[id]/page.tsx
 
-EDITED FILES (overwrite the existing ones):
-  lib/listings.ts
-  app/api/listings/_handler.js
-  app/listing/[id]/getListing.ts
-  components/deal/DealCtaBar.tsx
-  components/marketplace/SiteCard.tsx
-  components/marketplace/AppCard.tsx
-  components/marketplace/GameCard.tsx
-  components/marketplace/AssetCard.tsx
-  components/listing/WebsiteListingForm.tsx
-  components/listing/AppListingForm.tsx
-  components/listing/GameListingForm.tsx
-  components/listing/AssetListingForm.tsx
-  app/styles/listing-cards.css
-  app/styles/listing-body.css
-  app/styles/marketplace.css
+WHAT CHANGED
+------------
+Both files now export:
+  export const dynamic = "force-dynamic";
 
-NOT CHANGED:
-  components/listing/TemplateListingForm.tsx — left untouched on purpose.
-  Templates are multi-buyer listings, not unique one-off assets, so
-  auctions don't apply (confirmed with you earlier).
+WHY
+---
+Both pages do a real Firestore Admin SDK read (getAllBlogPosts /
+getBlogPostBySegment) with no fallback if credentials aren't available.
+By default Next.js tries to prerender them at BUILD time (`next build`),
+but your build container doesn't reliably have production Firebase env
+vars loaded during that step, even though they're set correctly for your
+actual deployment — this is the exact same issue your own app/sitemap.ts
+already has a comment and guard for ("Vercel's build container doesn't
+have production Firebase env vars populated during next build's
+static-route pre-rendering pass").
 
-IMPORTANT — run before deploying:
-  npm run build
-I don't have your dependencies installed in my environment, so this was
-verified with careful manual review + Node's own syntax checker on the
-JS backend file, not a real TypeScript compile. Run your actual build
-before shipping.
+force-dynamic defers the fetch to request time, where credentials are
+reliably present, so the build no longer fails. Trade-off: these two pages
+are no longer statically prerendered — they render on each request
+instead. Not a performance concern for a blog listing/post page.
 
-One bug I introduced and fixed during review: an early edit to
-_handler.js accidentally deleted the `handleDelete` function signature,
-which would have broken listing deletion entirely. Caught via
-`node --check`, fixed, and reverified — the version in this zip is correct.
+Verified both files for balanced braces/parens. Run npm run build
+yourself to confirm — no node_modules in my environment to do a real
+compile check.
