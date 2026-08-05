@@ -5,6 +5,11 @@ import { getBlogPostBySegment } from "../getBlogPosts";
 import { getPublicBaseUrl } from "@/lib/server/adminDb";
 import { buildBlogSlug, formatBlogDate } from "@/lib/blog";
 
+// See app/blog/page.tsx's matching comment — same reasoning applies here:
+// generateMetadata below does a real Firestore Admin read per post, which
+// must not run at build time.
+export const dynamic = "force-dynamic";
+
 function buildDescription(description: string): string {
   const trimmed = description.trim();
   return trimmed.length > 160 ? trimmed.slice(0, 157) + "…" : trimmed;
