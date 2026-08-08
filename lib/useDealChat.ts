@@ -79,11 +79,16 @@ export interface DealChatRoom {
   deleteAt: number | null;
   autoCompleted: boolean;
   autoCancelled: boolean;
+  // Set only by the server's deadline-expiry paths (see app/api/deal/
+  // _handler.js's _cancelUnfundedExpiredRoom and the expiry branch of
+  // _refundEscrowForRoom) — never by a manual in-chat cancel and never by
+  // a successful completion. This is the single source of truth for
+  // whether Reopen Deal should be offered; cancelled alone isn't enough,
+  // since a manually-cancelled deal is also cancelled: true.
+  expiryCancelled: boolean;
   paymentRequestPending: boolean;
   paymentRequestedAt: number | null;
 }
-
-const DEAL_CHAT_DELETE_MS = 30 * 60 * 1000; // 30 minutes after cancellation
 
 function toMillis(v: unknown): number | null {
   if (!v) return null;
@@ -125,7 +130,7 @@ export function useDealChat(chatRoomId: string) {
   const [chatError, setChatError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [locked, setLocked] = useState<{ locked: boolean; reason: string | null }>({ locked: false, reason: null });
-  const [outcome, setOutcome] = useState<{ outcome: "successful" | "closed"; auto: boolean } | null>(null);
+  const [outcome, setOutcome] = useState<{ outcome: "successful" | "closed"; auto: boolean; expiryCancelled: boolean } | null>(null);
 
   const outcomeShown = useRef(false);
   const lastStatus = useRef<PaymentStatus | null>(null);
@@ -178,30 +183,69 @@ export function useDealChat(chatRoomId: string) {
         deleteAt: (r.deleteAt as number) || null,
         autoCompleted: r.autoCompleted === true,
         autoCancelled: r.autoCancelled === true,
+        expiryCancelled: r.expiryCancelled === true,
         paymentRequestPending: r.paymentRequestPending === true,
         paymentRequestedAt: (r.paymentRequestedAt as number) || null,
       };
       setRoom(nextRoom);
 
+      // A reopened deal (see reopenDeal below) sends paymentStatus back to
+      // "unfunded" and cancelled back to false — the room is live and
+      // non-terminal again. Clear the latched terminal-outcome banner and
+      // its once-only guard so a *second* expiry/completion later in the
+      // same reopened deal's life can still show its own banner, instead
+      // of outcomeShown.current staying permanently tripped from the
+      // deal's first, since-undone closure.
+      if (!nextRoom.cancelled && status !== "complete" && status !== "refunded" && outcomeShown.current) {
+        outcomeShown.current = false;
+        setOutcome(null);
+      }
+
       // Lock state
       const neverDelivered = status === "unfunded" || status === "funded";
-      const expired = neverDelivered && nextRoom.expiresAt != null && Date.now() > nextRoom.expiresAt;
+      // Client-side deadline check — true the instant expiresAt passes, even
+      // before the server's own check-deal-expiry call (fired below, and on
+      // every deal chat open) has actually resolved the room server-side.
+      // Kept as its own signal (not folded into nextRoom.expiryCancelled)
+      // because there's a real gap between "deadline passed" and "server
+      // marked it closed" — this covers exactly that gap so the panel shows
+      // an accurate locked state immediately rather than waiting on a
+      // round trip.
+      const expiredClientSide = neverDelivered && nextRoom.expiresAt != null && Date.now() > nextRoom.expiresAt;
       if (nextRoom.cancelled) {
         if (status === "complete") {
           setLocked({ locked: false, reason: null });
+        } else if (nextRoom.expiryCancelled) {
+          // Server has resolved this as an expiry closure — reopenable.
+          setLocked({ locked: true, reason: "expired-reopenable" });
         } else {
           setLocked({ locked: true, reason: "cancelled-deleting" });
         }
-      } else if (expired) {
-        setLocked({ locked: true, reason: "expired" });
+      } else if (expiredClientSide) {
+        // Deadline has passed but the server hasn't resolved it yet (race,
+        // or the fallback check below hasn't landed). Same reopenable
+        // treatment — check-deal-expiry is in flight and will flip
+        // nextRoom.cancelled + expiryCancelled true within moments; no
+        // reason to show a different, non-reopenable state in the
+        // meantime only to have it change again a second later.
+        setLocked({ locked: true, reason: "expired-reopenable" });
       } else {
         setLocked({ locked: false, reason: null });
       }
 
-      // Terminal outcome banner — once, same as the original's _chatOutcomeShown guard
+      // Terminal outcome banner — once, same as the original's _chatOutcomeShown guard.
+      // A funded deal that expired unresolved lands here too (paymentStatus
+      // flips to "refunded" via _refundEscrowForRoom's expiry branch) — carry
+      // expiryCancelled through so the panel can still offer Reopen Deal for
+      // that case instead of treating it as a final, non-reopenable closure
+      // like a manual refund or a dispute resolved for the buyer.
       if ((status === "complete" || status === "refunded") && !outcomeShown.current) {
         outcomeShown.current = true;
-        setOutcome({ outcome: status === "complete" ? "successful" : "closed", auto: nextRoom.autoCompleted || nextRoom.autoCancelled });
+        setOutcome({
+          outcome: status === "complete" ? "successful" : "closed",
+          auto: nextRoom.autoCompleted || nextRoom.autoCancelled,
+          expiryCancelled: nextRoom.expiryCancelled,
+        });
       }
       lastStatus.current = status;
     }
@@ -412,37 +456,24 @@ export function useDealChat(chatRoomId: string) {
   const releaseEscrow = useCallback(() => postDealAction("escrow-release"), [postDealAction]);
   const raiseDispute = useCallback((reason: string) => postDealAction("escrow-dispute", { reason }), [postDealAction]);
 
-  const cancelDeal = useCallback(async () => {
-    const user = auth.currentUser;
-    if (!user || !room) return;
-    const cancelledAt = Date.now();
-    const deleteAt = cancelledAt + DEAL_CHAT_DELETE_MS;
-    await updateDoc(doc(db, "dealChats", chatRoomId), {
-      active: false,
-      cancelled: true,
-      cancelledBy: user.uid,
-      cancelledAt,
-      deleteAt,
-      paymentRequestPending: false,
-    });
-    await addDoc(collection(db, "dealChats", chatRoomId, "messages"), {
-      uid: "system",
-      type: "system",
-      text: "❌ This deal was cancelled by " + (user.uid === room.sellerUid ? "the seller" : "the buyer") + ".",
-      createdAt: Date.now(),
-    }).catch(() => {});
-    const now = Date.now();
-    if (room.sellerUid) {
-      await updateDoc(doc(db, "users", room.sellerUid, "threads", chatRoomId), {
-        active: false, cancelled: true, lastMessage: "❌ Deal cancelled", lastAt: now, unread: user.uid !== room.sellerUid,
-      }).catch(() => {});
-    }
-    if (room.buyerUid) {
-      await updateDoc(doc(db, "users", room.buyerUid, "threads", chatRoomId), {
-        active: false, cancelled: true, lastMessage: "❌ Deal cancelled", lastAt: now, unread: user.uid !== room.buyerUid,
-      }).catch(() => {});
-    }
-  }, [chatRoomId, room]);
+  // Server-side now (deal-chat-cancel in app/api/deal/_handler.js) — this
+  // used to write directly to Firestore from the client (active/cancelled/
+  // cancelledBy/cancelledAt/deleteAt on the room, the system message, both
+  // threads), which meant no participant check ever ran server-side and a
+  // funded deal's escrow was never actually refunded on cancel. Same
+  // outward behavior, just resolved server-side in one transaction.
+  const cancelDeal = useCallback(() => postDealAction("deal-chat-cancel"), [postDealAction]);
+
+  // Reopens a deal chat closed by a missed deadline (see DealChatRoom's
+  // expiryCancelled — the server refuses this with a 409 for any other
+  // closure reason). Charges the caller a flat 15% penalty on the listing
+  // price from their own wallet balance, server-side, atomically with
+  // reviving the room — see deal-chat-reopen in app/api/deal/_handler.js.
+  // Returns the penalty actually charged so the caller can show it.
+  const reopenDeal = useCallback(
+    () => postDealAction("deal-chat-reopen") as Promise<{ success: boolean; penalty: number }>,
+    [postDealAction]
+  );
 
   const remindBuyer = useCallback(
     async (price: string) => {
@@ -485,6 +516,7 @@ export function useDealChat(chatRoomId: string) {
     releaseEscrow,
     raiseDispute,
     cancelDeal,
+    reopenDeal,
     remindBuyer,
     syncThreads,
   };
