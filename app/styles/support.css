@@ -459,6 +459,27 @@
   margin-bottom: 10px;
 }
 
+.fb-suggestions {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin-bottom: 10px;
+}
+
+.fb-suggestion-chip {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--mp-border, #27272a);
+  color: var(--mp-text-muted, #c4c4c9);
+  font-size: 0.78rem; font-weight: 600; font-family: inherit;
+  padding: 6px 12px; border-radius: 999px;
+  cursor: pointer; white-space: nowrap;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.fb-suggestion-chip:hover {
+  border-color: rgba(163,230,53,0.45);
+  color: #fff;
+  background: rgba(163,230,53,0.08);
+}
+
 .fb-textarea {
   width: 100%; min-height: 130px;
   background: var(--mp-bg, #050508);
