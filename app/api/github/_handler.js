@@ -26,28 +26,15 @@
 // FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY) already required by
 // app/api/account/_handler.js — this file uses the same singleton init.
 
-import { getApps, initializeApp, cert } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
+import { getAdminDb } from '../../../lib/server/adminDb';
 
-/* ---------------- Firebase Admin init (singleton across warm invocations) ---------------- */
-function ensureFirebaseApp() {
-  if (!getApps().length) {
-    initializeApp({
-      credential: cert({
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
-      }),
-    });
-  }
-}
+/* ---------------- Firebase Admin init (singleton, shared — see lib/server/adminDb.ts) ---------------- */
 function getDb() {
-  ensureFirebaseApp();
-  return getFirestore();
+  return getAdminDb();
 }
 function getAuthAdmin() {
-  ensureFirebaseApp();
+  getAdminDb();
   return getAuth();
 }
 
