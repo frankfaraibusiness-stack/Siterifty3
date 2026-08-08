@@ -67,13 +67,18 @@ async function verifyFirebaseToken(idToken) {
 // Every reward sits inside the $0.002–$0.05 range you set. `goal` is the
 // count needed; `verify(db, uid, dayStart)` returns the live progress count
 // by querying real data created since dayStart (server clock, UTC midnight).
+// Every objective belongs to a `family` — the underlying action it measures.
+// _seededPick below picks at most ONE objective per family per day, so a
+// user is never handed two tiers of the same action (e.g. list_3 + list_1)
+// where completing the harder one silently auto-completes the easier one.
 const OBJECTIVE_POOL = [
   {
     id: 'list_3',
+    family: 'listings',
     label: 'Post 3 Listings',
     desc: 'Create 3 new listings today (website, app, or game).',
     goal: 3,
-    reward: 0.03,
+    reward: 0.30,
     verify: async (db, uid, dayStart) => {
       const snap = await db.collection('listings')
         .where('ownerId', '==', uid)
@@ -84,10 +89,11 @@ const OBJECTIVE_POOL = [
   },
   {
     id: 'list_1',
+    family: 'listings',
     label: 'Post 1 Listing',
     desc: 'Create at least 1 new listing today.',
     goal: 1,
-    reward: 0.01,
+    reward: 0.10,
     verify: async (db, uid, dayStart) => {
       const snap = await db.collection('listings')
         .where('ownerId', '==', uid)
@@ -98,10 +104,11 @@ const OBJECTIVE_POOL = [
   },
   {
     id: 'send_5_deals',
+    family: 'deals_sent',
     label: 'Send 5 Deals',
     desc: 'Send deal requests to 5 different listings today.',
     goal: 5,
-    reward: 0.05,
+    reward: 0.25,
     verify: async (db, uid, dayStart) => {
       const snap = await db.collection('users').doc(uid).collection('deals')
         .where('buyerUid', '==', uid)
@@ -112,10 +119,11 @@ const OBJECTIVE_POOL = [
   },
   {
     id: 'send_2_deals',
+    family: 'deals_sent',
     label: 'Send 2 Deals',
     desc: 'Send deal requests to 2 different listings today.',
     goal: 2,
-    reward: 0.02,
+    reward: 0.10,
     verify: async (db, uid, dayStart) => {
       const snap = await db.collection('users').doc(uid).collection('deals')
         .where('buyerUid', '==', uid)
@@ -126,10 +134,11 @@ const OBJECTIVE_POOL = [
   },
   {
     id: 'message_10_users',
+    family: 'messaging',
     label: 'Message 10 Users',
     desc: 'Send messages in 10 different deal chats today.',
     goal: 10,
-    reward: 0.04,
+    reward: 0.20,
     verify: async (db, uid, dayStart) => {
       // Collection-group query across every dealChats/{room}/messages
       // subcollection, filtered to messages this user sent today. Counting
@@ -149,10 +158,11 @@ const OBJECTIVE_POOL = [
   },
   {
     id: 'message_3_users',
+    family: 'messaging',
     label: 'Message 3 Users',
     desc: 'Send messages in 3 different deal chats today.',
     goal: 3,
-    reward: 0.015,
+    reward: 0.075,
     verify: async (db, uid, dayStart) => {
       const snap = await db.collectionGroup('messages')
         .where('uid', '==', uid)
@@ -168,10 +178,11 @@ const OBJECTIVE_POOL = [
   },
   {
     id: 'edit_profile',
+    family: 'profile',
     label: 'Update Your Profile',
     desc: 'Edit your display name, bio, or profile picture today.',
     goal: 1,
-    reward: 0.002,
+    reward: 0.02,
     // Requires the account-settings save handler to stamp
     // profileUpdatedAt: serverTimestamp() on users/{uid} when saving —
     // added alongside this feature (see index.html renderAccount save).
@@ -183,6 +194,50 @@ const OBJECTIVE_POOL = [
       return ms >= dayStart.toMillis() ? 1 : 0;
     },
   },
+  {
+    id: 'save_5_listings',
+    family: 'saving',
+    label: 'Save 5 Listings',
+    desc: 'Save (bookmark) 5 listings today.',
+    goal: 5,
+    reward: 0.10,
+    // Uses the existing save/bookmark write (SaveButton.tsx) — reads the
+    // same users/{uid}/savedListings subcollection the marketplace UI
+    // already writes to. Field is `savedAt` (not createdAt) — see the
+    // setDoc in SaveButton.tsx. Note the doc id is the listingId itself,
+    // so unsaving + resaving the same listing overwrites savedAt rather
+    // than creating a second doc — that's fine here, it still reflects a
+    // real save action taken today, just not 5 *distinct* listings if they
+    // toggle the same one repeatedly. Acceptable for this goal size.
+    verify: async (db, uid, dayStart) => {
+      const snap = await db.collection('users').doc(uid).collection('savedListings')
+        .where('savedAt', '>=', dayStart)
+        .get();
+      return snap.size;
+    },
+  },
+  {
+    id: 'rate_1_seller',
+    family: 'rating',
+    label: 'Rate a Seller',
+    desc: 'Leave a star rating on a seller\'s profile today.',
+    goal: 1,
+    reward: 0.05,
+    // Reads the review written by RateOverlay.tsx. NOTE: reviews live at
+    // users/{sellerUid}/reviews/{reviewerUid} — keyed by the SELLER being
+    // rated, not the rater — so finding "did this uid rate anyone today"
+    // requires a collection-group query filtered by reviewerId, not a
+    // direct subcollection read off this user's own doc. There's no
+    // requirement the rater ever completed a deal with that seller, so
+    // this is "rate a seller," not "rate a completed deal."
+    verify: async (db, uid, dayStart) => {
+      const snap = await db.collectionGroup('reviews')
+        .where('reviewerId', '==', uid)
+        .where('updatedAt', '>=', dayStart)
+        .get();
+      return snap.size;
+    },
+  },
   // NOTE: a "View 5 Listings" objective is a natural future addition, but it
   // needs a viewEvents write somewhere in the marketplace browsing code
   // first (nothing currently logs listing views). Add it back to the pool
@@ -191,9 +246,12 @@ const OBJECTIVE_POOL = [
 
 const OBJECTIVES_PER_DAY = 4;
 
-// ── Deterministic daily pick: same 3 all day for a given uid+date, but
+// ── Deterministic daily pick: same set all day for a given uid+date, but
 //    rotates day to day. Simple string-hash seeded shuffle — no external
-//    deps, no randomness that could differ between get-today calls. ────────
+//    deps, no randomness that could differ between get-today calls.
+//    Family-aware: picks at most one objective per `family`, so a user is
+//    never handed two tiers of the same underlying action on the same day
+//    (e.g. list_3 and list_1, where finishing one silently finishes both). ─
 function _seededPick(pool, seed, count) {
   // xmur3-style string hash → 32-bit seed
   let h = 1779033703 ^ seed.length;
@@ -213,7 +271,19 @@ function _seededPick(pool, seed, count) {
     const j = Math.floor(rand() * (i + 1));
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
-  return arr.slice(0, count);
+  // Walk the shuffled pool in order, taking the first objective encountered
+  // per family, until `count` are picked (or the pool of distinct families
+  // is exhausted).
+  const picked = [];
+  const usedFamilies = new Set();
+  for (const item of arr) {
+    if (picked.length >= count) break;
+    const fam = item.family || item.id; // fall back so an untagged entry still works
+    if (usedFamilies.has(fam)) continue;
+    usedFamilies.add(fam);
+    picked.push(item);
+  }
+  return picked;
 }
 
 function _todayKey(d) {
@@ -397,26 +467,27 @@ async function handleClaim(req, res, idToken) {
     const currentBal = Number(userSnap.data().walletBalance || 0);
     const newBalance = parseFloat((currentBal + def.reward).toFixed(4));
 
-    // Daily objective rewards are earned money (like escrow sale proceeds),
-    // not a deposit — so they count toward withdrawableBalance too, same
-    // model as deal.js's escrow-release crediting.
-    const currentWithdrawable = Number(userSnap.data().withdrawableBalance || 0);
-    const newWithdrawable = parseFloat((currentWithdrawable + def.reward).toFixed(4));
-
-    tx.update(userRef, { walletBalance: newBalance, withdrawableBalance: newWithdrawable });
+    // Daily objective rewards are boost-only credit, not earned/withdrawable
+    // money — they add to walletBalance (spendable on boosts, donations,
+    // etc.) but deliberately do NOT touch withdrawableBalance, unlike escrow
+    // sale proceeds or referral bonuses. Same exclusion paypal.js already
+    // applies to a straight PayPal deposit: walletBalance always stays
+    // >= withdrawableBalance, and this is money that only ever entered the
+    // wallet side.
+    tx.update(userRef, { walletBalance: newBalance });
     tx.set(dayRef, { claimed: { [objectiveId]: true } }, { merge: true });
 
     tx.set(userRef.collection('transactions').doc(), {
       type:      'daily_objective',
       amount:    def.reward,
       label:     `Daily objective · ${def.label}`,
-      note:      `Completed "${def.label}" (${def.goal}/${def.goal}).`,
+      note:      `Completed "${def.label}" (${def.goal}/${def.goal}). Wallet credit only — not withdrawable.`,
       objectiveId,
       status:    'completed',
       createdAt: FieldValue.serverTimestamp(),
     });
 
-    return { alreadyClaimed: false, newBalance, newWithdrawable };
+    return { alreadyClaimed: false, newBalance };
   });
 
   if (result.alreadyClaimed) {
@@ -427,7 +498,6 @@ async function handleClaim(req, res, idToken) {
     success:          true,
     reward:           def.reward,
     newBalance:       result.newBalance,
-    newWithdrawable:  result.newWithdrawable,
   });
 }
 
