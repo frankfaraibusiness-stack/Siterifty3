@@ -2406,7 +2406,12 @@ async function handleEscrowDispute(req, res, idToken) {
   await Promise.all([room.sellerUid, room.buyerUid].map(uid => {
     if (!uid || !dealId) return Promise.resolve();
     return db.collection('users').doc(uid).collection('deals').doc(dealId)
-      .update({ paymentStatus: 'disputed' }).catch(() => {});
+      .update({
+        paymentStatus: 'disputed',
+        disputedAt: FieldValue.serverTimestamp(),
+        disputedBy: disputerUid,
+        disputeReason: sanitizedReason,
+      }).catch(() => {});
   }));
 
   // Write dispute record for admin review
