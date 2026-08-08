@@ -198,8 +198,8 @@
 // directly to any of the above paths.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { initializeApp, getApps, cert } from 'firebase-admin/app';
-import { getFirestore, FieldValue, FieldPath, Timestamp } from 'firebase-admin/firestore';
+import { FieldValue, FieldPath, Timestamp } from 'firebase-admin/firestore';
+import { getAdminDb } from '../../../lib/server/adminDb';
 import crypto from 'node:crypto';
 import { LIMITS } from '../_lib/limits.js';
 import { supabaseCreateSignedUrl, findAccountById } from '../_lib/storage.js';
@@ -238,18 +238,12 @@ async function triggerAiCheck(action, payload) {
 }
 
 // ── Firebase Admin singleton ─────────────────────────────────────────────────
-function getAdminDb() {
-  if (!getApps().length) {
-    initializeApp({
-      credential: cert({
-        projectId:   process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey:  process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-      }),
-    });
-  }
-  return getFirestore();
-}
+// Now imported from lib/server/adminDb.ts (the same singleton every
+// Server Component / route handler in this app uses) instead of keeping
+// a private copy of the init block here. The private copies across the
+// various _handler.js files had drifted into a source of subtle,
+// hard-to-log production failures — see project notes — so every handler
+// has been collapsed onto this one shared init.
 
 // ── Firebase ID token verification via REST ──────────────────────────────────
 const FIREBASE_WEB_API_KEY = 'AIzaSyCMdI_bIYse6j3GyGDBnbE6FoGNnPKaMao';
