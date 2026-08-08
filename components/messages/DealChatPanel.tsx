@@ -18,7 +18,7 @@ import {
 import { doc, deleteDoc, collection, getDocs, writeBatch, addDoc } from "firebase/firestore";
 import { db, auth } from "@/lib/firebase";
 import RequestPaymentOverlay from "./RequestPaymentOverlay";
-import SignInRequired from "@/components/auth/SignInRequired";
+import DealExpiredPopup from "@/components/deal/DealExpiredPopup";import SignInRequired from "@/components/auth/SignInRequired";
 import { buildListingSlug } from "@/lib/slug";
 import { useCurrency } from "@/lib/CurrencyContext";
 import NavSpinnerIcon from "@/components/shared/NavSpinnerIcon";
@@ -101,6 +101,7 @@ export default function DealChatPanel({
   const [menuOpen, setMenuOpen] = useState(false);
   const [ctaBusy, setCtaBusy] = useState(false);
   const [deleteAfterCancel, setDeleteAfterCancel] = useState<{ deleteAt: number } | null>(null);
+  const [reopenBusy, setReopenBusy] = useState(false);
   const [deleteCountdown, setDeleteCountdown] = useState("");
   const [requestPaymentOverlayOpen, setRequestPaymentOverlayOpen] = useState(false);
   // Full-view lightbox for tapped image bubbles — previously image
@@ -236,13 +237,20 @@ export default function DealChatPanel({
   }, [chat.messages]);
 
   useEffect(() => {
-    if (!chat.room?.cancelled || chat.room.paymentStatus === "complete") {
+    // expiryCancelled rooms are reopenable and must NOT auto-delete — this
+    // effect (and the delete-after-30-minutes flow it drives below) is
+    // only for a deliberate manual cancel (deal-chat-cancel), which is the
+    // one closure reason that actually sets deleteAt server-side. Before
+    // this check, an expired room fell in here too since it's also
+    // cancelled: true, which meant an unresolved deal quietly deleted
+    // itself 30 minutes after expiring — the opposite of reopenable.
+    if (!chat.room?.cancelled || chat.room.expiryCancelled || chat.room.paymentStatus === "complete") {
       setDeleteAfterCancel(null);
       return;
     }
     const deleteAt = chat.room.deleteAt || (chat.room.cancelledAt || Date.now()) + 30 * 60 * 1000;
     setDeleteAfterCancel({ deleteAt });
-  }, [chat.room?.cancelled, chat.room?.deleteAt, chat.room?.cancelledAt, chat.room?.paymentStatus]);
+  }, [chat.room?.cancelled, chat.room?.expiryCancelled, chat.room?.deleteAt, chat.room?.cancelledAt, chat.room?.paymentStatus]);
 
   useEffect(() => {
     if (!deleteAfterCancel) return;
@@ -413,6 +421,57 @@ export default function DealChatPanel({
       await chat.cancelDeal();
     } catch {
       await alert({ theme: "warning", title: "Action Failed", msg: "Could not cancel the deal. Please check your connection and try again." });
+    }
+  }
+
+  // Reopen/Delete for a deal closed by a missed deadline — see
+  // DealExpiredPopup.tsx, shown only when chat.locked.reason is
+  // "expired-reopenable" or chat.outcome.expiryCancelled (funded-then-
+  // expired lands there instead — see useDealChat.ts).
+  async function handleReopenExpiredDeal() {
+    setReopenBusy(true);
+    try {
+      const out = await chat.reopenDeal();
+      await alert({
+        theme: "success",
+        title: "Deal Reopened",
+        msg: out.penalty > 0
+          ? `A $${out.penalty.toFixed(2)} reopen fee was charged to your wallet. You have 7 days to resolve this deal.`
+          : "You have 7 days to resolve this deal.",
+      });
+    } catch (e) {
+      await alert({
+        theme: "warning",
+        title: "Could Not Reopen",
+        msg: e instanceof Error ? e.message : "Something went wrong reopening this deal. Please try again.",
+      });
+    } finally {
+      setReopenBusy(false);
+    }
+  }
+
+  async function handleDeleteExpiredDeal() {
+    const ok = await confirm({
+      theme: "danger",
+      title: "Delete Deal",
+      msg: "This will permanently delete this deal chat. This action cannot be undone.",
+      confirmText: "Delete Deal",
+    });
+    if (!ok) return;
+    setReopenBusy(true);
+    try {
+      const msgsSnap = await getDocs(collection(db, "dealChats", chatRoomId, "messages"));
+      const batch = writeBatch(db);
+      msgsSnap.forEach((m) => batch.delete(doc(db, "dealChats", chatRoomId, "messages", m.id)));
+      await batch.commit().catch(() => {});
+      if (chat.room?.sellerUid) await deleteDoc(doc(db, "users", chat.room.sellerUid, "threads", chatRoomId)).catch(() => {});
+      if (chat.room?.buyerUid) await deleteDoc(doc(db, "users", chat.room.buyerUid, "threads", chatRoomId)).catch(() => {});
+      await deleteDoc(doc(db, "dealChats", chatRoomId)).catch(() => {});
+      if (onBack) onBack();
+      else router.push(`/messages?tab=${originTab}`);
+    } catch {
+      setReopenBusy(false);
+      await alert({ theme: "warning", title: "Action Failed", msg: "Could not delete the deal. Please check your connection and try again." });
     }
   }
 
@@ -714,23 +773,57 @@ export default function DealChatPanel({
           )}
         </div>
 
-        {chat.outcome ? (
-          <div id="dcpExpiredBanner" className={chat.outcome.outcome === "successful" ? "dcp-outcome-successful" : "dcp-outcome-closed"} style={{ display: "flex" }}>
-            {chat.outcome.outcome === "successful"
-              ? chat.outcome.auto
-                ? "✅ Deal Successful — the 72-hour verification window passed and funds were automatically released to the seller."
-                : "✅ Deal Successful — the buyer confirmed receipt and funds were released to the seller."
-              : chat.outcome.auto
-              ? "🔒 Deal Closed — the 14-day delivery deadline passed without the deal being completed."
-              : "🔒 Deal Closed — this deal was refunded and is now closed."}
-          </div>
-        ) : deleteAfterCancel ? (
-          <div id="dcpExpiredBanner" style={{ display: "flex" }}>This deal was cancelled — {deleteCountdown || "chat will be deleted shortly."}</div>
-        ) : chat.locked.locked ? (
-          <div id="dcpExpiredBanner" style={{ display: "flex" }}>
-            {chat.locked.reason === "cancelled" ? "This deal was cancelled — the chat is now closed." : "This deal chat expired — the delivery deadline passed and the deal was auto-closed."}
-          </div>
-        ) : null}
+        {(() => {
+          // A deal closed by a missed deadline can surface in two ways:
+          // unfunded rooms go through chat.locked (reason
+          // "expired-reopenable"), while a funded-then-expired room instead
+          // shows up as a terminal chat.outcome ("closed") since its
+          // paymentStatus flips to "refunded" — carrying expiryCancelled
+          // through outcome (see useDealChat.ts) is what lets this branch
+          // catch that case too, rather than falling into the plain
+          // "Deal Closed" banner below meant for a genuine final refund.
+          const isExpiredReopenable =
+            chat.locked.reason === "expired-reopenable" ||
+            (chat.outcome?.outcome === "closed" && chat.outcome.expiryCancelled);
+
+          if (isExpiredReopenable) {
+            return (
+              <DealExpiredPopup
+                listingTitle={chat.room?.listingTitle || ""}
+                listingPrice={chat.room?.listingPrice ?? null}
+                isSeller={isSeller}
+                sellerUid={chat.room?.sellerUid || null}
+                submitting={reopenBusy}
+                onReopen={handleReopenExpiredDeal}
+                onDelete={handleDeleteExpiredDeal}
+              />
+            );
+          }
+
+          if (chat.outcome) {
+            return (
+              <div id="dcpExpiredBanner" className={chat.outcome.outcome === "successful" ? "dcp-outcome-successful" : "dcp-outcome-closed"} style={{ display: "flex" }}>
+                {chat.outcome.outcome === "successful"
+                  ? chat.outcome.auto
+                    ? "✅ Deal Successful — the 72-hour verification window passed and funds were automatically released to the seller."
+                    : "✅ Deal Successful — the buyer confirmed receipt and funds were released to the seller."
+                  : chat.outcome.auto
+                  ? "🔒 Deal Closed — the 14-day delivery deadline passed without the deal being completed."
+                  : "🔒 Deal Closed — this deal was refunded and is now closed."}
+              </div>
+            );
+          }
+
+          if (deleteAfterCancel) {
+            return <div id="dcpExpiredBanner" style={{ display: "flex" }}>This deal was cancelled — {deleteCountdown || "chat will be deleted shortly."}</div>;
+          }
+
+          if (chat.locked.locked) {
+            return <div id="dcpExpiredBanner" style={{ display: "flex" }}>This deal was cancelled — the chat is now closed.</div>;
+          }
+
+          return null;
+        })()}
 
         {!chat.locked.locked && !chat.outcome && !deleteAfterCancel ? (
           <div id="dcpInputRow">
