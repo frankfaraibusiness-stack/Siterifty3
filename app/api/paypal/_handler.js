@@ -543,7 +543,7 @@ const REFERRAL_COMMISSION_RATE = 0.30; // 30% flat for all plans
 const REFERRAL_WINDOW_MS = 7 * 24 * 60 * 60 * 1000; // referred user must activate a paid plan within 7 days of their own signup
 
 // ── Plan prices (mirror limits.js — single change point if prices change) ────
-const PLAN_PRICES = { starter: 15, growth: 30, pro: 60 };
+const PLAN_PRICES = { starter: 10, growth: 20, pro: 30 };
 
 // ─────────────────────────────────────────────────────────────────────────────
 // activate-sub  { idToken, plan, subscriptionID }  →  { success }
