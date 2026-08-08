@@ -69,7 +69,7 @@ export default function WalletModal({ open, onClose }: { open: boolean; onClose:
               <path d="M17 15h.01" />
             </svg>
             <div>
-              <div id="walletModalTitle">Wallet</div>
+              <div id="walletModalTitle">{profile?.username || "Wallet"}</div>
               <div id="walletModalSub">Manage your balance</div>
             </div>
           </div>
