@@ -20,54 +20,85 @@
          filter: blur(6px); pointer-events: none;
          }
 
-/* ── Shell: full-height column. Only the middle (objectives)
-              section scrolls; the greeting/earned-today header and the
-              CTA button stay pinned so the layout never jumps or gets
-              buried under a long objectives list. ── */
+/* ── Shell: full-height column. A sticky header (avatar/name left,
+              "Next" CTA right) stays pinned at the top; everything below
+              — the earned-today card and the objectives grid — scrolls
+              as one body. This replaces the old top-greeting +
+              bottom-sticky-CTA + corner-close arrangement: on mobile the
+              primary way out now lives exactly where a thumb already is
+              (top-right), reachable regardless of scroll position,
+              instead of requiring either a scroll-to-bottom or a
+              secondary desktop-only corner button. ── */
 .wb-shell {
          position: relative; max-width: 480px; margin: 0 auto;
          height: 100%; min-height: 100%;
          display: flex; flex-direction: column;
          }
 
-.wb-sticky-top {
+/* ── Sticky header — unique to this screen. Not reused from the site's
+            main Header.tsx on purpose (different content, different
+            stakes: this is a full-screen takeover, not persistent chrome). ── */
+.wb-header {
          flex-shrink: 0;
-         padding: 30px 20px 4px;
+         position: sticky; top: 0; z-index: 3;
+         display: flex; align-items: center; justify-content: space-between; gap: 12px;
+         padding: 16px 16px 14px;
+         background: rgba(6,6,10,0.86);
+         backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+         border-bottom: 1px solid rgba(255,255,255,0.07);
+         animation: wb-fade-up .5s ease both;
          }
 
-.wb-sticky-bottom {
-         flex-shrink: 0;
-         padding: 12px 20px calc(16px + env(safe-area-inset-bottom, 0px));
-         background: linear-gradient(to top, #06060a 55%, rgba(6,6,10,0));
-         }
-
-.wb-obj-scroll {
-         flex: 1 1 auto; min-height: 0;
-         overflow-y: auto; -webkit-overflow-scrolling: touch;
-         padding: 0 20px;
-         }
-
-.wb-top { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; margin-bottom: 16px; animation: wb-fade-up .5s ease both; }
+.wb-header-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
 
 .wb-avatar {
-         width: 56px; height: 56px; border-radius: 50%; flex-shrink: 0;
+         width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
          background: linear-gradient(155deg, rgba(163,230,53,0.24), rgba(163,230,53,0.06));
          border: 1.5px solid rgba(163,230,53,0.3);
          display: flex; align-items: center; justify-content: center;
-         font-size: 22px; font-weight: 800; color: #a3e635;
+         font-size: 17px; font-weight: 800; color: #a3e635;
          background-size: cover; background-position: center;
          }
 
-.wb-hello { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.45); }
+.wb-greeting { min-width: 0; }
 
-.wb-name { font-size: 20px; font-weight: 800; color: #fff; letter-spacing: -0.01em; margin-top: 1px; }
+.wb-hello { font-size: 11.5px; font-weight: 600; color: rgba(255,255,255,0.45); line-height: 1.2; }
+
+.wb-name {
+         font-size: 15.5px; font-weight: 800; color: #fff; letter-spacing: -0.01em;
+         line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+         }
+
+@keyframes wb-fade-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Primary CTA, pinned top-right of the sticky header. */
+.wb-header-next {
+         flex-shrink: 0;
+         display: flex; align-items: center; gap: 6px;
+         background: #a3e635; border: none; border-radius: 12px;
+         padding: 9px 14px; font-size: 13.5px; font-weight: 800; color: #0a0a0e;
+         cursor: pointer; font-family: inherit;
+         box-shadow: 0 8px 22px -8px rgba(163,230,53,0.5);
+         transition: filter .15s, transform .15s;
+         }
+
+.wb-header-next:hover { filter: brightness(1.06); transform: translateY(-1px); }
+.wb-header-next:active { transform: translateY(0); }
+
+/* ── Body: everything below the sticky header scrolls together — the
+            earned-today card, the objectives heading, and the objectives
+            grid. No separate inner scroll region on mobile, so the whole
+            screen behaves like one natural page under the pinned header. ── */
+.wb-body {
+         flex: 1 1 auto; min-height: 0;
+         overflow-y: auto; -webkit-overflow-scrolling: touch;
+         padding: 18px 16px calc(20px + env(safe-area-inset-bottom, 0px));
+         }
 
 .wb-date {
          font-size: 11px; font-weight: 700; color: rgba(163,230,53,0.85); letter-spacing: 0.04em;
          text-transform: uppercase; margin-top: 6px;
          }
-
-@keyframes wb-fade-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
 .wb-earn-card {
          background: linear-gradient(135deg, rgba(163,230,53,0.14), rgba(163,230,53,0.03));
@@ -86,7 +117,23 @@
 
 .wb-obj-sub { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 2px; }
 
-.wb-obj-list { display: flex; flex-direction: column; gap: 12px; padding-bottom: 4px; }
+/* ── Objectives grid — always exactly 4 cards (OBJECTIVES_PER_DAY in
+            app/api/objectives/_handler.js). Single column on mobile so
+            all 4 are reachable by a normal scroll within .wb-body (no
+            nested scroll container needed at this size); 2-per-row from
+            tablet width up, still 2-per-row on desktop — a 2x2 grid reads
+            better as a complete "here are today's 4 tasks" set than a
+            long single column once there's enough width for it. ── */
+.wb-obj-grid {
+         display: grid;
+         grid-template-columns: 1fr;
+         gap: 12px;
+         padding-bottom: 4px;
+         }
+
+@media (min-width: 560px) {
+           .wb-obj-grid { grid-template-columns: 1fr 1fr; }
+         }
 
 .wb-skel-obj {
          height: 84px; border-radius: 16px;
@@ -95,9 +142,16 @@
          border: 1px solid rgba(255,255,255,.05);
          }
 
+.wb-obj-msg {
+         animation: none;
+         display: flex; align-items: center; justify-content: center;
+         color: rgba(255,255,255,.35); font-size: 12.5px; text-align: center; padding: 0 16px;
+         }
+
 .wb-obj-card {
          background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.08);
          border-radius: 16px; padding: 15px 16px;
+         display: flex; flex-direction: column;
          animation: wb-fade-up .45s ease both;
          transition: border-color .2s, background .2s;
          }
@@ -138,9 +192,10 @@
 .wb-obj-progress-text { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.38); margin-top: 6px; text-align: right; }
 
 .wb-obj-claim-btn {
-         width: 100%; margin-top: 12px; background: rgba(163,230,53,0.16); border: 1px solid rgba(163,230,53,0.4);
+         width: 100%; background: rgba(163,230,53,0.16); border: 1px solid rgba(163,230,53,0.4);
          color: #a3e635; font-size: 12.5px; font-weight: 800; border-radius: 10px; padding: 9px;
          cursor: pointer; font-family: inherit; transition: background .15s;
+         margin-top: auto; padding-top: 9px;
          }
 
 .wb-obj-claim-btn:hover { background: rgba(163,230,53,0.26); }
@@ -152,52 +207,21 @@
          color: rgba(163,230,53,0.7); display: flex; align-items: center; justify-content: center; gap: 6px;
          }
 
-.wb-continue-btn {
-         width: 100%; background: #a3e635; border: none; border-radius: 14px;
-         padding: 15px; font-size: 14.5px; font-weight: 800; color: #0a0a0e;
-         display: flex; align-items: center; justify-content: center; gap: 8px;
-         cursor: pointer; font-family: inherit;
-         box-shadow: 0 10px 30px -8px rgba(163,230,53,0.4);
-         }
-
-.wb-continue-btn:hover { filter: brightness(1.05); }
-
-/* ── Top-right corner CTA: on mobile the bottom sticky CTA is always
-            in reach, so this stays hidden there. From 768px up the shell
-            becomes a centered card (and at ≥1024px a two-pane layout with
-            its own internal scroll regions), where the bottom CTA can end
-            up feeling out of the way — this gives a second, always-visible
-            way out from the top-right regardless of scroll position. ── */
-.wb-corner-close {
-         display: none;
-         }
-
-@media (min-width: 768px) {
-           .wb-corner-close {
-             display: flex; align-items: center; justify-content: center;
-             position: absolute; top: 16px; right: 16px; z-index: 2;
-             width: 34px; height: 34px; border-radius: 50%;
-             background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
-             color: rgba(255,255,255,0.7);
-             cursor: pointer; transition: background .15s, color .15s, border-color .15s;
-           }
-           .wb-corner-close:hover {
-             background: rgba(255,255,255,0.12); color: #fff; border-color: rgba(255,255,255,0.2);
-           }
-         }
-
 @media (max-width: 420px) {
-           .wb-name { font-size: 18px; }
+           .wb-name { font-size: 14.5px; }
            .wb-earn-amt { font-size: 26px; }
          }
 
-/* ── Desktop (768–1023px): .wb-shell above is hard-capped at
+/* ── Desktop (768px+): .wb-shell above is hard-capped at
             max-width:480px with no larger breakpoint at all, so on a
             wide viewport it was just that same narrow phone-width column
             floating in the middle of a huge dark screen. This widens the
             shell into a proper centered card with its own backdrop
             treatment once there's room, without touching anything below
-            the breakpoint. ── */
+            the breakpoint. The 2-per-row objectives grid (see
+            .wb-obj-grid's 560px breakpoint above) already applies here
+            too, so desktop shows the same 2x2 layout — no separate
+            desktop-only grid rule needed. ── */
 @media (min-width: 768px) {
            #welcomeBackScreen {
              display: flex; align-items: center; justify-content: center;
@@ -205,7 +229,7 @@
            }
            #welcomeBackScreen.active { display: flex; }
            .wb-shell {
-             max-width: 560px;
+             max-width: 640px;
              height: auto; max-height: calc(100vh - 64px); max-height: calc(100dvh - 64px);
              background: rgba(255,255,255,0.02);
              border: 1px solid rgba(255,255,255,0.08);
@@ -213,49 +237,8 @@
              box-shadow: 0 30px 90px rgba(0,0,0,0.5);
              overflow: hidden;
            }
-           .wb-sticky-top { padding-top: 34px; }
-           .wb-obj-scroll { padding: 0 24px; }
-           .wb-sticky-bottom { padding: 16px 24px calc(20px + env(safe-area-inset-bottom, 0px)); border-radius: 0 0 24px 24px; }
+           .wb-header { padding: 18px 24px 16px; border-radius: 24px 24px 0 0; }
+           .wb-avatar { width: 46px; height: 46px; font-size: 18px; }
+           .wb-name { font-size: 17px; }
+           .wb-body { padding: 22px 24px calc(24px + env(safe-area-inset-bottom, 0px)); }
          }
-
-/* ── Wide desktop (≥1024px): still one narrow card centered in a sea
-            of empty background — greeting, earned-today, and the full
-            objectives list all stacked in one column, same as mobile
-            just bigger (see screenshot). Splits it into a real two-pane
-            layout: left pane pinned (avatar/name/earned-today, doesn't
-            scroll), right pane the scrolling objectives list — same
-            "summary left, content right" pattern used for the
-            wallet/listing/seller fixes below. Doesn't touch 768–1023px
-            or mobile above. ── */
-@media (min-width: 1024px) {
-           .wb-shell {
-             max-width: 880px;
-             flex-direction: row;
-             align-items: stretch;
-             max-height: calc(100vh - 96px); max-height: calc(100dvh - 96px);
-           }
-           .wb-sticky-top {
-             flex-shrink: 0;
-             width: 300px;
-             border-right: 1px solid rgba(255,255,255,0.08);
-             padding: 40px 28px 28px;
-             display: flex; flex-direction: column; justify-content: center;
-           }
-           .wb-obj-header { display: none; } /* re-shown as .wb-right-header inside the right pane */
-           .wb-right-pane {
-             flex: 1 1 auto; min-width: 0;
-             display: flex; flex-direction: column;
-           }
-           .wb-right-header {
-             flex-shrink: 0;
-             padding: 40px 28px 14px;
-             display: block;
-           }
-           .wb-obj-scroll { padding: 0 28px; }
-           .wb-sticky-bottom { padding: 16px 28px calc(20px + env(safe-area-inset-bottom, 0px)); }
-           .wb-top { text-align: left; align-items: flex-start; }
-           .wb-earn-card { margin-bottom: 0; }
-         }
-
-.wb-right-header { display: none; } /* only shown at ≥1024px, see above */
-
