@@ -60,24 +60,13 @@
 //     your Vercel deployment before relying on it).
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { initializeApp, getApps, cert } from 'firebase-admin/app';
-import { getFirestore, FieldValue } from 'firebase-admin/firestore';
+import { FieldValue } from 'firebase-admin/firestore';
 import crypto from 'crypto';
 import webpush from 'web-push';
 
 // ── Firebase Admin singleton ─────────────────────────────────────────────────
-function getAdminDb() {
-  if (!getApps().length) {
-    initializeApp({
-      credential: cert({
-        projectId:   process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey:  process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-      }),
-    });
-  }
-  return getFirestore();
-}
+// Shared init — see lib/server/adminDb.ts.
+import { getAdminDb } from '../../../lib/server/adminDb';
 
 // Stable, short, Firestore-safe doc ID derived from the endpoint URL so the
 // same browser subscribing twice overwrites one doc instead of duplicating.
