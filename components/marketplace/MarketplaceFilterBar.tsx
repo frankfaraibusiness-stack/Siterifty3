@@ -17,7 +17,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import type { Listing, ListingType } from "@/lib/listings";
-import { FALLBACK_PRICE_CAP, type ActiveTag, type TemplateFilter } from "@/lib/useMarketplaceFilters";
+import { FALLBACK_PRICE_CAP, type ActiveTag, type TemplateFilter, type SaleTypeFilter } from "@/lib/useMarketplaceFilters";
 import { useLimits } from "@/lib/useLimits";
 import MarketplaceSearchBar from "@/components/marketplace/MarketplaceSearchBar";
 import { DiscoverButton } from "@/components/marketplace/DiscoverPanel";
@@ -39,6 +39,8 @@ export default function MarketplaceFilterBar({
   onTypeChange,
   templateFilter,
   onTemplateChange,
+  saleTypeFilter,
+  onSaleTypeChange,
   priceMin,
   priceMax,
   onPriceChange,
@@ -55,6 +57,8 @@ export default function MarketplaceFilterBar({
   onTypeChange: (t: ListingType | "all") => void;
   templateFilter: TemplateFilter;
   onTemplateChange: (t: TemplateFilter) => void;
+  saleTypeFilter: SaleTypeFilter;
+  onSaleTypeChange: (t: SaleTypeFilter) => void;
   priceMin: number;
   priceMax: number | null;
   onPriceChange: (min: number, max: number | null) => void;
@@ -137,6 +141,11 @@ export default function MarketplaceFilterBar({
     onTemplateChange(next);
   }
 
+  function cycleSaleType() {
+    const next: SaleTypeFilter = saleTypeFilter === "all" ? "auction" : saleTypeFilter === "auction" ? "fixed" : "all";
+    onSaleTypeChange(next);
+  }
+
   function applyPrice() {
     const eMin = parseFloat(exactMin);
     const eMax = parseFloat(exactMax);
@@ -208,6 +217,29 @@ export default function MarketplaceFilterBar({
             </svg>
           )}{" "}
           {templateFilter === "template" ? "Templates only" : templateFilter === "not-template" ? "Full products" : "Any type"}
+        </button>
+        <button
+          className={
+            "mp-chip" + (saleTypeFilter === "auction" ? " active" : saleTypeFilter === "fixed" ? " active-alt" : "")
+          }
+          data-state={saleTypeFilter}
+          onClick={cycleSaleType}
+        >
+          {saleTypeFilter === "auction" ? (
+            <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2}>
+              <path d="M14 4l6 6" />
+              <path d="M4 14l6 6" />
+              <path d="M16.5 6.5l-11 11" strokeLinecap="round" />
+              <path d="M10 3l1 1" />
+              <path d="M20 13l1 1" />
+            </svg>
+          ) : (
+            <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2}>
+              <circle cx={12} cy={12} r={9} />
+              <path d="M12 7v5l3 3" />
+            </svg>
+          )}{" "}
+          {saleTypeFilter === "auction" ? "Auctions only" : saleTypeFilter === "fixed" ? "Fixed price only" : "Any sale type"}
         </button>
         <div className="mp-price-wrap">
           <button
