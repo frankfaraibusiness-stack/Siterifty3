@@ -52,23 +52,12 @@
 // Response envelope (HTTP actions only): { ok: true, data } | { ok: false, error: { message, code } }
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { initializeApp, getApps, cert } from 'firebase-admin/app';
-import { getFirestore, FieldValue } from 'firebase-admin/firestore';
+import { FieldValue } from 'firebase-admin/firestore';
 import crypto from 'crypto';
 
-// ── Firebase Admin singleton — same pattern as deal.js/listings.js ──────────
-function getAdminDb() {
-  if (!getApps().length) {
-    initializeApp({
-      credential: cert({
-        projectId:   process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey:  process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-      }),
-    });
-  }
-  return getFirestore();
-}
+// ── Firebase Admin singleton ─────────────────────────────────────────────────
+// Shared init — see lib/server/adminDb.ts.
+import { getAdminDb } from '../../../lib/server/adminDb';
 
 // ── Firebase ID token verification — same pattern as deal.js/listings.js ───
 const FIREBASE_WEB_API_KEY = 'AIzaSyCMdI_bIYse6j3GyGDBnbE6FoGNnPKaMao';
