@@ -17,6 +17,16 @@ export interface ListingFinancials {
   revenue?: number;
   expenses?: number;
   profit?: number;
+  // Website listings only. Whether `price` above includes the domain or is
+  // source-code-only. Defaults to true (domain included) for any listing
+  // that predates this field, matching the platform's original behavior
+  // where a website sale always implied handing over the domain too.
+  // When false, `domainPrice` is an optional separate line-item the seller
+  // can quote for the domain on top of `price` — purely informational for
+  // display (see FinancialsBlock.tsx); the domain sale itself still goes
+  // through the same transfer/deal flow as the rest of the listing.
+  includesDomain?: boolean;
+  domainPrice?: number;
 }
 
 export type SaleType = "fixed" | "auction";
@@ -374,7 +384,15 @@ export interface CreateListingParams {
   category?: string;
   tech?: ListingTech;
   settings?: ListingSettings;
-  financials: { price: number; revenue: number; expenses: number; revenueProofUrls?: string[] };
+  financials: {
+    price: number;
+    revenue: number;
+    expenses: number;
+    revenueProofUrls?: string[];
+    // Website listings only — see ListingFinancials.includesDomain/domainPrice.
+    includesDomain?: boolean;
+    domainPrice?: number;
+  };
   traffic?: { monthlyVisits?: number; proofUrls?: string[] };
   transferMethods?: string[];
   gameType?: string;
@@ -426,7 +444,15 @@ export interface UpdateListingParams {
   category?: string;
   tech?: ListingTech;
   settings?: ListingSettings;
-  financials?: { price: number | null; revenue: number | null; expenses: number | null };
+  financials?: {
+    price: number | null;
+    revenue: number | null;
+    expenses: number | null;
+    // Website listings only — omit to leave untouched, same convention as
+    // the rest of this params object (e.g. embedCode/saleType above).
+    includesDomain?: boolean;
+    domainPrice?: number | null;
+  };
   images?: string[];
   appIcon?: string;
   gameFile?: string;
