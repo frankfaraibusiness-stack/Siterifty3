@@ -1,3 +1,0 @@
-NOTE: components/billing/PlansModal.tsx and components/seller/DonateOverlay.tsx were DELETED (superseded by the new pages). Delete them manually from your project — they are not included here since this zip only contains added/changed files.
-components/billing/PlansModal.tsx
-components/seller/DonateOverlay.tsx
