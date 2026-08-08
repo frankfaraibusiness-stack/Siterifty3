@@ -29,28 +29,18 @@
 // them back with .replace(/\\n/g, '\n') below, which is the standard way
 // to store a multiline PEM key in a single-line env var.
 
-import { getApps, initializeApp, cert } from 'firebase-admin/app';
-import { getFirestore, FieldValue } from 'firebase-admin/firestore';
+import { FieldValue } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
+import { getAdminDb } from '../../../lib/server/adminDb';
 
-/* ---------------- Firebase Admin init (singleton across warm invocations) ---------------- */
-function ensureFirebaseApp() {
-  if (!getApps().length) {
-    initializeApp({
-      credential: cert({
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
-      }),
-    });
-  }
-}
+/* ---------------- Firebase Admin init (singleton, shared — see lib/server/adminDb.ts) ---------------- */
 function getDb() {
-  ensureFirebaseApp();
-  return getFirestore();
+  return getAdminDb();
 }
 function getAuthAdmin() {
-  ensureFirebaseApp();
+  // getAdminDb() itself performs the initializeApp() guard, so calling it
+  // first guarantees the default app exists before getAuth() reads it.
+  getAdminDb();
   return getAuth();
 }
 
