@@ -1936,6 +1936,23 @@ async function handleFeed(body, idToken) {
     }
   }
 
+  // Self-heal any auction in this page whose endTime has already passed
+  // but whose status field hasn't caught up yet (see _maybeCloseAuction's
+  // header comment). Only touches the listings actually being returned —
+  // not the whole cached pool, which could hold far more than this page
+  // needs and would waste writes on auctions nobody is currently looking
+  // at. A stale one here gets corrected in place so the response (and the
+  // client's AuctionBadge, which independently derives phase from
+  // startTime/endTime anyway) never disagrees with what handleBid would
+  // enforce if someone tried to bid on it right now.
+  await Promise.all(
+    page.map(async (l, i) => {
+      if (l.saleType !== 'auction' || !l.auction || l.auction.status === 'ended') return;
+      if (Date.now() < Date.parse(l.auction.endTime)) return;
+      page[i] = await _maybeCloseAuction(db, l.id, l);
+    })
+  );
+
   // Attach ownerPlan directly onto each listing so the client can render
   // the premium-seller shimmer straight from feed data, with zero extra
   // per-card Firestore reads and nothing to re-fetch on subsequent
@@ -2116,6 +2133,17 @@ async function handleSearch(body, idToken) {
 
   scored.sort((a, b) => b.score - a.score);
   const results = scored.slice(0, size).map((s) => s.listing);
+
+  // Same auction self-heal as handleFeed — search results are pulled
+  // from the same cached _getTypePool, so they're subject to the exact
+  // same staleness window. Only touches results actually being returned.
+  await Promise.all(
+    results.map(async (l, i) => {
+      if (l.saleType !== 'auction' || !l.auction || l.auction.status === 'ended') return;
+      if (Date.now() < Date.parse(l.auction.endTime)) return;
+      results[i] = await _maybeCloseAuction(db, l.id, l);
+    })
+  );
 
   // Deliberately no ownerPlan/getAll lookup here (unlike handleFeed) — a
   // large match set (up to SEARCH_MAX_LIMIT) shouldn't pay the extra reads
