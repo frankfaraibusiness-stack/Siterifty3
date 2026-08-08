@@ -18,6 +18,11 @@ export default function FinancialsBlock({ listing, accentColor }: { listing: Lis
   const profit = fin.profit !== undefined ? formatFinFull(Number(fin.profit)) : "—";
   const profitNum = fin.profit !== undefined ? Number(fin.profit) : null;
   const profitCls = profitNum !== null && profitNum >= 0 ? " profit" : profitNum !== null ? " loss" : "";
+  // Website listings only. Undefined (older listings) defaults to true —
+  // the platform's original, only behavior was that a sale always included
+  // the domain.
+  const includesDomain = fin.includesDomain !== false;
+  const domainPriceStr = typeof fin.domainPrice === "number" ? formatPrice(fin.domainPrice) : null;
 
   return (
     <div className="modal-section">
@@ -38,6 +43,20 @@ export default function FinancialsBlock({ listing, accentColor }: { listing: Lis
           <span className="fin-label">Asking Price</span>
           <span className="fin-value">{priceStr}</span>
         </div>
+        {listing.type === "website" && (
+          <div className="fin-card">
+            <span className="fin-label">Domain</span>
+            <span className="fin-value">
+              {includesDomain ? "Included" : "Source code only"}
+            </span>
+          </div>
+        )}
+        {listing.type === "website" && !includesDomain && domainPriceStr && (
+          <div className="fin-card">
+            <span className="fin-label">Domain Price</span>
+            <span className="fin-value">{domainPriceStr}</span>
+          </div>
+        )}
         <div className="fin-card">
           <span className="fin-label">Monthly Revenue</span>
           <span className="fin-value">{revenue}</span>
