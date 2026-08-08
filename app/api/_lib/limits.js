@@ -13,22 +13,11 @@
 // Frontend should POST to /api/deal with the same { action, idToken, ...params }
 // shape. See deal.js for the full action list and documentation.
 
-import { initializeApp, getApps, cert } from 'firebase-admin/app';
-import { getFirestore }                  from 'firebase-admin/firestore';
-
 // ── Firebase Admin singleton ─────────────────────────────────────────────────
-function getAdminDb() {
-  if (!getApps().length) {
-    initializeApp({
-      credential: cert({
-        projectId:   process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey:  process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-      }),
-    });
-  }
-  return getFirestore();
-}
+// Shared init — see lib/server/adminDb.ts. This file used to keep its own
+// private copy of the initializeApp()/getAdminDb() boilerplate; collapsed
+// onto the shared singleton along with every other handler.
+import { getAdminDb } from '../../../lib/server/adminDb';
 
 // ── Firebase ID token verification ───────────────────────────────────────────
 const FIREBASE_WEB_API_KEY = 'AIzaSyCMdI_bIYse6j3GyGDBnbE6FoGNnPKaMao';
