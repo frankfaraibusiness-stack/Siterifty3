@@ -73,6 +73,14 @@ export default function FeedbackWidget() {
   );
 }
 
+const FEEDBACK_SUGGESTIONS = [
+  "Found a bug",
+  "Feature idea",
+  "Something's confusing",
+  "Love this app",
+  "Payments issue",
+];
+
 function FeedbackModal({ onClose }: { onClose: () => void }) {
   const [text, setText] = useState("");
   const [status, setStatus] = useState<{ kind: "idle" | "ok" | "err"; msg: string }>({ kind: "idle", msg: "" });
@@ -85,16 +93,19 @@ function FeedbackModal({ onClose }: { onClose: () => void }) {
   // then restore that stale value on close and leave scroll stuck.
   useScrollLock(true);
 
-  useEffect(() => {
-    textareaRef.current?.focus();
-  }, []);
-
   // Escape to close
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
   }, [onClose]);
+
+  // Tapping a suggestion chip seeds the textarea but deliberately does NOT
+  // call .focus() — that would pop the mobile keyboard right back up, the
+  // same issue we just removed the auto-focus-on-mount for.
+  function applySuggestion(s: string) {
+    setText((prev) => (prev.trim().length ? prev : s + " "));
+  }
 
   async function handleSend() {
     const trimmed = text.trim();
@@ -141,6 +152,20 @@ function FeedbackModal({ onClose }: { onClose: () => void }) {
 
         <div className="fb-body">
           <div className="fb-label">What's on your mind?</div>
+          {text.length === 0 && (
+            <div className="fb-suggestions">
+              {FEEDBACK_SUGGESTIONS.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  className="fb-suggestion-chip"
+                  onClick={() => applySuggestion(s)}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          )}
           <textarea
             ref={textareaRef}
             className="fb-textarea"
