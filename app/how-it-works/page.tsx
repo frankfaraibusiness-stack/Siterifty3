@@ -59,7 +59,7 @@ const STEPS = [
   {
     n: "6",
     title: "Payout, minus platform fee",
-    body: "The seller's wallet is credited the sale price minus Siterifty's platform fee, which scales down from 20% to 5% depending on their plan.",
+    body: "The seller's wallet is credited the sale price minus Siterifty's platform fee, which scales down from 30% to 12% depending on their plan.",
   },
 ];
 
