@@ -69,6 +69,7 @@ export default function MarketplaceGrid({
   function goToMarketplaceWith(next: {
     typeFilter?: typeof filters.typeFilter;
     templateFilter?: typeof filters.templateFilter;
+    saleTypeFilter?: typeof filters.saleTypeFilter;
     priceMin?: number;
     priceMax?: number | null;
     searchQuery?: string;
@@ -81,6 +82,14 @@ export default function MarketplaceGrid({
       searchQuery: next.searchQuery ?? filters.searchQuery,
     });
     router.push(formatMarketplacePath(path));
+    // saleTypeFilter deliberately isn't part of the SEO path scheme (see
+    // buildMarketplacePath) — same reasoning as why it's not encoded in
+    // the URL from useMarketplaceFilters' syncUrl effect either, it's a
+    // client-side-only toggle like templateFilter used to be before SEO
+    // URLs existed. Apply it directly to the shared filters state so a
+    // homepage-preview click still takes effect once landed on
+    // /marketplace, instead of silently being dropped.
+    if (next.saleTypeFilter !== undefined) filters.setSaleTypeFilter(next.saleTypeFilter);
   }
 
   // When a search query is active, the grid's data source switches from
@@ -198,6 +207,8 @@ export default function MarketplaceGrid({
         onTypeChange={preview ? (v) => goToMarketplaceWith({ typeFilter: v }) : filters.setTypeFilter}
         templateFilter={filters.templateFilter}
         onTemplateChange={preview ? (v) => goToMarketplaceWith({ templateFilter: v }) : filters.setTemplateFilter}
+        saleTypeFilter={filters.saleTypeFilter}
+        onSaleTypeChange={preview ? (v) => goToMarketplaceWith({ saleTypeFilter: v }) : filters.setSaleTypeFilter}
         priceMin={filters.priceMin}
         priceMax={filters.priceMax}
         onPriceChange={
