@@ -421,9 +421,9 @@
             }
 
 /* ── Themes ── */
-#srf-modal-icon.theme-danger  { background: radial-gradient(circle at 30% 20%, rgba(248,113,113,0.22), rgba(239,68,68,0.1)); }
+#srf-modal-icon.theme-danger  { background: radial-gradient(circle at 30% 20%, rgba(163,230,53,0.26), var(--mp-accent-muted)); }
 
-#srf-modal-icon.theme-danger  svg { stroke: #fca5a5; }
+#srf-modal-icon.theme-danger  svg { stroke: var(--mp-accent); }
 
 #srf-modal-icon.theme-warning { background: radial-gradient(circle at 30% 20%, rgba(251,191,36,0.22), rgba(251,191,36,0.1)); }
 
@@ -476,11 +476,11 @@
 /* ── Buttons ── */
 #srf-modal-actions {
             position: relative;
-            display: flex; gap: 0.6rem; padding: 1.2rem 1.4rem 1.4rem;
+            display: flex; flex-direction: column-reverse; gap: 0.6rem; padding: 1.2rem 1.4rem 1.4rem;
             }
 
 .srf-modal-btn {
-            flex: 1; padding: 0.7rem 1rem; border-radius: 0.9rem;
+            width: 100%; padding: 0.8rem 1rem; border-radius: 0.9rem;
             font-size: 0.85rem; font-weight: 700; cursor: pointer;
             border: none; font-family: inherit; transition: all 0.15s;
             display: flex; align-items: center; justify-content: center;
@@ -495,12 +495,12 @@
 .srf-modal-btn.cancel:hover { background: rgba(255,255,255,0.1); color: #fff; }
 
 .srf-modal-btn.confirm-danger  {
-            background: linear-gradient(180deg, #f87171, #ef4444);
-            color: #fff;
-            box-shadow: 0 6px 18px rgba(239,68,68,0.3);
+            background: linear-gradient(180deg, #bef264, var(--mp-accent));
+            color: #0b0f0a;
+            box-shadow: 0 6px 18px rgba(163,230,53,0.3);
             }
 
-.srf-modal-btn.confirm-danger:hover  { filter: brightness(1.06); box-shadow: 0 6px 22px rgba(239,68,68,0.4); }
+.srf-modal-btn.confirm-danger:hover  { filter: brightness(1.08); box-shadow: 0 6px 22px rgba(163,230,53,0.4); }
 
 .srf-modal-btn.confirm-warning {
             background: linear-gradient(180deg, #fbbf24, #f59e0b);
