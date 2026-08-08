@@ -222,27 +222,13 @@ export default function WelcomeBackScreen() {
       <div id="welcomeBackScreen" className="active">
         <div className="wb-orb" />
         <div className="wb-shell">
-          <button
-            type="button"
-            className="wb-corner-close"
-            aria-label="Continue to Siterifty"
-            onClick={() => setActive(false)}
-          >
-            <svg
-              width="15"
-              height="15"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M18 6L6 18M6 6l12 12" />
-            </svg>
-          </button>
-          <div className="wb-sticky-top">
-            <div className="wb-top">
+          {/* Sticky header — unique to this screen, not the site's main
+              Header.tsx. Avatar + name pinned left, the primary "Next"
+              action pinned right, so the way out is always exactly where
+              a thumb already is on mobile (top-right) instead of requiring
+              a scroll to the bottom sticky CTA that used to live there. */}
+          <div className="wb-header">
+            <div className="wb-header-left">
               <div
                 className="wb-avatar"
                 id="wbAvatar"
@@ -257,7 +243,29 @@ export default function WelcomeBackScreen() {
                 </div>
               </div>
             </div>
+            <button
+              type="button"
+              className="wb-header-next"
+              aria-label="Continue to Siterifty"
+              onClick={() => setActive(false)}
+            >
+              Next
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M5 12h14M13 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
 
+          <div className="wb-body">
             <div className="wb-earn-card">
               <div className="wb-earn-label">Earned Today</div>
               <div className="wb-earn-amt" id="wbEarnedToday">
@@ -272,21 +280,11 @@ export default function WelcomeBackScreen() {
               <div className="wb-obj-title">Today&apos;s Objectives</div>
               <div className="wb-obj-sub">Complete tasks to earn wallet rewards</div>
             </div>
-          </div>
 
-          <div className="wb-right-pane">
-          {/* Duplicate of .wb-obj-header above, shown only at ≥1024px once
-              the left pane is pinned and this becomes its own scrolling
-              column with its own heading (see welcome-back.css). */}
-          <div className="wb-right-header">
-            <div className="wb-obj-title">Today&apos;s Objectives</div>
-            <div className="wb-obj-sub">Complete tasks to earn wallet rewards</div>
-          </div>
-
-          <div className="wb-obj-scroll">
-            <div className="wb-obj-list" id="wbObjList">
+            <div className="wb-obj-grid" id="wbObjList">
               {objState === "loading" && (
                 <>
+                  <div className="wb-skel-obj" />
                   <div className="wb-skel-obj" />
                   <div className="wb-skel-obj" />
                   <div className="wb-skel-obj" />
@@ -294,32 +292,16 @@ export default function WelcomeBackScreen() {
               )}
               {objState === "empty" && (
                 <div
-                  className="wb-skel-obj"
-                  style={{
-                    animation: "none",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "rgba(255,255,255,.35)",
-                    fontSize: 12.5,
-                  }}
+                  className="wb-skel-obj wb-obj-msg"
+                  style={{ gridColumn: "1 / -1" }}
                 >
                   No objectives available right now — check back soon.
                 </div>
               )}
               {objState === "error" && (
                 <div
-                  className="wb-skel-obj"
-                  style={{
-                    animation: "none",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "rgba(255,255,255,.35)",
-                    fontSize: 12.5,
-                    textAlign: "center",
-                    padding: "0 16px",
-                  }}
+                  className="wb-skel-obj wb-obj-msg"
+                  style={{ gridColumn: "1 / -1" }}
                 >
                   Couldn&apos;t load today&apos;s objectives. Pull down to refresh once you&apos;re in.
                 </div>
@@ -409,25 +391,6 @@ export default function WelcomeBackScreen() {
                   );
                 })}
             </div>
-          </div>
-
-          <div className="wb-sticky-bottom">
-            <button className="wb-continue-btn" onClick={() => setActive(false)}>
-              <span>Continue to Siterifty</span>
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.4"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M5 12h14M13 5l7 7-7 7" />
-              </svg>
-            </button>
-          </div>
           </div>
         </div>
       </div>
