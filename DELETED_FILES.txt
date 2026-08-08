@@ -1,2 +1,0 @@
-Note: AiSearchPanel.tsx was DELETED — not included, remove it manually from your project
-components/marketplace/AiSearchPanel.tsx
