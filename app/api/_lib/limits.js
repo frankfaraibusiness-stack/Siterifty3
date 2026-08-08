@@ -73,10 +73,10 @@ export const LIMITS = {
 
   // ── Platform fee per sale, by plan (decimal, e.g. 0.30 = 30%) ─────────────
   saleFees: {
-    free:    0.20,
-    starter: 0.15,
-    growth:  0.10,
-    pro:     0.05,
+    free:    0.30,
+    starter: 0.24,
+    growth:  0.18,
+    pro:     0.12,
   },
 
   // ── Weekly listing quota per plan (null = unlimited) ──────────────────────
