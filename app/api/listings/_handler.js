@@ -818,6 +818,17 @@ async function handleCreate(body, idToken) {
     return { plan };
   });
 
+  // A new listing changes pool membership exactly like a delete does — a
+  // buyer shouldn't have to wait out the full TTL just because the cached
+  // pool for this type predates this listing's creation. Invalidate after
+  // the transaction commits (not inside it — this is a separate doc write
+  // with its own failure mode, and a pool refresh doesn't need to be
+  // atomic with the listing write itself). Non-fatal by design (see
+  // _invalidateFeedPool's own try/catch) — worst case on a transient
+  // failure here is the pre-existing TTL-expiry behavior, never a broken
+  // listing creation.
+  await _invalidateFeedPool(type);
+
   return { listingId: listingRef.id, plan: result.plan };
 }
 
@@ -1796,11 +1807,12 @@ const FEED_MAX_POOL_PER_TYPE = 200; // hard cap per type fetched from Firestore 
 // "loser" transaction simply re-runs, sees the now-fresh doc the winner
 // just wrote, and returns that instead of double-fetching.
 //
-// Ownership: only handleDelete invalidates this cache (a hard delete
-// changes which docs belong in the pool). handleCreate/handleUpdate don't
-// need to -- creates just wait out the TTL like any other staleness, and
-// edits never change type/status (per code inspection), so they can't
-// affect pool membership at all.
+// Ownership: handleDelete and handleCreate both invalidate this cache — a
+// hard delete or a new listing each change which docs belong in the pool.
+// handleUpdate doesn't need to — edits never change type/status (per code
+// inspection: handleUpdate doesn't even accept `type` from the body), so
+// an edit can't affect pool membership even though it can change other
+// fields like saleType/auction.
 const FEED_POOL_TTL_MS = 60 * 60 * 1000; // 1 hour
 const FEED_POOL_COLLECTION = 'feedPool';
 
