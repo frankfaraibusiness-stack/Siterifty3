@@ -100,6 +100,8 @@ interface Draft {
   price?: string;
   revenue?: string;
   expenses?: string;
+  includesDomain?: boolean;
+  domainPrice?: string;
   transferMethods?: string[];
   monthlyVisits?: string;
   saleType?: "fixed" | "auction";
@@ -198,6 +200,13 @@ export default function WebsiteListingForm({ onBack }: { onBack?: () => void } =
   const [price, setPrice] = useState("");
   const [revenue, setRevenue] = useState("");
   const [expenses, setExpenses] = useState("");
+  // Whether the Asking Price above includes the domain, or is source-code
+  // only. Defaults to true (domain included) — the platform's original,
+  // only behavior. Flipping to false reveals a separate optional Domain
+  // Price field the seller can use to quote the domain on top; leaving it
+  // blank just means "source code only, domain priced separately/off-platform".
+  const [includesDomain, setIncludesDomain] = useState(true);
+  const [domainPrice, setDomainPrice] = useState("");
   // Fixed-price vs auction — mirrors SaleType in lib/listings.ts. Auction
   // fields only matter/validate when saleType === "auction"; "price" above
   // remains the source of truth for fixed-price listings exactly as
@@ -262,6 +271,8 @@ export default function WebsiteListingForm({ onBack }: { onBack?: () => void } =
         if (d.price) setPrice(d.price);
         if (d.revenue) setRevenue(d.revenue);
         if (d.expenses) setExpenses(d.expenses);
+        if (d.includesDomain === false) setIncludesDomain(false);
+        if (d.domainPrice) setDomainPrice(d.domainPrice);
         if (d.transferMethods?.length) setTransferMethods(d.transferMethods);
         if (d.monthlyVisits) setMonthlyVisits(d.monthlyVisits);
         if (d.saleType) setSaleType(d.saleType);
@@ -282,7 +293,7 @@ export default function WebsiteListingForm({ onBack }: { onBack?: () => void } =
       const d: Draft = {
         step: nextStep, url, title, desc, frontend, backend, database, monetization,
         location, reason, category, age, structure, price, revenue, expenses, transferMethods, monthlyVisits,
-        saleType, auctionStartPrice, auctionStartTime, auctionEndTime,
+        saleType, auctionStartPrice, auctionStartTime, auctionEndTime, includesDomain, domainPrice,
       };
       localStorage.setItem(DRAFT_KEY, JSON.stringify(d));
     } catch {
@@ -557,6 +568,8 @@ export default function WebsiteListingForm({ onBack }: { onBack?: () => void } =
           revenue: parseFloat(revenue),
           expenses: parseFloat(expenses),
           revenueProofUrls,
+          includesDomain,
+          ...(!includesDomain && domainPrice.trim() ? { domainPrice: parseFloat(domainPrice) } : {}),
         },
         saleType,
         auction: saleType === "auction"
@@ -917,6 +930,56 @@ export default function WebsiteListingForm({ onBack }: { onBack?: () => void } =
                 <span style={{ fontSize: 20, fontWeight: 800, color: profit >= 0 ? ACCENT : "#f87171" }}>
                   {profit >= 0 ? "+" : ""}${profit.toFixed(2)}
                 </span>
+              </div>
+
+              <div style={{ marginBottom: domainPrice || !includesDomain ? 16 : 0 }}>
+                <span style={sectionLabelStyle}>Domain</span>
+                <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
+                  <button
+                    type="button"
+                    onClick={() => setIncludesDomain(true)}
+                    style={{
+                      flex: 1, padding: "12px 14px", borderRadius: 10, cursor: "pointer",
+                      fontSize: 13, fontWeight: 700, fontFamily: "inherit",
+                      border: `1px solid ${includesDomain ? ACCENT : "rgba(255,255,255,0.1)"}`,
+                      background: includesDomain ? `${ACCENT}1a` : "rgba(255,255,255,0.03)",
+                      color: includesDomain ? ACCENT : "rgba(255,255,255,0.6)",
+                    }}
+                  >
+                    Includes Domain
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIncludesDomain(false)}
+                    style={{
+                      flex: 1, padding: "12px 14px", borderRadius: 10, cursor: "pointer",
+                      fontSize: 13, fontWeight: 700, fontFamily: "inherit",
+                      border: `1px solid ${!includesDomain ? ACCENT : "rgba(255,255,255,0.1)"}`,
+                      background: !includesDomain ? `${ACCENT}1a` : "rgba(255,255,255,0.03)",
+                      color: !includesDomain ? ACCENT : "rgba(255,255,255,0.6)",
+                    }}
+                  >
+                    Source Code Only
+                  </button>
+                </div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", marginTop: 8 }}>
+                  {includesDomain
+                    ? "The asking price above includes transferring the domain to the buyer."
+                    : "The asking price above is for the source code only — the domain is not included. You can optionally quote a separate price for it below, or leave it blank and negotiate that off the price shown here."}
+                </div>
+                {!includesDomain && (
+                  <div style={{ marginTop: 12, maxWidth: 240 }}>
+                    <Field label="Domain Price (USD, optional)">
+                      <div className="sr-lf-money">
+                        <input
+                          type="number" min="0" value={domainPrice}
+                          onChange={(e) => setDomainPrice(e.target.value)}
+                          placeholder="e.g. 200" style={inputStyle}
+                        />
+                      </div>
+                    </Field>
+                  </div>
+                )}
               </div>
             </div>
 
