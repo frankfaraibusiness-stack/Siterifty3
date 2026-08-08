@@ -189,7 +189,7 @@ const OBJECTIVE_POOL = [
   // once that tracking exists — shipping it now would show 0/5 forever.
 ];
 
-const OBJECTIVES_PER_DAY = 3;
+const OBJECTIVES_PER_DAY = 4;
 
 // ── Deterministic daily pick: same 3 all day for a given uid+date, but
 //    rotates day to day. Simple string-hash seeded shuffle — no external
