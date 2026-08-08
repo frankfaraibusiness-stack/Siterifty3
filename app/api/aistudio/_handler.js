@@ -23,47 +23,34 @@
 // FIREBASE_PRIVATE_KEY, GROQ_API_KEY, GEMINI_API_KEY
 
 import admin from 'firebase-admin';
+import { FieldValue } from 'firebase-admin/firestore';
+import { getAdminDb } from '../../../lib/server/adminDb';
 
-// ── Firebase Admin init (singleton across invocations) ──
+// ── Firebase Admin init (shared singleton — see lib/server/adminDb.ts) ──
 //
-// During `next build`, Next.js imports/parses every API route module as
-// part of the build's collection phase — even though this handler never
-// actually runs at build time. Vercel's build container does not have the
-// production Firebase env vars populated then, so admin.credential.cert()
-// would throw ("Service account object must contain a string 'project_id'
-// property.") purely from module evaluation and crash the whole build.
-// Fall back to a dummy credential in that case so the module can load; any
-// real Firestore call made through this dummy credential at runtime would
-// still fail loudly (as it should) if the real env vars are truly missing
-// in production.
-if (!admin.apps.length) {
-  let credential;
-  if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
-    credential = admin.credential.cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-    });
-  } else {
-    credential = {
-      getAccessToken: () => Promise.resolve({ access_token: 'dummy', expires_in: 3600 }),
-    };
-  }
-  admin.initializeApp({ credential });
-}
-// Lazy so `admin.firestore()` — which throws immediately if the credential
-// isn't a real cert/ADC credential — never runs at module-import time (e.g.
-// during `next build` page-data collection). It only runs the first time a
-// request handler actually touches `db`, by which point real env vars are
-// present in production.
+// Used to keep its own separate admin.initializeApp() call here (a
+// seventh independent copy of the same credential block every other
+// _handler.js file also carried), with a dummy-credential fallback so
+// `next build`'s module-collection phase wouldn't crash before real env
+// vars exist. That eager, module-load-time init was the riskiest of all
+// the copies: if this file happened to be the first to import in a given
+// serverless instance, it could register the app under a dummy credential
+// before any other route's real init ran — and every other handler's own
+// `if (!getApps().length)` guard would then silently keep reusing that
+// broken app for the rest of the instance's life, with no error anywhere.
+//
+// Now lazy + shared: nothing touches Firebase Admin at module-import
+// time. `db` only calls the shared getAdminDb() (same credentials as
+// every other route) the first time a request handler actually reads a
+// property off it, exactly as before — this just removes the duplicate,
+// eager, dummy-credential init path.
 let _db;
 const db = new Proxy({}, {
   get(_target, prop) {
-    if (!_db) _db = admin.firestore();
+    if (!_db) _db = getAdminDb();
     return _db[prop];
   },
 });
-const FieldValue = admin.firestore.FieldValue;
 
 // ════════════════════════════════════════════════════════════════════════
 // PROVIDER ROUTER
