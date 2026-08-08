@@ -18,6 +18,8 @@ import { useLimits } from "@/lib/useLimits";
 import SellerBadges from "@/components/seller/SellerBadges";
 import { logout } from "@/lib/authActions";
 import { buildListingSlug } from "@/lib/slug";
+import { listingShareUrl, sellerShareUrl } from "@/lib/share";
+import ShareButton from "@/components/listing/ShareButton";
 import { useCurrency } from "@/lib/CurrencyContext";
 import { useNavigating } from "@/lib/useNavigating";
 import NavSpinnerIcon from "@/components/shared/NavSpinnerIcon";
@@ -461,6 +463,7 @@ export default function MyProfileHub({ initialTab }: { initialTab?: ParentTab })
                 <div className="pm-email-text">{user?.email || ""}</div>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "0.3rem" }}>
                   <span className={`pm-plan-badge ${pmPlanClass(profile.plan)}`}>{planLabel}</span>
+                  <ShareButton url={sellerShareUrl(profile.username)} title={`${profile.username} on Siterifty`} />
                 </div>
               </>
             )}
@@ -856,6 +859,9 @@ export default function MyProfileHub({ initialTab }: { initialTab?: ParentTab })
                                 </svg>
                                 Delete
                               </button>
+                              <div style={{ flex: "0 0 auto" }}>
+                                <ShareButton url={listingShareUrl(l.id, l.title)} title={title} />
+                              </div>
                             </div>
                           </div>
                         </div>
