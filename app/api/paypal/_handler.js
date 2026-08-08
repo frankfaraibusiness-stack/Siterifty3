@@ -70,8 +70,8 @@
 // have been moved to /api/deal (deal.js) alongside the deal lifecycle actions.
 // Update frontend callers to POST to /api/deal for all escrow actions.
 
-import { initializeApp, getApps, cert } from 'firebase-admin/app';
-import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore';
+import { FieldValue, Timestamp } from 'firebase-admin/firestore';
+import { getAdminDb } from '../../../lib/server/adminDb';
 import { LIMITS } from '../_lib/limits.js';
 import crypto from 'crypto';
 
@@ -116,18 +116,7 @@ const AUTOSEND_CRON_SECRET = process.env.AUTOSEND_CRON_SECRET || null;
 
 
 // ── Firebase Admin singleton ─────────────────────────────────────────────────
-function getAdminDb() {
-  if (!getApps().length) {
-    initializeApp({
-      credential: cert({
-        projectId:   process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey:  process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-      }),
-    });
-  }
-  return getFirestore();
-}
+// Shared init — see lib/server/adminDb.ts.
 
 // ── Admin session verification ───────────────────────────────────────────────
 // Mirrors admin.js's cookie sign/verify exactly (same COOKIE_NAME, same
