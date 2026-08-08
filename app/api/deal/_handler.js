@@ -103,8 +103,8 @@
 // count (each file under /api is its own function slot).
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { initializeApp, getApps, cert } from 'firebase-admin/app';
-import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore';
+import { FieldValue, Timestamp } from 'firebase-admin/firestore';
+import { getAdminDb } from '../../../lib/server/adminDb';
 import { supabaseCreateSignedUrl, findAccountById, deleteFiles } from '../_lib/storage.js';
 import { LIMITS } from '../_lib/limits.js';
 import { sendPushToUser } from '../_lib/push.js';
@@ -321,18 +321,7 @@ async function triggerAiTriage({ kind, id, evidence }) {
 }
 
 // ── Firebase Admin singleton ─────────────────────────────────────────────────
-function getAdminDb() {
-  if (!getApps().length) {
-    initializeApp({
-      credential: cert({
-        projectId:   process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey:  process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-      }),
-    });
-  }
-  return getFirestore();
-}
+// Shared init — see lib/server/adminDb.ts.
 
 // ── Admin session verification ───────────────────────────────────────────────
 // Mirrors admin.js's / paypal.js's cookie sign/verify exactly (same
