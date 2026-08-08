@@ -54,6 +54,29 @@
 //                            Creates a record in /disputes for admin review.
 //                            → { success: true }
 //
+//   ── In-chat deal management ─────────────────────────────────────────────
+//   action: 'deal-chat-cancel' { idToken, chatRoomId }
+//                            Either participant ends an in-progress deal chat
+//                            (the chat's own "End & Cancel Deal" menu item).
+//                            Refunds escrow first if the deal was funded.
+//                            Never sets expiryCancelled — a manual cancel is
+//                            never offered a Reopen Deal option.
+//                            → { success: true }
+//
+//   action: 'deal-chat-reopen' { idToken, chatRoomId }
+//                            Reopens a deal chat that auto-closed because its
+//                            delivery deadline passed (expiryCancelled: true
+//                            on the room — set only by the deadline-expiry
+//                            path, never by a manual cancel or a successful
+//                            completion, so this 409s on either of those).
+//                            Whoever calls it (buyer or seller) pays a flat
+//                            15% penalty (DEAL_REOPEN_PENALTY_RATE) on the
+//                            listing price, debited from their own wallet
+//                            balance in the same transaction that revives
+//                            the room. Room returns to paymentStatus
+//                            'unfunded' with a fresh 7-day expiresAt.
+//                            → { success: true, penalty }
+//
 //   action: 'escrow-get-download-url' { idToken, chatRoomId, dealId, storagePath }
 //                            Mints a short-lived (5 min) signed URL for a deal
 //                            deliverable stored in private Supabase storage.
@@ -406,6 +429,16 @@ function dealExpiryMsForType(listingType) {
 // asking questions in the chat right up until this window closes.
 const DEAL_AUTO_RELEASE_MS = 72 * 60 * 60 * 1000; // 72 hours
 
+// Flat penalty charged to whichever side reopens a deal whose delivery
+// deadline passed (see handleReopenDeal below) — 15% of the deal's listing
+// price, regardless of plan or listing type. Deliberately NOT looked up from
+// LIMITS.saleFees: that table is the seller's plan-based payout cut taken at
+// sale completion, a completely different fee for a completely different
+// event. This one is fixed platform-wide and charged to whichever party
+// chooses to bring an expired deal back, on top of (not instead of) whatever
+// else they already owe on the deal.
+const DEAL_REOPEN_PENALTY_RATE = 0.15;
+
 // ── Minimum deal message length — single source of truth is
 //    limits.js LIMITS.deals.messageMinLength, never duplicated here.
 const DEAL_MSG_MIN_LENGTH = LIMITS.deals.messageMinLength;
@@ -616,6 +649,10 @@ export default async function handler(req, res) {
       case 'escrow-release': return await handleEscrowRelease(req, res, idToken);
       case 'escrow-refund':  return await handleEscrowRefund(req, res, idToken);
       case 'escrow-dispute': return await handleEscrowDispute(req, res, idToken);
+
+      // ── In-chat deal management ──────────────────────────────────────────
+      case 'deal-chat-cancel': return await handleDealChatCancel(req, res, idToken);
+      case 'deal-chat-reopen': return await handleReopenDeal(req, res, idToken);
 
       // ── Deliverable access ───────────────────────────────────────────────
       case 'escrow-get-download-url': return await handleEscrowGetDownloadUrl(req, res, idToken);
@@ -2164,7 +2201,7 @@ async function handleEscrowRelease(req, res, idToken) {
 // delivered in time. `auto: true` skips the participant-identity check and
 // adjusts messaging to make clear this happened automatically.
 // ─────────────────────────────────────────────────────────────────────────────
-async function _refundEscrowForRoom(db, chatRoomId, dealId, { auto = false } = {}) {
+async function _refundEscrowForRoom(db, chatRoomId, dealId, { auto = false, expiry = false } = {}) {
   const roomRef = db.collection('dealChats').doc(chatRoomId);
 
   await db.runTransaction(async tx => {
@@ -2216,6 +2253,11 @@ async function _refundEscrowForRoom(db, chatRoomId, dealId, { auto = false } = {
       dealOutcome:   'closed',
       refundedAt:    FieldValue.serverTimestamp(),
       autoCancelled: auto,
+      // Only the deadline-expiry path sets this — see _cancelUnfundedExpiredRoom's
+      // comment above for why it's kept distinct from autoCancelled/cancelled.
+      // A manual refund (auto:false, expiry:false) or a dispute resolved in the
+      // buyer's favor (also expiry:false) never sets it, so neither is reopenable.
+      expiryCancelled: expiry,
       active:        false,
       cancelled:     true,
     });
@@ -2313,12 +2355,21 @@ async function _refundEscrowForRoom(db, chatRoomId, dealId, { auto = false } = {
 // Cancels a deal that expired before any money was ever put into escrow
 // (paymentStatus is still unfunded/null) — no wallet transaction needed,
 // just close the room and mark both sides' deal docs as closed.
+//
+// Sets expiryCancelled: true (distinct from the generic autoCancelled/
+// cancelled flags above) so the client can tell "closed because the
+// deadline passed" apart from "closed because someone manually cancelled
+// it" or "closed because it completed successfully" — only the former is
+// offered a Reopen Deal option (see handleReopenDeal below). A manual
+// cancel (in-chat-cancel action) and a successful completion never set
+// this flag, so they're never reopenable.
 async function _cancelUnfundedExpiredRoom(db, chatRoomId, dealId, room) {
   const roomRef = db.collection('dealChats').doc(chatRoomId);
   await roomRef.update({
     paymentStatus: room.paymentStatus || 'unfunded',
     dealOutcome:   'closed',
     autoCancelled: true,
+    expiryCancelled: true,
     active:        false,
     cancelled:     true,
     closedAt:      FieldValue.serverTimestamp(),
@@ -2362,6 +2413,298 @@ async function handleEscrowRefund(req, res, idToken) {
   await _refundEscrowForRoom(db, chatRoomId, dealId, { auto: false });
 
   return res.status(200).json({ success: true });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// deal-chat-cancel  { idToken, chatRoomId }
+// Either participant ends an in-progress deal chat from the "End & Cancel
+// Deal" menu item (DealChatPanel.tsx's handleCancelDeal). Server-side
+// replacement for what used to be a set of direct client Firestore writes —
+// moved here for the same reason every other deal mutation already goes
+// through this file (see the top-of-file comment: "The client must NOT
+// write directly to any of the above paths"). This was the one path that
+// still did, since it never needed to touch money — but bypassing the
+// server for a cancel also meant no auth/participant check ran server-side,
+// and the escrow was never handled if the buyer had already paid in.
+//
+// If the deal was ever funded, this refunds escrow to the buyer first (same
+// core as escrow-refund/handleEscrowRefund) — a manual cancel must never
+// leave money sitting in escrow with no live deal to resolve it. If it was
+// still unfunded, this is a simple close, same shape as
+// _cancelUnfundedExpiredRoom but WITHOUT expiryCancelled — a manual cancel
+// is a deliberate choice by a participant, not a missed deadline, so it is
+// never offered a Reopen Deal option (see handleReopenDeal below).
+// ─────────────────────────────────────────────────────────────────────────────
+async function handleDealChatCancel(req, res, idToken) {
+  const { chatRoomId } = req.body;
+  if (!chatRoomId) return res.status(400).json({ error: 'Missing chatRoomId' });
+
+  const fbUser = await verifyFirebaseToken(idToken);
+  const uid    = fbUser.localId;
+
+  const db      = getAdminDb();
+  const roomRef = db.collection('dealChats').doc(chatRoomId);
+  const roomSnap = await roomRef.get();
+  if (!roomSnap.exists) return res.status(404).json({ error: 'Deal not found' });
+  const room = roomSnap.data();
+  if (room.sellerUid !== uid && room.buyerUid !== uid) {
+    return res.status(403).json({ error: 'Not a participant in this deal' });
+  }
+  if (['complete', 'refunded'].includes(room.paymentStatus)) {
+    return res.status(409).json({ error: `Cannot cancel — this deal is already ${room.paymentStatus}` });
+  }
+  if (room.cancelled || room.active === false) {
+    return res.status(409).json({ error: 'This deal is already cancelled' });
+  }
+
+  const cancelledBy = uid === room.sellerUid ? 'the seller' : 'the buyer';
+
+  if (room.paymentStatus === 'funded' && parseFloat(room.escrowAmount || 0) > 0) {
+    // Refunds the buyer and closes the room in one go — matches
+    // handleEscrowRefund's own call, auto:false/expiry:false so this is
+    // never treated as reopenable.
+    await _refundEscrowForRoom(db, chatRoomId, room.dealId || null, { auto: false, expiry: false });
+  } else {
+    const now = Date.now();
+    await roomRef.update({
+      active:               false,
+      cancelled:            true,
+      cancelledBy:           uid,
+      cancelledAt:           now,
+      deleteAt:              now + DEAL_CHAT_DELETE_MS,
+      paymentRequestPending: false,
+    });
+    if (room.dealId) {
+      await Promise.all([room.sellerUid, room.buyerUid].map(u => {
+        if (!u) return Promise.resolve();
+        return db.collection('users').doc(u).collection('deals').doc(room.dealId)
+          .update({ status: 'cancelled', dealOutcome: 'closed' }).catch(() => {});
+      }));
+    }
+    await Promise.all([
+      room.sellerUid ? db.collection('users').doc(room.sellerUid).collection('threads').doc(chatRoomId)
+        .update({ active: false, cancelled: true, lastMessage: '❌ Deal cancelled', lastAt: now, unread: uid !== room.sellerUid }).catch(() => {}) : Promise.resolve(),
+      room.buyerUid ? db.collection('users').doc(room.buyerUid).collection('threads').doc(chatRoomId)
+        .update({ active: false, cancelled: true, lastMessage: '❌ Deal cancelled', lastAt: now, unread: uid !== room.buyerUid }).catch(() => {}) : Promise.resolve(),
+    ]);
+  }
+
+  await db.collection('dealChats').doc(chatRoomId).collection('messages').add({
+    uid:       'system',
+    type:      'system',
+    text:      `❌ This deal was cancelled by ${cancelledBy}.`,
+    createdAt: Date.now(),
+  }).catch(() => {});
+
+  return res.status(200).json({ success: true });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// deal-chat-reopen  { idToken, chatRoomId }
+// Reopens a deal chat that was auto-closed because its delivery deadline
+// passed (expiryCancelled: true — see _cancelUnfundedExpiredRoom and the
+// expiry branch of _refundEscrowForRoom above). NOT available for a
+// manually-cancelled deal or a completed one — those never set
+// expiryCancelled, so this refuses them below regardless of what the
+// client sends.
+//
+// Whoever reopens (buyer or seller — either may call this) pays a flat 15%
+// penalty (DEAL_REOPEN_PENALTY_RATE) on top of whatever the deal already
+// costs them on their side of the wallet math — a buyer paying the penalty
+// still separately pays the listing price into escrow via the normal
+// escrow-pay flow once the room is live again; a seller paying the penalty
+// still separately owes their normal plan-based sale fee out of the sale
+// proceeds at release time (LIMITS.saleFees, unaffected by this). The
+// penalty is charged from the reopening party's own wallet balance right
+// here, atomically with reviving the room, so the deal can't be reopened
+// without the fee actually clearing. Routed to the platform admin account
+// exactly like the sale-completion fee (see _releaseEscrowForRoom above) —
+// live credit if ADMIN_EMAIL resolves, else the unclaimed-fees ledger, but
+// never silently discarded.
+//
+// The revived room gets a fresh 7-day resolution window (matches the
+// "You have 7 days to resolve" the original accept-deal message already
+// promises elsewhere) and returns to paymentStatus 'unfunded' — even a
+// previously-funded-then-expired deal must be re-funded through escrow-pay
+// again, since the original escrow was already refunded back to the buyer
+// when the deal expired.
+// ─────────────────────────────────────────────────────────────────────────────
+const DEAL_REOPEN_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+
+async function handleReopenDeal(req, res, idToken) {
+  const { chatRoomId } = req.body;
+  if (!chatRoomId) return res.status(400).json({ error: 'Missing chatRoomId' });
+
+  const fbUser = await verifyFirebaseToken(idToken);
+  const uid    = fbUser.localId;
+
+  const db      = getAdminDb();
+  const roomRef = db.collection('dealChats').doc(chatRoomId);
+  const adminUid = await getPlatformFeeAdminUid(db);
+  let ledgerEntry = null;
+  let result;
+
+  try {
+    result = await db.runTransaction(async tx => {
+      const roomSnap = await tx.get(roomRef);
+      if (!roomSnap.exists) throw Object.assign(new Error('Deal not found'), { code: 'NOT_FOUND' });
+      const room = roomSnap.data();
+
+      if (room.sellerUid !== uid && room.buyerUid !== uid) {
+        throw Object.assign(new Error('Not a participant in this deal'), { code: 'FORBIDDEN' });
+      }
+      if (!room.expiryCancelled) {
+        throw Object.assign(new Error('This deal was not closed by an expired deadline, so it cannot be reopened'), { code: 'NOT_REOPENABLE' });
+      }
+
+      const listingPrice = parseFloat(room.listingPrice || 0);
+      const penalty = parseFloat((listingPrice * DEAL_REOPEN_PENALTY_RATE).toFixed(2));
+
+      const payerRef  = db.collection('users').doc(uid);
+      const payerSnap = await tx.get(payerRef);
+      if (!payerSnap.exists) throw Object.assign(new Error('User not found'), { code: 'NOT_FOUND' });
+
+      const payerBal = parseFloat((payerSnap.data().walletBalance || 0).toFixed(2));
+      if (penalty > 0 && penalty > payerBal) {
+        throw Object.assign(new Error(`Insufficient wallet balance — the reopen fee is $${penalty.toFixed(2)} (available: $${payerBal.toFixed(2)})`), { code: 'INSUFFICIENT_FUNDS' });
+      }
+
+      const noFeeOwed = uid === adminUid || penalty <= 0;
+      const applyFee  = !noFeeOwed;
+      const feeOwedButUnroutable = applyFee && !adminUid;
+
+      const adminRef  = (applyFee && adminUid) ? db.collection('users').doc(adminUid) : null;
+      const adminSnap = adminRef ? await tx.get(adminRef) : null;
+      if (adminRef && !adminSnap.exists) throw Object.assign(new Error('Platform fee admin account not found'), { code: 'INTERNAL' });
+
+      if (applyFee) {
+        const newPayerBal = parseFloat((payerBal - penalty).toFixed(2));
+        // Reopen penalty is a straight platform charge, not sale proceeds, so
+        // it only ever debits walletBalance — withdrawableBalance (earned,
+        // withdrawable money) is untouched, same principle as how a P2P send
+        // never touches it either.
+        tx.update(payerRef, { walletBalance: newPayerBal });
+
+        tx.set(payerRef.collection('transactions').doc(), {
+          type:       'deal_reopen_fee',
+          amount:     -penalty,
+          label:      `Reopen fee · ${room.listingTitle || 'Deal'}`,
+          note:       `${(DEAL_REOPEN_PENALTY_RATE * 100).toFixed(0)}% reopen penalty on $${listingPrice.toLocaleString()}`
+            + (feeOwedButUnroutable ? ' (fee pending platform reconciliation)' : ''),
+          chatRoomId,
+          dealId:     room.dealId || null,
+          status:     'completed',
+          createdAt:  FieldValue.serverTimestamp(),
+        });
+
+        if (adminRef) {
+          const adminBal    = parseFloat((adminSnap.data().walletBalance || 0).toFixed(2));
+          const newAdminBal = parseFloat((adminBal + penalty).toFixed(2));
+          const adminWithdrawable    = parseFloat((adminSnap.data().withdrawableBalance || 0).toFixed(2));
+          const newAdminWithdrawable = parseFloat((adminWithdrawable + penalty).toFixed(2));
+          tx.update(adminRef, { walletBalance: newAdminBal, withdrawableBalance: newAdminWithdrawable });
+          tx.set(adminRef.collection('transactions').doc(), {
+            type:       'deal_reopen_fee',
+            amount:     penalty,
+            label:      `Reopen fee · ${room.listingTitle || 'Deal'}`,
+            note:       `${(DEAL_REOPEN_PENALTY_RATE * 100).toFixed(0)}% of $${listingPrice.toLocaleString()} (paid by ${uid === room.buyerUid ? 'buyer' : 'seller'})`,
+            chatRoomId,
+            dealId:     room.dealId || null,
+            sellerUid:  room.sellerUid,
+            buyerUid:   room.buyerUid,
+            status:     'completed',
+            createdAt:  FieldValue.serverTimestamp(),
+          });
+        } else if (feeOwedButUnroutable) {
+          ledgerEntry = {
+            amount: penalty,
+            source: 'deal_reopen_fee',
+            sourceId: room.dealId || chatRoomId,
+            payerUid: uid,
+            counterpartyUid: uid === room.buyerUid ? room.sellerUid : room.buyerUid,
+            note: `${(DEAL_REOPEN_PENALTY_RATE * 100).toFixed(0)}% of $${listingPrice.toLocaleString()} — deducted from ${uid === room.buyerUid ? 'buyer' : 'seller'}, held pending ADMIN_EMAIL fix`,
+          };
+        }
+      }
+
+      const now = Date.now();
+      const newExpiresAt = now + DEAL_REOPEN_WINDOW_MS;
+
+      tx.update(roomRef, {
+        paymentStatus:    'unfunded',
+        dealOutcome:       FieldValue.delete(),
+        active:            true,
+        cancelled:         false,
+        autoCancelled:     false,
+        expiryCancelled:   false,
+        cancelledBy:       null,
+        cancelledAt:       null,
+        deleteAt:          null,
+        closedAt:          FieldValue.delete(),
+        refundedAt:        FieldValue.delete(),
+        escrowAmount:      null,
+        expiresAt:         newExpiresAt,
+        reopenedAt:        now,
+        reopenedBy:        uid,
+        reopenPenaltyPaid: penalty,
+      });
+
+      if (room.dealId) {
+        [room.sellerUid, room.buyerUid].forEach(u => {
+          if (!u) return;
+          tx.update(db.collection('users').doc(u).collection('deals').doc(room.dealId), {
+            status: 'accepted', paymentStatus: 'unfunded', dealOutcome: FieldValue.delete(),
+          });
+        });
+        [room.sellerUid, room.buyerUid].forEach(u => {
+          if (!u) return;
+          tx.update(db.collection('users').doc(u).collection('threads').doc(chatRoomId), {
+            active: true, cancelled: false, lastMessage: '🔄 Deal reopened', lastAt: now, unread: u !== uid,
+          });
+        });
+      }
+
+      return {
+        penalty,
+        listingTitle: room.listingTitle || 'this deal',
+        dealId: room.dealId || null,
+        buyerUid: room.buyerUid,
+        otherUid: uid === room.buyerUid ? room.sellerUid : room.buyerUid,
+      };
+    });
+  } catch (err) {
+    if (err.code === 'NOT_FOUND')          return res.status(404).json({ error: err.message });
+    if (err.code === 'FORBIDDEN')          return res.status(403).json({ error: err.message });
+    if (err.code === 'NOT_REOPENABLE')     return res.status(409).json({ error: err.message });
+    if (err.code === 'INSUFFICIENT_FUNDS') return res.status(402).json({ error: err.message });
+    throw err;
+  }
+
+  if (ledgerEntry) await _ledgerUnclaimedFee(db, ledgerEntry);
+
+  const reopenedByLabel = uid === result.buyerUid ? 'the buyer' : 'the seller';
+  await db.collection('dealChats').doc(chatRoomId).collection('messages').add({
+    uid:       'system',
+    type:      'system',
+    text:      result.penalty > 0
+      ? `🔄 This deal was reopened by ${reopenedByLabel}, who paid a $${result.penalty.toFixed(2)} reopen fee. You have 7 days to resolve. Good luck!`
+      : `🔄 This deal was reopened by ${reopenedByLabel}. You have 7 days to resolve. Good luck!`,
+    createdAt: Date.now(),
+  }).catch(() => {});
+
+  if (result.otherUid) {
+    await db.collection('users').doc(result.otherUid).collection('notifications').add({
+      type:      'deal_reopened',
+      title:     'Deal reopened',
+      body:      `"${result.listingTitle}" was reopened after its deadline passed. You have 7 days to resolve it.`,
+      chatRoomId,
+      dealId:    result.dealId || null,
+      read:      false,
+      createdAt: Date.now(),
+    }).catch(() => {});
+  }
+
+  return res.status(200).json({ success: true, penalty: result.penalty });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -2620,7 +2963,7 @@ async function _resolveExpiredRoomIfDue(db, id, room, now) {
     const deadline = room.expiresAt || null;
     if (deadline && now > deadline) {
       if (room.paymentStatus === 'funded' && parseFloat(room.escrowAmount || 0) > 0) {
-        await _refundEscrowForRoom(db, id, room.dealId || null, { auto: true });
+        await _refundEscrowForRoom(db, id, room.dealId || null, { auto: true, expiry: true });
         return { outcome: 'refunded' };
       }
       await _cancelUnfundedExpiredRoom(db, id, room.dealId || null, room);
