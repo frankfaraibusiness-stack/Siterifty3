@@ -379,7 +379,7 @@
 /* ── Overlay ── */
 #srf-modal-overlay {
             position: fixed; inset: 0; z-index: 99999;
-            background: rgba(0,0,0,0.72); backdrop-filter: blur(6px);
+            background: rgba(0,0,0,0.78); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
             display: flex; align-items: center; justify-content: center;
             padding: 1.2rem; opacity: 0; pointer-events: none;
             transition: opacity 0.18s ease;
@@ -389,10 +389,14 @@
 
 /* ── Box ── */
 #srf-modal-box {
-            background: #0e0e18; border-radius: 1.4rem;
+            position: relative;
+            background:
+              radial-gradient(120% 100% at 50% -10%, var(--mp-accent-muted), transparent 60%),
+              linear-gradient(180deg, #131320 0%, #0b0b12 100%);
+            border-radius: 1.5rem;
             width: 100%; max-width: 340px;
-            border: 1px solid rgba(255,255,255,0.09);
-            box-shadow: 0 24px 60px rgba(0,0,0,0.8);
+            border: 1px solid var(--mp-border-hover);
+            box-shadow: 0 24px 70px rgba(0,0,0,0.85), inset 0 1px 0 rgba(255,255,255,0.05);
             overflow: hidden; transform: translateY(12px) scale(0.97);
             transition: transform 0.2s cubic-bezier(0.34,1.36,0.64,1);
             }
@@ -402,12 +406,13 @@
 /* ── Icon area ── */
 #srf-modal-icon-wrap {
             display: flex; align-items: center; justify-content: center;
-            padding: 1.6rem 1.6rem 0;
+            padding: 1.7rem 1.6rem 0;
             }
 
 #srf-modal-icon {
-            width: 52px; height: 52px; border-radius: 1rem;
+            width: 54px; height: 54px; border-radius: 1.1rem;
             display: flex; align-items: center; justify-content: center;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
             }
 
 #srf-modal-icon svg {
@@ -416,45 +421,45 @@
             }
 
 /* ── Themes ── */
-#srf-modal-icon.theme-danger  { background: rgba(239,68,68,0.12);  }
+#srf-modal-icon.theme-danger  { background: radial-gradient(circle at 30% 20%, rgba(248,113,113,0.22), rgba(239,68,68,0.1)); }
 
-#srf-modal-icon.theme-danger  svg { stroke: #f87171; }
+#srf-modal-icon.theme-danger  svg { stroke: #fca5a5; }
 
-#srf-modal-icon.theme-warning { background: rgba(251,191,36,0.12); }
+#srf-modal-icon.theme-warning { background: radial-gradient(circle at 30% 20%, rgba(251,191,36,0.22), rgba(251,191,36,0.1)); }
 
 #srf-modal-icon.theme-warning svg { stroke: #fbbf24; }
 
-#srf-modal-icon.theme-success { background: rgba(163,230,53,0.12); }
+#srf-modal-icon.theme-success { background: radial-gradient(circle at 30% 20%, rgba(163,230,53,0.26), var(--mp-accent-muted)); }
 
-#srf-modal-icon.theme-success svg { stroke: #a3e635; }
+#srf-modal-icon.theme-success svg { stroke: var(--mp-accent); }
 
-#srf-modal-icon.theme-info    { background: rgba(96,165,250,0.12); }
+#srf-modal-icon.theme-info    { background: radial-gradient(circle at 30% 20%, rgba(96,165,250,0.22), rgba(96,165,250,0.1)); }
 
 #srf-modal-icon.theme-info    svg { stroke: #60a5fa; }
 
-#srf-modal-icon.theme-report  { background: rgba(163,230,53,0.12); }
+#srf-modal-icon.theme-report  { background: radial-gradient(circle at 30% 20%, rgba(163,230,53,0.26), var(--mp-accent-muted)); }
 
-#srf-modal-icon.theme-report  svg { stroke: #a3e635; }
+#srf-modal-icon.theme-report  svg { stroke: var(--mp-accent); }
 
-#srf-modal-icon.theme-input   { background: rgba(139,92,246,0.12); }
+#srf-modal-icon.theme-input   { background: radial-gradient(circle at 30% 20%, rgba(139,92,246,0.22), rgba(139,92,246,0.1)); }
 
 #srf-modal-icon.theme-input   svg { stroke: #a78bfa; }
 
 /* ── Text ── */
-#srf-modal-body { padding: 1rem 1.6rem 0; text-align: center; }
+#srf-modal-body { position: relative; padding: 1.05rem 1.6rem 0; text-align: center; }
 
 #srf-modal-title {
-            font-size: 1rem; font-weight: 800; color: #fff;
+            font-size: 1.05rem; font-weight: 800; color: #fff;
             letter-spacing: -0.02em; line-height: 1.25;
             }
 
 #srf-modal-msg {
-            font-size: 0.82rem; color: rgba(255,255,255,0.5);
-            line-height: 1.55; margin-top: 0.4rem;
+            font-size: 0.82rem; color: rgba(255,255,255,0.52);
+            line-height: 1.55; margin-top: 0.45rem;
             }
 
 /* ── Input (for prompt) ── */
-#srf-modal-input-wrap { padding: 0.9rem 1.6rem 0; display: none; }
+#srf-modal-input-wrap { position: relative; padding: 0.9rem 1.6rem 0; display: none; }
 
 #srf-modal-input {
             width: 100%; background: rgba(255,255,255,0.05);
@@ -470,11 +475,12 @@
 
 /* ── Buttons ── */
 #srf-modal-actions {
-            display: flex; gap: 0.6rem; padding: 1.1rem 1.4rem 1.4rem;
+            position: relative;
+            display: flex; gap: 0.6rem; padding: 1.2rem 1.4rem 1.4rem;
             }
 
 .srf-modal-btn {
-            flex: 1; padding: 0.65rem 1rem; border-radius: 0.85rem;
+            flex: 1; padding: 0.7rem 1rem; border-radius: 0.9rem;
             font-size: 0.85rem; font-weight: 700; cursor: pointer;
             border: none; font-family: inherit; transition: all 0.15s;
             display: flex; align-items: center; justify-content: center;
@@ -482,35 +488,59 @@
 
 .srf-modal-btn.cancel {
             background: rgba(255,255,255,0.06);
-            color: rgba(255,255,255,0.55);
-            border: 1px solid rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.6);
+            border: 1px solid rgba(255,255,255,0.09);
             }
 
 .srf-modal-btn.cancel:hover { background: rgba(255,255,255,0.1); color: #fff; }
 
-.srf-modal-btn.confirm-danger  { background: #ef4444; color: #fff; }
+.srf-modal-btn.confirm-danger  {
+            background: linear-gradient(180deg, #f87171, #ef4444);
+            color: #fff;
+            box-shadow: 0 6px 18px rgba(239,68,68,0.3);
+            }
 
-.srf-modal-btn.confirm-danger:hover  { background: #dc2626; }
+.srf-modal-btn.confirm-danger:hover  { filter: brightness(1.06); box-shadow: 0 6px 22px rgba(239,68,68,0.4); }
 
-.srf-modal-btn.confirm-warning { background: #f59e0b; color: #000; }
+.srf-modal-btn.confirm-warning {
+            background: linear-gradient(180deg, #fbbf24, #f59e0b);
+            color: #1a1200;
+            box-shadow: 0 6px 18px rgba(245,158,11,0.28);
+            }
 
-.srf-modal-btn.confirm-warning:hover { background: #d97706; }
+.srf-modal-btn.confirm-warning:hover { filter: brightness(1.06); }
 
-.srf-modal-btn.confirm-success { background: #a3e635; color: #000; }
+.srf-modal-btn.confirm-success {
+            background: linear-gradient(180deg, #bef264, var(--mp-accent));
+            color: #0b0f0a;
+            box-shadow: 0 6px 18px rgba(163,230,53,0.28);
+            }
 
 .srf-modal-btn.confirm-success:hover { filter: brightness(1.08); }
 
-.srf-modal-btn.confirm-info    { background: #3b82f6; color: #fff; }
+.srf-modal-btn.confirm-info    {
+            background: linear-gradient(180deg, #60a5fa, #3b82f6);
+            color: #fff;
+            box-shadow: 0 6px 18px rgba(59,130,246,0.28);
+            }
 
-.srf-modal-btn.confirm-info:hover    { background: #2563eb; }
+.srf-modal-btn.confirm-info:hover    { filter: brightness(1.06); }
 
-.srf-modal-btn.confirm-report  { background: #a3e635; color: #0a0a0a; }
+.srf-modal-btn.confirm-report  {
+            background: linear-gradient(180deg, #bef264, var(--mp-accent));
+            color: #0a0a0a;
+            box-shadow: 0 6px 18px rgba(163,230,53,0.28);
+            }
 
 .srf-modal-btn.confirm-report:hover  { filter: brightness(1.08); }
 
-.srf-modal-btn.confirm-input   { background: #8b5cf6; color: #fff; }
+.srf-modal-btn.confirm-input   {
+            background: linear-gradient(180deg, #a78bfa, #8b5cf6);
+            color: #fff;
+            box-shadow: 0 6px 18px rgba(139,92,246,0.28);
+            }
 
-.srf-modal-btn.confirm-input:hover   { background: #7c3aed; }
+.srf-modal-btn.confirm-input:hover   { filter: brightness(1.06); }
 
 /* ── OK-only (single btn) ── */
 .srf-modal-btn.ok-only { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.8); border: 1px solid rgba(255,255,255,0.09); }
@@ -630,10 +660,10 @@
 
 #srfDisputeIcon {
             width: 2.2rem; height: 2.2rem; border-radius: 0.7rem; flex-shrink: 0;
-            background: rgba(251,146,60,0.12); display: flex; align-items: center; justify-content: center;
+            background: var(--mp-accent-muted); display: flex; align-items: center; justify-content: center;
             }
 
-#srfDisputeIcon svg { width: 1.15rem; height: 1.15rem; stroke: #fb923c; }
+#srfDisputeIcon svg { width: 1.15rem; height: 1.15rem; stroke: var(--mp-accent); }
 
 #srfDisputeTitle { font-size: 1rem; font-weight: 800; color: #fff; letter-spacing: -0.02em; }
 
@@ -688,7 +718,7 @@
             box-sizing: border-box; transition: border-color 0.15s;
             }
 
-#srfDisputeSelect:focus { border-color: rgba(251,146,60,0.5); }
+#srfDisputeSelect:focus { border-color: var(--mp-accent-border); }
 
 #srfDisputeSelect option { background: #16161c; color: #fff; }
 
@@ -712,7 +742,7 @@
             font-family: inherit; outline: none; box-sizing: border-box; transition: border-color 0.15s;
             }
 
-#srfDisputeReason:focus { border-color: rgba(251,146,60,0.5); }
+#srfDisputeReason:focus { border-color: var(--mp-accent-border); }
 
 #srfDisputeReason::placeholder { color: rgba(255,255,255,0.22); }
 
@@ -740,13 +770,82 @@
 
 .srf-dispute-btn.cancel:hover { background: rgba(255,255,255,0.1); color: #fff; }
 
-.srf-dispute-btn.submit { background: #f97316; color: #fff; }
+.srf-dispute-btn.submit { background: var(--mp-accent); color: #0b0f0a; }
 
-.srf-dispute-btn.submit:hover:not(:disabled) { background: #ea6c0a; }
+.srf-dispute-btn.submit:hover:not(:disabled) { background: #b9f04a; }
 
 .srf-dispute-btn.submit svg { width: 14px; height: 14px; animation: srfDisputeSpin 0.8s linear infinite; display: none; }
 
 .srf-dispute-btn.submit.is-loading svg { display: inline-block; }
+
+/* Success confirmation panel — replaces window.alert() after a dispute
+   is submitted. Shown inline in place of the form, same box/overlay,
+   so there's no native browser chrome breaking the app's look. */
+#srfDisputeSuccess {
+            display: none; flex-direction: column; align-items: center; text-align: center;
+            padding: 1.6rem 0.5rem; gap: 0.7rem;
+            }
+
+#srfDisputeSuccessIcon {
+            width: 3rem; height: 3rem; border-radius: 50%; flex-shrink: 0;
+            background: var(--mp-accent-muted); border: 1px solid var(--mp-accent-border);
+            display: flex; align-items: center; justify-content: center;
+            }
+
+#srfDisputeSuccessIcon svg { width: 1.4rem; height: 1.4rem; stroke: var(--mp-accent); }
+
+#srfDisputeSuccessTitle { font-size: 0.95rem; font-weight: 800; color: #fff; letter-spacing: -0.01em; }
+
+#srfDisputeSuccessMsg { font-size: 0.82rem; color: rgba(255,255,255,0.5); line-height: 1.5; max-width: 300px; }
+
+/* Header tabs — toggle between filing a new dispute and viewing past
+   ones. Sits below the title row, above the scrollable body. */
+#srfDisputeTabs {
+            display: flex; gap: 0.4rem; padding: 0 1.4rem 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            }
+
+.srf-dispute-tab {
+            flex: 1; padding: 0.5rem 0.6rem; border-radius: 0.7rem;
+            font-size: 0.76rem; font-weight: 700; text-align: center; cursor: pointer;
+            background: transparent; border: 1px solid rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.45); font-family: inherit; transition: all 0.15s;
+            }
+
+.srf-dispute-tab:hover { color: rgba(255,255,255,0.7); }
+
+.srf-dispute-tab.active {
+            background: var(--mp-accent-muted); border-color: var(--mp-accent-border); color: var(--mp-accent);
+            }
+
+/* My Disputes list */
+#srfDisputeHistoryList { display: flex; flex-direction: column; gap: 0.6rem; }
+
+.srf-dispute-history-item {
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 0.85rem; padding: 0.8rem 0.9rem; display: flex; flex-direction: column; gap: 0.35rem;
+            }
+
+.srf-dispute-history-top { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
+
+.srf-dispute-history-title { font-size: 0.84rem; font-weight: 700; color: #fff; }
+
+.srf-dispute-history-reason { font-size: 0.78rem; color: rgba(255,255,255,0.5); line-height: 1.45; }
+
+.srf-dispute-history-meta { font-size: 0.7rem; color: rgba(255,255,255,0.35); }
+
+.srf-dispute-status-pill {
+            font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em;
+            padding: 0.2rem 0.55rem; border-radius: 999px; flex-shrink: 0; white-space: nowrap;
+            }
+
+.srf-dispute-status-pill.pending {
+            background: rgba(251,191,36,0.14); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3);
+            }
+
+.srf-dispute-status-pill.completed {
+            background: var(--mp-accent-muted); color: var(--mp-accent); border: 1px solid var(--mp-accent-border);
+            }
 
 /* ── extracted style block 17 (originally around char offset 1972262) ── */
 #srfLightbox {
