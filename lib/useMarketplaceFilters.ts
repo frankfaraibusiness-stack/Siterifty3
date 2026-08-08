@@ -27,9 +27,19 @@ import { buildMarketplacePath, formatMarketplacePath } from "@/lib/marketplaceSe
 
 export type TemplateFilter = "all" | "template" | "not-template";
 
+// "all" = no restriction, "auction" = auction-only, "fixed" = exclude
+// auctions — mirrors TemplateFilter's own three-state shape exactly, and
+// like template/price this is applied client-side only: handleFeed/
+// handleSearch have no saleType param, same reasoning as the existing
+// template/price comment below (the server pool already contains both
+// sale types mixed together, so narrowing to one is a cheap in-memory
+// filter over whatever page/results already came back).
+export type SaleTypeFilter = "all" | "auction" | "fixed";
+
 export interface MarketplaceFilters {
   typeFilter: ListingType | "all";
   templateFilter: TemplateFilter;
+  saleTypeFilter: SaleTypeFilter;
   priceMin: number;
   priceMax: number | null;
 }
@@ -37,6 +47,7 @@ export interface MarketplaceFilters {
 export interface MarketplaceFiltersInitial {
   typeFilter?: ListingType | "all";
   templateFilter?: TemplateFilter;
+  saleTypeFilter?: SaleTypeFilter;
   priceMin?: number;
   priceMax?: number | null;
   searchQuery?: string;
@@ -65,6 +76,7 @@ export interface ActiveTag {
 interface FiltersCacheEntry {
   typeFilter: ListingType | "all";
   templateFilter: TemplateFilter;
+  saleTypeFilter: SaleTypeFilter;
   priceMin: number;
   priceMax: number | null;
   searchQuery: string;
@@ -108,6 +120,9 @@ export function useMarketplaceFilters(initial?: MarketplaceFiltersInitial, syncU
   const [templateFilter, setTemplateFilterState] = useState<TemplateFilter>(
     initial?.templateFilter ?? filtersCache?.templateFilter ?? "all"
   );
+  const [saleTypeFilter, setSaleTypeFilterState] = useState<SaleTypeFilter>(
+    initial?.saleTypeFilter ?? filtersCache?.saleTypeFilter ?? "all"
+  );
   const [priceMin, setPriceMinState] = useState(initial?.priceMin ?? filtersCache?.priceMin ?? 0);
   const [priceMax, setPriceMaxState] = useState<number | null>(
     initial?.priceMax !== undefined ? initial.priceMax : filtersCache?.priceMax ?? null
@@ -124,6 +139,7 @@ export function useMarketplaceFilters(initial?: MarketplaceFiltersInitial, syncU
     filtersCache = {
       typeFilter: filtersCache?.typeFilter ?? "all",
       templateFilter: filtersCache?.templateFilter ?? "all",
+      saleTypeFilter: filtersCache?.saleTypeFilter ?? "all",
       priceMin: filtersCache?.priceMin ?? 0,
       priceMax: filtersCache?.priceMax ?? null,
       searchQuery: filtersCache?.searchQuery ?? "",
@@ -145,6 +161,13 @@ export function useMarketplaceFilters(initial?: MarketplaceFiltersInitial, syncU
     },
     [syncCache]
   );
+  const setSaleTypeFilter = useCallback(
+    (v: SaleTypeFilter) => {
+      setSaleTypeFilterState(v);
+      syncCache({ saleTypeFilter: v });
+    },
+    [syncCache]
+  );
   const setSearchQuery = useCallback(
     (v: string) => {
       setSearchQueryState(v);
@@ -155,6 +178,7 @@ export function useMarketplaceFilters(initial?: MarketplaceFiltersInitial, syncU
 
   const clearType = useCallback(() => setTypeFilter("all"), [setTypeFilter]);
   const clearTemplate = useCallback(() => setTemplateFilter("all"), [setTemplateFilter]);
+  const clearSaleType = useCallback(() => setSaleTypeFilter("all"), [setSaleTypeFilter]);
   const clearPrice = useCallback(() => {
     setPriceMinState(0);
     setPriceMaxState(null);
@@ -175,6 +199,12 @@ export function useMarketplaceFilters(initial?: MarketplaceFiltersInitial, syncU
         clear: clearTemplate,
       });
     }
+    if (saleTypeFilter !== "all") {
+      tags.push({
+        label: saleTypeFilter === "auction" ? "Auctions only" : "Fixed price only",
+        clear: clearSaleType,
+      });
+    }
     if (priceMin > 0 || priceMax !== null) {
       const hMin = priceMin > 0;
       const hMax = priceMax !== null;
@@ -185,7 +215,7 @@ export function useMarketplaceFilters(initial?: MarketplaceFiltersInitial, syncU
       tags.push({ label, clear: clearPrice });
     }
     return tags;
-  }, [typeFilter, templateFilter, priceMin, priceMax, clearType, clearTemplate, clearPrice]);
+  }, [typeFilter, templateFilter, saleTypeFilter, priceMin, priceMax, clearType, clearTemplate, clearSaleType, clearPrice]);
 
   // Client-side portion of mpApplyAndRender's filter chain — template and
   // price only. Type itself is still applied server-side via useFeed's
@@ -202,9 +232,20 @@ export function useMarketplaceFilters(initial?: MarketplaceFiltersInitial, syncU
       let f = listings;
       if (templateFilter === "template") f = f.filter((l) => l.isTemplate === true);
       else if (templateFilter === "not-template") f = f.filter((l) => !l.isTemplate);
+      if (saleTypeFilter === "auction") f = f.filter((l) => l.saleType === "auction" && !!l.auction);
+      else if (saleTypeFilter === "fixed") f = f.filter((l) => l.saleType !== "auction");
       if (priceMin > 0 || priceMax !== null) {
         f = f.filter((l) => {
-          const p = l.financials?.price;
+          // Auctions carry their price on `auction` (current bid, or the
+          // starting price before any bids land), not `financials.price`
+          // — see lib/listings.ts's own note on saleType: "auction". This
+          // filter used to always drop auction listings outright whenever
+          // a price range was active, since `financials?.price` is
+          // undefined for them; check the right field instead.
+          const p =
+            l.saleType === "auction" && l.auction
+              ? (typeof l.auction.currentBid === "number" ? l.auction.currentBid : l.auction.startPrice)
+              : l.financials?.price;
           if (typeof p !== "number") return false;
           if (priceMin > 0 && p < priceMin) return false;
           if (priceMax !== null && p > priceMax) return false;
@@ -213,7 +254,7 @@ export function useMarketplaceFilters(initial?: MarketplaceFiltersInitial, syncU
       }
       return f;
     },
-    [templateFilter, priceMin, priceMax]
+    [templateFilter, saleTypeFilter, priceMin, priceMax]
   );
 
   const currentPath = useMemo(
@@ -242,6 +283,8 @@ export function useMarketplaceFilters(initial?: MarketplaceFiltersInitial, syncU
     setTypeFilter,
     templateFilter,
     setTemplateFilter,
+    saleTypeFilter,
+    setSaleTypeFilter,
     priceMin,
     priceMax,
     setPriceRange: (min: number, max: number | null) => {
