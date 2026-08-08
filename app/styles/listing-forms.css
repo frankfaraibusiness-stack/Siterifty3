@@ -511,6 +511,15 @@
 
 .el-profit-value.loss { color: #f87171; }
 
+.el-toggle-btn {
+         flex: 1; padding: 0.75rem 0.85rem; border-radius: 0.9rem; cursor: pointer;
+         font-size: 0.8rem; font-weight: 700; font-family: inherit;
+         border: 1.5px solid #262626; background: #0d0d0d; color: #999;
+         transition: border-color 0.15s, background 0.15s, color 0.15s;
+      }
+
+.el-toggle-btn.active { border-color: #d4af37; background: rgba(212,175,55,0.12); color: #d4af37; }
+
 .el-images { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; }
 
 .el-img-slot {
