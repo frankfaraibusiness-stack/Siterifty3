@@ -38,22 +38,11 @@
 // from the client.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { initializeApp, getApps, cert } from 'firebase-admin/app';
-import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore';
+import { FieldValue, Timestamp } from 'firebase-admin/firestore';
+import { getAdminDb } from '../../../lib/server/adminDb';
 
 // ── Firebase Admin singleton ─────────────────────────────────────────────────
-function getAdminDb() {
-  if (!getApps().length) {
-    initializeApp({
-      credential: cert({
-        projectId:   process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey:  process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-      }),
-    });
-  }
-  return getFirestore();
-}
+// Shared init — see lib/server/adminDb.ts.
 
 // ── Firebase ID token verification via REST ──────────────────────────────────
 const FIREBASE_WEB_API_KEY = 'AIzaSyCMdI_bIYse6j3GyGDBnbE6FoGNnPKaMao';
