@@ -355,7 +355,7 @@ function AddOtherModal({
 
   return (
     <div className="tdm-item-modal-overlay active" onClick={(e) => e.target === e.currentTarget && onCancel()}>
-      <div className="tdm-item-modal" style={{ "--tdm-accent": TDM_TYPE_THEME[type].accent } as React.CSSProperties}>
+      <div className="tdm-item-modal" style={{ "--tdm-accent": TDM_TYPE_THEME[type].accent } as React.CSSProperties} data-scroll-lock-exempt>
         <div className="tdm-modal-theme-head" style={{ "--tdm-accent": TDM_TYPE_THEME[type].accent } as React.CSSProperties}>
           <div className="tdm-modal-theme-icon">
             <TdmIcon id="other" />
@@ -547,7 +547,7 @@ function ItemModal({
 
   return (
     <div className="tdm-item-modal-overlay active" onClick={(e) => e.target === e.currentTarget && onCancel()}>
-      <div className="tdm-item-modal" style={{ "--tdm-accent": theme.accent } as React.CSSProperties}>
+      <div className="tdm-item-modal" style={{ "--tdm-accent": theme.accent } as React.CSSProperties} data-scroll-lock-exempt>
         <div className="tdm-modal-theme-head" style={{ "--tdm-accent": theme.accent } as React.CSSProperties}>
           <div className="tdm-modal-theme-icon">
             <TypeThemeIcon type={activeType} />
@@ -1207,7 +1207,7 @@ function PreviewSheet({
 
   return (
     <div className="tdm-preview-overlay active" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="tdm-preview-sheet">
+      <div className="tdm-preview-sheet" data-scroll-lock-exempt>
         <h3>Review completed items</h3>
         {keys.map((key) => {
           const idx = parseInt(key.split("-")[1], 10);
