@@ -31,6 +31,24 @@ export interface DisputableDeal {
   listingPrice?: number | null;
 }
 
+// A deal the user has already disputed at some point — read straight off
+// their own users/{uid}/deals docs, which handleEscrowDispute() mirrors
+// disputedAt/disputeReason onto at filing time, and which the resolve/
+// release/refund paths already mirror paymentStatus + completedAt/
+// refundedAt onto regardless of whether resolution came from a normal
+// delivery confirmation or an admin dispute resolution. "Pending" is
+// paymentStatus === 'disputed'; anything else (complete/refunded) that
+// still carries a disputedAt is a resolved dispute.
+export interface DisputeHistoryItem {
+  dealId: string;
+  listingTitle?: string;
+  paymentStatus?: string;
+  disputeReason?: string;
+  disputedAt?: { toMillis?: () => number; seconds?: number } | number | null;
+  completedAt?: { toMillis?: () => number; seconds?: number } | number | null;
+  refundedAt?: { toMillis?: () => number; seconds?: number } | number | null;
+}
+
 // Statuses still eligible to dispute — mirrors the server-side check in
 // /api/deal's escrow-dispute action exactly, so nothing shown here could
 // fail server-side.
@@ -57,10 +75,32 @@ function statusLabel(status?: string): string {
   return status === "delivered" ? "Delivered — awaiting your confirmation" : "Funded — in escrow";
 }
 
+// Firestore Timestamp | millis | null → millis, defensively (mirrors the
+// boostDaysLeft-style helpers used elsewhere in this app for the same
+// "could be a real Timestamp or a plain number depending on write path"
+// situation).
+function toMillis(v: DisputeHistoryItem["disputedAt"]): number | null {
+  if (v == null) return null;
+  if (typeof v === "number") return v;
+  if (typeof v.toMillis === "function") return v.toMillis();
+  if (typeof v.seconds === "number") return v.seconds * 1000;
+  return null;
+}
+
+function fmtDate(v: DisputeHistoryItem["disputedAt"]): string {
+  const ms = toMillis(v);
+  if (!ms) return "";
+  return new Date(ms).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+}
+
 type LoadState = "loading" | "empty" | "error" | "ready";
+type Tab = "file" | "history";
+type HistoryState = "loading" | "empty" | "error" | "ready";
 
 export default function DisputePicker({ open, onClose }: { open: boolean; onClose: () => void }) {
   useScrollLock(open);
+  const [tab, setTab] = useState<Tab>("file");
+
   const [loadState, setLoadState] = useState<LoadState>("loading");
   const [emptyTitle, setEmptyTitle] = useState("No deals yet");
   const [emptyMsg, setEmptyMsg] = useState(
@@ -72,6 +112,10 @@ export default function DisputePicker({ open, onClose }: { open: boolean; onClos
   const [err, setErr] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [myUid, setMyUid] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+
+  const [historyState, setHistoryState] = useState<HistoryState>("loading");
+  const [history, setHistory] = useState<DisputeHistoryItem[]>([]);
 
   // Ports _loadDeals — runs once each time the picker opens (App Router
   // has no direct equivalent of "call this function to open me", so the
@@ -133,12 +177,67 @@ export default function DisputePicker({ open, onClose }: { open: boolean; onClos
     }
   }
 
+  // Loads every deal the user has ever disputed (pending or resolved),
+  // newest first. A deal only shows here once disputedAt is actually set
+  // on it, which handleEscrowDispute() now mirrors at filing time.
+  async function loadHistory() {
+    setHistoryState("loading");
+    try {
+      const user = auth.currentUser;
+      if (!user) throw new Error("Please sign in first.");
+      setMyUid(user.uid);
+
+      const { collection, query, where, orderBy, getDocs } = await import("firebase/firestore");
+
+      let snap;
+      try {
+        snap = await getDocs(
+          query(collection(db, "users", user.uid, "deals"), where("disputedAt", "!=", null), orderBy("disputedAt", "desc"))
+        );
+      } catch {
+        // Composite index on (disputedAt != null, disputedAt desc) may not
+        // exist yet on older projects — fall back to an unordered scan and
+        // sort client-side rather than hard-failing the whole tab.
+        snap = await getDocs(query(collection(db, "users", user.uid, "deals"), where("disputedAt", "!=", null)));
+      }
+
+      const loaded: DisputeHistoryItem[] = snap.docs.map((docSnap) => {
+        const data = docSnap.data() as Record<string, unknown>;
+        return {
+          dealId: docSnap.id,
+          listingTitle: data.listingTitle as string | undefined,
+          paymentStatus: data.paymentStatus as string | undefined,
+          disputeReason: data.disputeReason as string | undefined,
+          disputedAt: data.disputedAt as DisputeHistoryItem["disputedAt"],
+          completedAt: data.completedAt as DisputeHistoryItem["completedAt"],
+          refundedAt: data.refundedAt as DisputeHistoryItem["refundedAt"],
+        };
+      });
+
+      loaded.sort((a, b) => (toMillis(b.disputedAt) || 0) - (toMillis(a.disputedAt) || 0));
+
+      setHistory(loaded);
+      setHistoryState(loaded.length ? "ready" : "empty");
+    } catch (e) {
+      console.error("[dispute picker] history load failed", e);
+      setHistoryState("error");
+    }
+  }
+
   // Fire the load exactly once per open — mirrors the original calling
   // _loadDeals() fresh every time the dispute button is clicked.
   useEffect(() => {
-    if (open) loadDeals();
+    if (!open) return;
+    setTab("file");
+    setSubmitted(false);
+    loadDeals();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
+
+  useEffect(() => {
+    if (open && tab === "history") loadHistory();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, tab]);
 
   if (!open) return null;
 
@@ -173,13 +272,11 @@ export default function DisputePicker({ open, onClose }: { open: boolean; onClos
       const out = await resp.json();
       if (!resp.ok) throw new Error(out.error || "Could not submit dispute");
 
-      onClose();
-      // Ports the original's window.srfModal.alert(...) confirmation —
-      // this app doesn't have a global srfModal equivalent (see the
-      // README's "global confirm-dialog helper" note), so a plain alert
-      // stands in here, same simplification already used for the
-      // sign-out confirm and report-seller confirm elsewhere.
-      alert("Dispute Submitted — funds are frozen and our team will review within 24–48 hours.");
+      // Shows the in-modal success panel below instead of a native
+      // window.alert() — same overlay/box, no browser chrome, and the
+      // person can see it as long as they need rather than it vanishing
+      // on its own like a toast would.
+      setSubmitted(true);
     } catch (e) {
       console.error("[dispute picker] submit failed", e);
       setErr(e instanceof Error ? e.message : "Something went wrong. Please try again.");
@@ -207,8 +304,8 @@ export default function DisputePicker({ open, onClose }: { open: boolean; onClos
             </svg>
           </div>
           <div>
-            <div id="srfDisputeTitle">Raise a Dispute</div>
-            <div id="srfDisputeSub">Select the deal you&apos;d like to flag</div>
+            <div id="srfDisputeTitle">{tab === "file" ? "Raise a Dispute" : "My Disputes"}</div>
+            <div id="srfDisputeSub">{tab === "file" ? "Select the deal you'd like to flag" : "Pending and completed disputes"}</div>
           </div>
           <button id="srfDisputeClose" aria-label="Close" type="button" onClick={onClose}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8">
@@ -218,97 +315,183 @@ export default function DisputePicker({ open, onClose }: { open: boolean; onClos
           </button>
         </div>
 
+        {!submitted && (
+          <div id="srfDisputeTabs">
+            <button type="button" className={`srf-dispute-tab${tab === "file" ? " active" : ""}`} onClick={() => setTab("file")}>
+              Raise a Dispute
+            </button>
+            <button type="button" className={`srf-dispute-tab${tab === "history" ? " active" : ""}`} onClick={() => setTab("history")}>
+              My Disputes
+            </button>
+          </div>
+        )}
+
         <div id="srfDisputeBody" data-scroll-lock-exempt>
-          {loadState === "loading" && (
-            <div id="srfDisputeLoading" style={{ display: "flex" }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <circle cx="12" cy="12" r="9" opacity="0.25" />
-                <path d="M21 12a9 9 0 00-9-9" />
-              </svg>
-              Loading your deals…
-            </div>
-          )}
-
-          {(loadState === "empty" || loadState === "error") && (
-            <div id="srfDisputeEmpty" style={{ display: "flex" }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 12h6M9 16h6M9 8h6" />
-                <rect x="4" y="3" width="16" height="18" rx="2" />
-              </svg>
-              <div id="srfDisputeEmptyTitle">{emptyTitle}</div>
-              <div id="srfDisputeEmptyMsg">{emptyMsg}</div>
-            </div>
-          )}
-
-          {loadState === "ready" && (
-            <div id="srfDisputeForm" style={{ display: "flex" }}>
-              <div>
-                <label className="srf-dispute-label" htmlFor="srfDisputeSelect">
-                  Deal
-                </label>
-                <div id="srfDisputeSelectWrap">
-                  <select
-                    id="srfDisputeSelect"
-                    value={selectedId}
-                    onChange={(e) => setSelectedId(e.target.value)}
-                  >
-                    {deals.map((d) => (
-                      <option key={d.dealId} value={d.dealId}>
-                        {d.listingTitle || "Untitled listing"} — with {otherParty(d, myUid)} ({fmtAmount(d)})
-                      </option>
-                    ))}
-                  </select>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
-                    <polyline points="6 9 12 15 18 9" />
-                  </svg>
-                </div>
+          {submitted ? (
+            <div id="srfDisputeSuccess" style={{ display: "flex" }}>
+              <div id="srfDisputeSuccessIcon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 6L9 17l-5-5" />
+                </svg>
               </div>
-
-              {selected && (
-                <div id="srfDisputeDealMeta" style={{ display: "flex" }}>
-                  <span>
-                    Amount in escrow: <b>{fmtAmount(selected)}</b> · {statusLabel(selected.paymentStatus)}
-                  </span>
+              <div id="srfDisputeSuccessTitle">Dispute submitted</div>
+              <div id="srfDisputeSuccessMsg">Funds are frozen and our team will review within 24–48 hours.</div>
+            </div>
+          ) : tab === "file" ? (
+            <>
+              {loadState === "loading" && (
+                <div id="srfDisputeLoading" style={{ display: "flex" }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <circle cx="12" cy="12" r="9" opacity="0.25" />
+                    <path d="M21 12a9 9 0 00-9-9" />
+                  </svg>
+                  Loading your deals…
                 </div>
               )}
 
-              <div>
-                <label className="srf-dispute-label" htmlFor="srfDisputeReason">
-                  What went wrong?
-                </label>
-                <textarea
-                  id="srfDisputeReason"
-                  maxLength={500}
-                  placeholder="Briefly describe the issue — our team will review within 24–48 hours."
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                />
-                <div id="srfDisputeCharCount">{reason.length} / 500</div>
-              </div>
+              {(loadState === "empty" || loadState === "error") && (
+                <div id="srfDisputeEmpty" style={{ display: "flex" }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 12h6M9 16h6M9 8h6" />
+                    <rect x="4" y="3" width="16" height="18" rx="2" />
+                  </svg>
+                  <div id="srfDisputeEmptyTitle">{emptyTitle}</div>
+                  <div id="srfDisputeEmptyMsg">{emptyMsg}</div>
+                </div>
+              )}
 
-              {err && <div id="srfDisputeError" style={{ display: "block" }}>{err}</div>}
-            </div>
+              {loadState === "ready" && (
+                <div id="srfDisputeForm" style={{ display: "flex" }}>
+                  <div>
+                    <label className="srf-dispute-label" htmlFor="srfDisputeSelect">
+                      Deal
+                    </label>
+                    <div id="srfDisputeSelectWrap">
+                      <select
+                        id="srfDisputeSelect"
+                        value={selectedId}
+                        onChange={(e) => setSelectedId(e.target.value)}
+                      >
+                        {deals.map((d) => (
+                          <option key={d.dealId} value={d.dealId}>
+                            {d.listingTitle || "Untitled listing"} — with {otherParty(d, myUid)} ({fmtAmount(d)})
+                          </option>
+                        ))}
+                      </select>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
+                        <polyline points="6 9 12 15 18 9" />
+                      </svg>
+                    </div>
+                  </div>
+
+                  {selected && (
+                    <div id="srfDisputeDealMeta" style={{ display: "flex" }}>
+                      <span>
+                        Amount in escrow: <b>{fmtAmount(selected)}</b> · {statusLabel(selected.paymentStatus)}
+                      </span>
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="srf-dispute-label" htmlFor="srfDisputeReason">
+                      What went wrong?
+                    </label>
+                    <textarea
+                      id="srfDisputeReason"
+                      maxLength={500}
+                      placeholder="Briefly describe the issue — our team will review within 24–48 hours."
+                      value={reason}
+                      onChange={(e) => setReason(e.target.value)}
+                    />
+                    <div id="srfDisputeCharCount">{reason.length} / 500</div>
+                  </div>
+
+                  {err && <div id="srfDisputeError" style={{ display: "block" }}>{err}</div>}
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              {historyState === "loading" && (
+                <div id="srfDisputeLoading" style={{ display: "flex" }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <circle cx="12" cy="12" r="9" opacity="0.25" />
+                    <path d="M21 12a9 9 0 00-9-9" />
+                  </svg>
+                  Loading your disputes…
+                </div>
+              )}
+
+              {(historyState === "empty" || historyState === "error") && (
+                <div id="srfDisputeEmpty" style={{ display: "flex" }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 12h6M9 16h6M9 8h6" />
+                    <rect x="4" y="3" width="16" height="18" rx="2" />
+                  </svg>
+                  <div id="srfDisputeEmptyTitle">
+                    {historyState === "error" ? "Could not load disputes" : "No disputes yet"}
+                  </div>
+                  <div id="srfDisputeEmptyMsg">
+                    {historyState === "error"
+                      ? "Something went wrong loading your dispute history. Please try again."
+                      : "Disputes you raise or that are raised against your deals will show up here."}
+                  </div>
+                </div>
+              )}
+
+              {historyState === "ready" && (
+                <div id="srfDisputeHistoryList">
+                  {history.map((h) => {
+                    const isPending = h.paymentStatus === "disputed";
+                    const resolvedAt = h.completedAt ?? h.refundedAt;
+                    return (
+                      <div className="srf-dispute-history-item" key={h.dealId}>
+                        <div className="srf-dispute-history-top">
+                          <div className="srf-dispute-history-title">{h.listingTitle || "Untitled listing"}</div>
+                          <span className={`srf-dispute-status-pill ${isPending ? "pending" : "completed"}`}>
+                            {isPending ? "Pending" : "Completed"}
+                          </span>
+                        </div>
+                        {h.disputeReason && <div className="srf-dispute-history-reason">{h.disputeReason}</div>}
+                        <div className="srf-dispute-history-meta">
+                          Filed {fmtDate(h.disputedAt)}
+                          {!isPending && resolvedAt ? ` · Resolved ${fmtDate(resolvedAt)}` : ""}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </>
           )}
         </div>
 
         <div id="srfDisputeActions">
-          <button className="srf-dispute-btn cancel" type="button" onClick={onClose}>
-            Cancel
-          </button>
-          {loadState === "ready" && (
-            <button
-              className={`srf-dispute-btn submit${submitting ? " is-loading" : ""}`}
-              type="button"
-              style={{ display: "flex" }}
-              disabled={submitting}
-              onClick={handleSubmit}
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <circle cx="12" cy="12" r="9" opacity="0.25" />
-                <path d="M21 12a9 9 0 00-9-9" />
-              </svg>
-              <span>{submitting ? "Submitting…" : "Submit Dispute"}</span>
+          {submitted ? (
+            <button className="srf-dispute-btn cancel" type="button" onClick={onClose}>
+              Done
             </button>
+          ) : (
+            <>
+              <button className="srf-dispute-btn cancel" type="button" onClick={onClose}>
+                Cancel
+              </button>
+              {tab === "file" && loadState === "ready" && (
+                <button
+                  className={`srf-dispute-btn submit${submitting ? " is-loading" : ""}`}
+                  type="button"
+                  style={{ display: "flex" }}
+                  disabled={submitting}
+                  onClick={handleSubmit}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <circle cx="12" cy="12" r="9" opacity="0.25" />
+                    <path d="M21 12a9 9 0 00-9-9" />
+                  </svg>
+                  <span>{submitting ? "Submitting…" : "Submit Dispute"}</span>
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>
