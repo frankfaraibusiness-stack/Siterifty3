@@ -407,7 +407,7 @@ export default function NavDrawer() {
             className="nav-link nav-notif-row"
             id="navNotifRow"
             onClick={handlePushToggleClick}
-            style={{ cursor: pushCapable ? "pointer" : "default", opacity: pushCapable ? 1 : 0.35, pointerEvents: pushBusy ? "none" : pushCapable ? "auto" : "none" }}
+            style={{ cursor: "pointer", opacity: pushCapable ? 1 : 0.35, pointerEvents: pushBusy ? "none" : "auto" }}
           >
             <svg
               viewBox="0 0 24 24"
